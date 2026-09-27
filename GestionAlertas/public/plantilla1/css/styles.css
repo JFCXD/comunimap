@@ -1,0 +1,1354 @@
+/* ==========================================================================
+   ComuniMap - Sistema Digital de Gestión y Alerta de Problemas Comunitarios
+   OTB Barrio Universitario Alto (Km 4 Av. Petrolera, Cochabamba, Bolivia)
+   Sistema de Diseño: Classic Navy & Amber Dashboard (SPA sin Topbar)
+   Todos los comentarios en español según solicitud del proyecto.
+   ========================================================================== */
+
+:root {
+  /* Paleta primaria institucional */
+  --navy: #103554;
+  --navy-dark: #0B243B;
+  --navy-light: #2A4E70;
+  
+  /* Acentos cálidos ámbar y naranja */
+  --orange: #FFA51E;
+  --orange-light: #FFD477;
+  --orange-pale: #FFF0CF;
+  
+  /* Fondos y superficies */
+  --bg-app: #E5EBF4;
+  --bg-content: #F1F4FA;
+  --bg-surface: #FFFFFF;
+  --bg-hover: #F8FAFD;
+  
+  /* Tipografía y colores de texto */
+  --text-primary: #303743;
+  --text-secondary: #7B8794;
+  --text-muted: #A7AFBA;
+  --text-on-dark: #FFFFFF;
+  
+  /* Colores de estado para incidencias comunitarias */
+  --status-pending: #E74C3C;
+  --status-pending-bg: #FDE8E7;
+  --status-process: #FFA51E;
+  --status-process-bg: #FFF3DE;
+  --status-solved: #27AE60;
+  --status-solved-bg: #E8F8F0;
+  
+  /* Bordes y sombras suaves */
+  --border: #E5E9EF;
+  --border-light: #EEF2F6;
+  --shadow-sm: 0 2px 6px rgba(25, 45, 70, 0.08);
+  --shadow-card: 0 4px 14px rgba(25, 45, 70, 0.10);
+  --shadow-hover: 0 6px 20px rgba(25, 45, 70, 0.14);
+  
+  /* Radio y bordes */
+  --radius-card: 4px;
+  --radius-pill: 20px;
+  
+  /* Tipografía */
+  --font-main: 'Open Sans', Arial, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Reset universal */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  min-height: 100vh;
+  font-family: var(--font-main);
+  background-color: var(--bg-content);
+  color: var(--text-primary);
+  font-size: 13px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   Estructura Principal (Sidebar Fijo + Contenedor de Vistas SPA)
+   ========================================================================== */
+.dashboard-root {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* Barra lateral fija: Azul marino (#103554) */
+.sidebar {
+  width: 230px;
+  background-color: var(--navy);
+  color: var(--text-on-dark);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1000;
+  overflow-y: auto;
+  box-shadow: 2px 0 12px rgba(11, 36, 59, 0.2);
+  transition: transform 0.25s ease;
+}
+
+/* Bloque de Marca / Encabezado de Barra Lateral (Classic Navy #103554) */
+.brand-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 16px 14px 16px;
+  background: transparent;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.brand-icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(255, 165, 30, 0.15);
+  border: 1px solid rgba(255, 165, 30, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--orange);
+  flex-shrink: 0;
+}
+
+.brand-icon-box svg {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-text h2 {
+  font-size: 16px;
+  font-weight: 800;
+  color: #FFFFFF;
+  letter-spacing: 0.5px;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.brand-text p {
+  font-size: 10px;
+  font-weight: 600;
+  color: #8BA2B8;
+  letter-spacing: 0.3px;
+  margin: 2px 0 0 0;
+}
+
+/* Bloque de perfil del usuario conectado */
+.profile-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.avatar-wrapper {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background-color: #0b243b;
+  border: 3px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.user-name {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: #FFFFFF;
+  text-transform: uppercase;
+}
+
+.user-email-text {
+  font-size: 10px;
+  color: #8BA2B8;
+  margin-top: 1px;
+}
+
+.user-role-badge {
+  font-size: 9px;
+  color: var(--orange-light);
+  font-weight: 700;
+  background: rgba(255, 165, 30, 0.18);
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-top: 4px;
+  letter-spacing: 0.3px;
+}
+
+/* Navegación lateral con las secciones */
+.sidebar-menu {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 8px;
+  flex: 1;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 18px;
+  color: #A3B8CC;
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+  text-transform: uppercase;
+  border-left: 4px solid transparent;
+}
+
+.sidebar-link:hover {
+  color: #FFFFFF;
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+.sidebar-link.active {
+  color: #FFFFFF;
+  background-color: rgba(0, 0, 0, 0.28);
+  font-weight: 700;
+  border-left-color: var(--orange);
+}
+
+.sidebar-link svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+  flex-shrink: 0;
+}
+
+.sidebar-badge-count {
+  margin-left: auto;
+  background-color: var(--orange);
+  color: #FFFFFF;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 8px;
+}
+
+/* Sección inferior del menú: Cerrar Sesión */
+.sidebar-bottom {
+  margin-top: auto;
+  width: 100%;
+  padding: 12px 16px 16px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.btn-logout {
+  width: 100%;
+  padding: 9px 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px dashed rgba(255, 255, 255, 0.28);
+  border-radius: 4px;
+  color: #E2E8F0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+}
+
+.btn-logout:hover {
+  background: rgba(231, 76, 60, 0.2);
+  border-color: #E74C3C;
+  color: #FFB3B3;
+}
+
+.btn-logout svg {
+  width: 15px;
+  height: 15px;
+  fill: currentColor;
+}
+
+/* ==========================================================================
+   Área Principal de Contenido (Limpio desde el borde superior de la pantalla)
+   ========================================================================== */
+.main-content {
+  margin-left: 230px;
+  flex: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-content);
+}
+
+/* Botón flotante para menú móvil */
+.mobile-toggle-btn {
+  display: none;
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  z-index: 1200;
+  background-color: var(--navy);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  padding: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   Contenedor y Sistema de Vistas SPA
+   ========================================================================== */
+.view-container {
+  padding: 24px 28px 40px 28px;
+  flex: 1;
+}
+
+.view-panel {
+  display: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.view-panel.active {
+  display: block;
+  opacity: 1;
+  animation: fadeInView 0.2s ease;
+}
+
+@keyframes fadeInView {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Encabezado descriptivo de cada vista */
+.view-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.view-title-group h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--navy);
+  line-height: 1.2;
+  margin: 0;
+}
+
+.view-title-group p {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 3px;
+}
+
+.header-title-flex {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Badges funcionales de conteo de incidencias y alertas */
+.view-badge-alert {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 165, 30, 0.14);
+  border: 1px solid rgba(255, 165, 30, 0.4);
+  color: #B45309;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.2px;
+  vertical-align: middle;
+}
+
+.view-badge-alert.alert-orange-tint {
+  background: rgba(231, 76, 60, 0.12);
+  border-color: rgba(231, 76, 60, 0.35);
+  color: #C0392B;
+}
+
+.view-badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--orange);
+  box-shadow: 0 0 0 2px rgba(255, 165, 30, 0.25);
+  animation: pulseDot 2s infinite ease-in-out;
+}
+
+.view-badge-alert.alert-orange-tint .view-badge-dot {
+  background-color: var(--red);
+  box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.25);
+}
+
+@keyframes pulseDot {
+  0% { transform: scale(0.9); opacity: 0.8; }
+  50% { transform: scale(1.25); opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0.8; }
+}
+
+.table-badge-counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(231, 76, 60, 0.1);
+  color: #C0392B;
+  border: 1px solid rgba(231, 76, 60, 0.25);
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.badge-dot-mini {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: #E74C3C;
+}
+
+/* Botones del Sistema de Diseño */
+.btn-pill-orange {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  background-color: var(--orange);
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 700;
+  border: none;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  box-shadow: 0 2px 6px rgba(255, 165, 30, 0.3);
+  text-decoration: none;
+}
+
+.btn-pill-orange:hover {
+  background-color: #E89417;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(255, 165, 30, 0.4);
+}
+
+.btn-pill-navy {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background-color: var(--navy);
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 700;
+  border: none;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  text-decoration: none;
+}
+
+.btn-pill-navy:hover {
+  background-color: var(--navy-light);
+  transform: translateY(-1px);
+}
+
+.btn-pill-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background-color: #FFFFFF;
+  color: var(--navy);
+  border: 1px solid var(--border);
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-pill-secondary:hover {
+  background-color: var(--bg-hover);
+  border-color: var(--navy-light);
+}
+
+/* Buscador estándar para tablas */
+.search-input {
+  padding: 7px 12px;
+  font-size: 11px;
+  font-family: inherit;
+  color: var(--text-primary);
+  background-color: #FFFFFF;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.search-input:focus {
+  border-color: var(--navy);
+  box-shadow: 0 0 0 3px rgba(16, 53, 84, 0.08);
+}
+
+/* ==========================================================================
+   Tarjetas de Métricas Estadísticas (En Estadísticas)
+   ========================================================================== */
+.metric-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card);
+}
+
+.stat-card.navy-highlight {
+  background-color: var(--navy);
+  color: #FFFFFF;
+  border-color: var(--navy-dark);
+}
+
+.stat-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.stat-card-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-card.navy-highlight .stat-card-title {
+  color: #B4C6D8;
+}
+
+.stat-card-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-card-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.icon-badge-circle {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(255, 165, 30, 0.25);
+  color: var(--orange-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-card-value {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--navy);
+  margin-bottom: 4px;
+}
+
+.stat-card.navy-highlight .stat-card-value {
+  color: #FFFFFF;
+}
+
+.stat-card-footer {
+  font-size: 10px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-card.navy-highlight .stat-card-footer {
+  color: #A3B8CC;
+}
+
+/* ==========================================================================
+   Tarjetas Estándar del Sistema de Diseño
+   ========================================================================== */
+.dash-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 18px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 18px;
+}
+
+.card-header-clean {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.card-title-clean {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--navy);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-subtitle-clean {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* ==========================================================================
+   VISTA 1: INICIO (Mapa Georreferenciado Protagonista)
+   ========================================================================== */
+.home-layout-grid {
+  display: grid;
+  grid-template-columns: 2.2fr 1fr;
+  gap: 18px;
+}
+
+.map-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.map-filter-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.filter-pill {
+  padding: 4px 11px;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: inherit;
+  background-color: var(--bg-content);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.filter-pill:hover {
+  background-color: #E2E8F0;
+  color: var(--navy);
+}
+
+.filter-pill.active {
+  background-color: var(--navy);
+  color: #FFFFFF;
+  border-color: var(--navy);
+}
+
+/* Contenedor del mapa protagonista con altura optimizada */
+.map-container-wrap {
+  width: 100%;
+  height: 520px;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  position: relative;
+}
+
+#comuniMapLeaflet {
+  width: 100%;
+  height: 100%;
+  background-color: #DEE6ED;
+}
+
+.map-legend-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+  padding: 8px 12px;
+  background-color: var(--bg-content);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-card);
+  font-size: 11px;
+}
+
+.map-legend-status-items {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.legend-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+}
+
+.dot-status {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dot-status.red { background-color: var(--status-pending); }
+.dot-status.amber { background-color: var(--status-process); }
+.dot-status.green { background-color: var(--status-solved); }
+
+/* Lista de incidentes críticos en Inicio */
+.home-summary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 540px;
+  overflow-y: auto;
+}
+
+.incident-summary-card {
+  padding: 10px 12px;
+  border: 1px solid var(--border-light);
+  border-left: 4px solid var(--orange);
+  border-radius: var(--radius-card);
+  background: var(--bg-surface);
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.incident-summary-card:hover {
+  background: var(--bg-hover);
+  border-color: var(--border);
+}
+
+.incident-summary-card.status-red {
+  border-left-color: var(--status-pending);
+}
+.incident-summary-card.status-amber {
+  border-left-color: var(--status-process);
+}
+.incident-summary-card.status-green {
+  border-left-color: var(--status-solved);
+}
+
+.incident-sum-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.incident-cat-tag {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--navy);
+  background: #E8EEF5;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.incident-sum-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 2px;
+}
+
+.incident-sum-loc {
+  font-size: 10px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ==========================================================================
+   VISTA 2: ALERTAS (Registro de Problemas Comunitarios)
+   ========================================================================== */
+.alerts-layout-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 20px;
+}
+
+.picker-map-wrap {
+  width: 100%;
+  height: 380px;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  margin-top: 8px;
+}
+
+#pickerMapLeaflet {
+  width: 100%;
+  height: 100%;
+}
+
+.picker-hint-box {
+  background-color: var(--orange-pale);
+  border: 1px solid #FFDE9E;
+  border-radius: 4px;
+  padding: 9px 12px;
+  font-size: 11px;
+  color: #8C5500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.dropzone-box {
+  border: 2px dashed var(--border);
+  border-radius: 4px;
+  padding: 16px;
+  text-align: center;
+  background: var(--bg-content);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dropzone-box:hover {
+  border-color: var(--orange);
+  background: var(--orange-pale);
+}
+
+.preview-thumb {
+  max-height: 80px;
+  margin-top: 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+/* Formularios estilizados */
+.form-group {
+  margin-bottom: 14px;
+}
+
+.form-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 5px;
+}
+
+.form-input, .form-select, .form-textarea {
+  width: 100%;
+  padding: 9px 12px;
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--text-primary);
+  background-color: #FFFFFF;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  border-color: var(--navy);
+  box-shadow: 0 0 0 3px rgba(16, 53, 84, 0.08);
+}
+
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* ==========================================================================
+   VISTA 3: REPORTES (Tabla de Incidencias + Generación PDF)
+   ========================================================================== */
+.table-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.table-filters {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.table-filter-select {
+  padding: 6px 10px;
+  font-size: 11px;
+  font-family: inherit;
+  color: var(--text-primary);
+  background-color: #FFFFFF;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  outline: none;
+}
+
+/* Tabla de reportes */
+.reports-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.clean-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #FFFFFF;
+  text-align: left;
+  font-size: 12px;
+}
+
+.clean-table th {
+  background-color: var(--navy);
+  color: #FFFFFF;
+  padding: 10px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.clean-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+
+.clean-table tbody tr:hover {
+  background-color: var(--bg-hover);
+}
+
+/* Badges de estado y prioridad */
+.status-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.status-badge.pending {
+  background-color: var(--status-pending-bg);
+  color: var(--status-pending);
+}
+
+.status-badge.process {
+  background-color: var(--status-process-bg);
+  color: #C07000;
+}
+
+.status-badge.solved {
+  background-color: var(--status-solved-bg);
+  color: var(--status-solved);
+}
+
+.priority-tag {
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.priority-tag.urgente { color: #E74C3C; }
+.priority-tag.alta { color: #D35400; }
+.priority-tag.media { color: #2980B9; }
+.priority-tag.baja { color: #7F8C8D; }
+
+/* Botones de acción en tabla */
+.table-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-action-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: #FFFFFF;
+  color: var(--navy);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.btn-action-icon:hover {
+  background: var(--navy);
+  color: #FFFFFF;
+  border-color: var(--navy);
+}
+
+.btn-action-icon.danger:hover {
+  background: #E74C3C;
+  border-color: #E74C3C;
+  color: #FFFFFF;
+}
+
+/* ==========================================================================
+   VISTA 4: USUARIOS (Administración de Dirigentes, Cuadrillas y Vecinos)
+   ========================================================================== */
+.users-metrics-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.user-role-pill {
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.user-role-pill.admin { background: var(--navy); color: #FFF; }
+.user-role-pill.tecnico { background: #2A4E70; color: #FFF; }
+.user-role-pill.vecino { background: #E5EBF4; color: var(--navy); }
+
+/* ==========================================================================
+   VISTA 5: ESTADÍSTICAS (Análisis e Indicadores Visuales)
+   ========================================================================== */
+.stats-charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.chart-card-wrap {
+  width: 100%;
+  height: 260px;
+  position: relative;
+}
+
+.stats-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.ranking-list-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.ranking-list-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.progress-bar-bg {
+  width: 100%;
+  height: 6px;
+  background-color: #E5EBF4;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+/* ==========================================================================
+   Previsualizador y Generador Oficial de PDF (Imprimible)
+   ========================================================================== */
+.pdf-preview-container {
+  display: none;
+  background: rgba(0, 0, 0, 0.65);
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.pdf-preview-container.active {
+  display: flex;
+}
+
+.pdf-modal-sheet {
+  background: #FFFFFF;
+  width: 100%;
+  max-width: 780px;
+  max-height: 90vh;
+  border-radius: 4px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.pdf-sheet-header {
+  padding: 12px 18px;
+  background-color: var(--navy);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pdf-sheet-content {
+  padding: 28px 32px;
+  overflow-y: auto;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #2D3748;
+}
+
+.pdf-letterhead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--navy);
+  margin-bottom: 16px;
+}
+
+.pdf-inst-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.pdf-otb-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--orange);
+}
+
+.pdf-table-print {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 14px 0;
+}
+
+.pdf-table-print th {
+  background-color: #EDF2F7;
+  color: var(--navy);
+  border: 1px solid #CBD5E0;
+  padding: 6px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.pdf-table-print td {
+  border: 1px solid #E2E8F0;
+  padding: 6px 8px;
+  font-size: 10px;
+}
+
+.pdf-sign-row {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 36px;
+  padding-top: 10px;
+  text-align: center;
+}
+
+.pdf-sign-box {
+  width: 200px;
+  border-top: 1px solid #718096;
+  padding-top: 4px;
+  font-size: 9px;
+  color: #4A5568;
+}
+
+/* ==========================================================================
+   Notificaciones Toast
+   ========================================================================== */
+.toast-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 3000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.toast {
+  background-color: var(--navy);
+  color: #FFFFFF;
+  padding: 11px 16px;
+  border-radius: 4px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-left: 4px solid var(--orange);
+  animation: slideInToast 0.25s ease;
+}
+
+@keyframes slideInToast {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* ==========================================================================
+   Estilos de Impresión (@media print)
+   ========================================================================== */
+@media print {
+  body {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+  }
+  .sidebar, .mobile-toggle-btn, .table-toolbar, .btn-action-icon, .btn-pill-orange, .btn-pill-navy, .toast-container {
+    display: none !important;
+  }
+  .main-content {
+    margin-left: 0 !important;
+    padding: 0 !important;
+  }
+  .pdf-preview-container {
+    position: static !important;
+    background: transparent !important;
+    display: block !important;
+    padding: 0 !important;
+  }
+  .pdf-modal-sheet {
+    box-shadow: none !important;
+    max-width: 100% !important;
+    border: none !important;
+  }
+  .pdf-sheet-header, .pdf-modal-actions {
+    display: none !important;
+  }
+}
+
+/* ==========================================================================
+   Adaptabilidad Móvil y Tablets
+   ========================================================================== */
+@media (max-width: 992px) {
+  .metric-row, .users-metrics-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .home-layout-grid, .alerts-layout-grid, .stats-charts-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+  }
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  .main-content {
+    margin-left: 0;
+  }
+  .mobile-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .view-container {
+    padding: 16px 16px 32px 16px;
+    padding-top: 56px; /* Espacio para el botón de menú móvil */
+  }
+  .metric-row, .users-metrics-row {
+    grid-template-columns: 1fr;
+  }
+  .form-row-2 {
+    grid-template-columns: 1fr;
+  }
+  .map-container-wrap {
+    height: 380px;
+  }
+}
