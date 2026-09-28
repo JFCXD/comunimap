@@ -1,4 +1,4 @@
-@include('plantillas.encabezado')
+
 @extends('plantillas.principal')
 @section('contenido')
     <div class="text-center mb-4">
