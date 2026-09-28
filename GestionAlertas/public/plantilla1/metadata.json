@@ -1,6 +1,0 @@
-{
-  "name": "ComuniMap - Gestión de Problemas Comunitarios",
-  "description": "Sistema digital para la gestión y alerta de problemas comunitarios mediante un mapa interactivo georreferenciado para la OTB Barrio Universitario Alto, Cochabamba.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
