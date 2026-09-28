@@ -11,16 +11,12 @@
     <title>Sistema de Gestión de Alertas Comunitarias</title>
 
     <!-- Bootstrap -->
-    <link
-        href="{{ asset('ample/bootstrap/dist/css/bootstrap.min.css') }}"
-        rel="stylesheet"
-    >
 
-    <!-- Estilos Ample Admin -->
-    <link
-        href="{{ asset('ample/css/style.min.css') }}"
-        rel="stylesheet"
-    >
+    <link href="{{ secure_asset('ample/bootstrap/dist/css/bootstrap.min.css') }}" rel="stylesheet">
+
+    <!-- Estilos de la plantilla -->
+
+    <link href="{{ secure_asset('ample/css/style.min.css') }}" rel="stylesheet">
 
 </head>
 
@@ -48,13 +44,9 @@
 
 </div>
 
-<script
-    src="{{ asset('ample/plugins/bower_components/jquery/dist/jquery.min.js') }}">
-</script>
+<script src="{{ secure_asset('ample/plugins/bower_components/jquery/dist/jquery.min.js') }}"></script>
 
-<script
-    src="{{ asset('ample/bootstrap/dist/js/bootstrap.bundle.min.js') }}">
-</script>
+<script src="{{ secure_asset('ample/bootstrap/dist/js/bootstrap.bundle.min.js') }}"></script>
 
 </body>
 
