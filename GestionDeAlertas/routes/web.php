@@ -12,7 +12,7 @@ use App\Http\Controllers\RegistroController;
 use App\Http\Controllers\LoginController;
 
 Route::get('/', function () {
-    return view('plantillas.principal');
+    return redirect('/login');
 });
 
 // Route::get('/inicio', [Controllerinicio::class, 'metodoinicio']);
