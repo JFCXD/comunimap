@@ -26,13 +26,14 @@
         </div>
         <div class="mb-3">
             <div class="g-recaptcha" data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}">
+                CLAVE: {{ env('RECAPTCHA_SITE_KEY') }}
             </div>
         </div>
         <button type="submit" class="btn btn-primary w-100" href="/inicio">
             Ingresar
         </button>
     </form>
-    <div class="text-center mt-5">  
+    <div class="text-center mt-5">
         ¿No tienes cuenta?
         <a href="/registro">
             Registrarse
