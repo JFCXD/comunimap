@@ -9,13 +9,8 @@
         </div>
     </div>
 
-    <div id="main-wrapper"
-        data-layout="vertical"
-        data-navbarbg="skin5"
-        data-sidebartype="full"
-        data-sidebar-position="absolute"
-        data-header-position="absolute"
-        data-boxed-layout="full">
+    <div id="main-wrapper" data-layout="vertical" data-navbarbg="skin5" data-sidebartype="full"
+        data-sidebar-position="absolute" data-header-position="absolute" data-boxed-layout="full">
 
         @include('plantillas.encabezado2')
         @include('plantillas.menu')
@@ -263,37 +258,35 @@
 
                                 @forelse($categorias as $categoria)
 
-                                    <div class="categoria-item">
+                                                            <div class="categoria-item">
 
 
-                                        <div class="categoria-nombre">
+                                                                <div class="categoria-nombre">
 
-                                            <span>
-                                                {{ $categoria->categoria }}
-                                            </span>
+                                                                    <span>
+                                                                        {{ $categoria->categoria }}
+                                                                    </span>
 
-                                            <strong>
-                                                {{ $categoria->total }}
-                                            </strong>
+                                                                    <strong>
+                                                                        {{ $categoria->total }}
+                                                                    </strong>
 
-                                        </div>
-
-
-                                        <div class="categoria-barra">
-
-                                            <div
-                                                class="categoria-progreso"
-                                                style="width:
-                                                {{ $reportes[0]->total > 0
-                                                    ? ($categoria->total / $reportes[0]->total) * 100
-                                                    : 0
-                                                }}%">
-                                            </div>
-
-                                        </div>
+                                                                </div>
 
 
-                                    </div>
+                                                                <div class="categoria-barra">
+
+                                                                    <div class="categoria-progreso" style="width:
+                                                                            {{ $reportes[0]->total > 0
+                                    ? ($categoria->total / $reportes[0]->total) * 100
+                                    : 0
+                                                                            }}%">
+                                                                    </div>
+
+                                                                </div>
+
+
+                                                            </div>
 
                                 @empty
 
@@ -358,8 +351,7 @@
          BOOTSTRAP ICONS
     ========================== -->
 
-    <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
 
     <!-- =========================
@@ -464,8 +456,7 @@
          ESTILOS PERSONALIZADOS
     ========================== -->
 
-    <link rel="stylesheet"
-        href="{{ asset('css/estilosextra.css') }}">
+    <link rel="stylesheet" href="{{ secure_asset('css/estilosextra.css') }}">
 
 
     @include('plantillas.scripts')
