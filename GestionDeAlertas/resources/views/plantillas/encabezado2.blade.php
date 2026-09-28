@@ -6,7 +6,7 @@
             <!-- ============================================================== -->
             <a class="navbar-brand" href="dashboard.html">
                 <!-- Logo icon -->
-                <img src="{{ asset('ample/plugins/images/comunimap-logo.png') }}" alt="ComuniMap"
+                <img src="{{ secure_asset('ample/plugins/images/comunimap-logo.png') }}" alt="ComuniMap"
                     style="width: 190px; height: 60px; object-fit: contain;">
             </a>
             <!-- ============================================================== -->
@@ -45,7 +45,7 @@
                 <!-- ============================================================== -->
                 <li>
                     <a class="profile-pic" href="#">
-                        <img src="{{ asset('ample/plugins/images/users/varun.jpg') }}" alt="user-img" width="36"
+                        <img src="{{ secure_asset('ample/plugins/images/users/varun.jpg') }}" alt="user-img" width="36"
                             class="img-circle">
 
                         <span class="text-white font-medium">

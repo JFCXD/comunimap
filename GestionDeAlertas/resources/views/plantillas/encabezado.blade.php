@@ -14,14 +14,14 @@
     <title> Gestión Alerta de Problemas Comunitarios</title>
     <link rel="canonical" href="#/templates/ample-admin-lite/" />
     <!-- Favicon icon -->
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('ample/plugins/images/favicon.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ secure_asset('ample/plugins/images/favicon.png') }}">
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="{{ asset('ample/plugins/bower_components/chartist/dist/chartist.min.css') }}">
+    <link rel="stylesheet" href="{{ secure_asset('ample/plugins/bower_components/chartist/dist/chartist.min.css') }}">
 
     <link rel="stylesheet"
-        href="{{ asset('ample/plugins/bower_components/chartist-plugin-tooltips/dist/chartist-plugin-tooltip.css') }}">
+        href="{{ secure_asset('ample/plugins/bower_components/chartist-plugin-tooltips/dist/chartist-plugin-tooltip.css') }}">
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="{{ asset('ample/css/style.min.css') }}">
+    <link rel="stylesheet" href="{{ secure_asset('ample/css/style.min.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 </head>
