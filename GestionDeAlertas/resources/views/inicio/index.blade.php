@@ -43,8 +43,7 @@
         </div>
     </div>
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    @include('plantillas.scripts')
     <script>
         // Crear mapa
         var mapa = L.map('mapa').setView([-17.3935, -66.1570], 13);
@@ -149,7 +148,6 @@
             `);
         @endforeach
     </script>
-    @include('plantillas.scripts')
 </body>
 
 </html>
