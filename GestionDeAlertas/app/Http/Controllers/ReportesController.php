@@ -141,7 +141,7 @@ class ReportesController extends Controller
 
         return view('reportes.editarr', compact('reporte', 'categorias'));
     }
-    
+
     public function actualizar(Request $request, $id)
     {
         if (Session::get('rol') != 'Administrador') {
@@ -191,4 +191,31 @@ class ReportesController extends Controller
 
         return redirect('/reportes');
     }
+
+
+
+    public function subirImagen(Request $request)
+    {
+        // Validar que se haya recibido una imagen válida
+        $request->validate([
+            'imagen' => [
+                'required',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'max:5120'
+            ],
+        ]);
+
+        // Guardar físicamente la imagen en:
+        // storage/app/public/reportes
+        $ruta = $request->file('imagen')->store('reportes', 'public');
+
+        return response()->json([
+            'success' => true,
+            'mensaje' => 'Imagen subida correctamente',
+            'ruta' => $ruta,
+            'url' => asset('storage/' . $ruta),
+        ], 201);
+    }
+
 }

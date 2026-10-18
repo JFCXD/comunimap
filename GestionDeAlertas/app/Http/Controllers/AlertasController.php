@@ -27,8 +27,8 @@ class AlertasController extends Controller
 
             $imagen = $request->file('imagen');
 
-            // Guardar imagen en storage/app/public/imagenes
-            $rutaImagen = $imagen->store('imagenes', 'public');
+            // Guardar imagen en storage/app/public/reportes
+            $rutaImagen = $imagen->store('reportes', 'public');
         }
 
         DB::insert("
