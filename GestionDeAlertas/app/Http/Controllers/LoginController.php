@@ -16,7 +16,10 @@ class LoginController extends Controller
 
     public function ingresar(Request $request)
     {
-        // Verificar reCAPTCHA
+        // =====================================================
+        // VERIFICAR reCAPTCHA
+        // =====================================================
+
         $response = Http::asForm()->post(
             'https://www.google.com/recaptcha/api/siteverify',
             [
@@ -25,38 +28,89 @@ class LoginController extends Controller
                 'remoteip' => $request->ip(),
             ]
         );
+
         $resultado = $response->json();
-        if (!$resultado['success']) {
+
+        if (
+            !isset($resultado['success']) ||
+            !$resultado['success']
+        ) {
             return redirect('/login')
+                ->withInput($request->only('email'))
                 ->with('error', 'Debe verificar el reCAPTCHA.');
         }
 
+        // =====================================================
+        // BUSCAR USUARIO
+        // =====================================================
+
+        // Buscamos primero por correo y contraseña.
+        // No filtramos por estado para poder informar
+        // si la cuenta está pendiente.
+
         $usuario = DB::select("
-        SELECT * FROM usuarios
-        WHERE email = ?
-        AND password = ?
-        AND estado = ?
-    ", [
-            $request->email,
-            sha1($request->password),
-            'Activo'
+            SELECT *
+            FROM usuarios
+            WHERE email = ?
+              AND password = ?
+            LIMIT 1
+        ", [
+            trim($request->email),
+            sha1($request->password)
         ]);
 
-        if (count($usuario) > 0) {
+        // =====================================================
+        // CREDENCIALES INCORRECTAS
+        // =====================================================
 
-            Session::put('idUsuario', $usuario[0]->idUsuario);
-            Session::put('nombre', $usuario[0]->nombre);
-            Session::put('rol', $usuario[0]->rol);
-
-            return redirect('/inicio');
+        if (count($usuario) === 0) {
+            return redirect('/login')
+                ->withInput($request->only('email'))
+                ->with('error', 'Correo o contraseña incorrectos.');
         }
 
-        return redirect('/login')->with('error', 'Correo o contraseña incorrectos.');
+        $usuarioActual = $usuario[0];
+
+        // =====================================================
+        // VALIDAR ESTADO
+        // =====================================================
+
+        if (
+            strtolower(trim($usuarioActual->estado)) !== 'activo'
+        ) {
+            return redirect('/login')
+                ->withInput($request->only('email'))
+                ->with(
+                    'error',
+                    'Tu cuenta está pendiente de aprobación por un administrador.'
+                );
+        }
+
+        // =====================================================
+        // INICIAR SESIÓN
+        // =====================================================
+
+        Session::put(
+            'idUsuario',
+            $usuarioActual->idUsuario
+        );
+
+        Session::put(
+            'nombre',
+            $usuarioActual->nombre
+        );
+
+        Session::put(
+            'rol',
+            $usuarioActual->rol
+        );
+
+        return redirect('/inicio');
     }
 
     public function salir()
     {
-        Session::flush(); // Elimina todas las variables de sesión
+        Session::flush();
 
         return redirect('/login');
     }

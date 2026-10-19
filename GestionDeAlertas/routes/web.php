@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-// use App\Http\Controllers\Controllerinicio;
 
 use App\Http\Controllers\InicioController;
 use App\Http\Controllers\AlertasController;
@@ -15,36 +14,126 @@ Route::get('/', function () {
     return redirect('/login');
 });
 
-// Route::get('/inicio', [Controllerinicio::class, 'metodoinicio']);
+// =====================================================
+// REGISTRO
+// =====================================================
 
-Route::get('/registro', [RegistroController::class, 'index']);
-Route::post('/registro', [RegistroController::class, 'guardar']);
+Route::get(
+    '/registro',
+    [RegistroController::class, 'index']
+);
 
-Route::get('/login', [LoginController::class, 'index']);
-Route::post('/login', [LoginController::class, 'ingresar']);
-Route::get('/logout', [LoginController::class, 'salir']);
+Route::post(
+    '/registro',
+    [RegistroController::class, 'guardar']
+);
 
+// =====================================================
+// LOGIN
+// =====================================================
 
+Route::get(
+    '/login',
+    [LoginController::class, 'index']
+);
 
-Route::get('/inicio', [InicioController::class, 'index']);
+Route::post(
+    '/login',
+    [LoginController::class, 'ingresar']
+);
 
+Route::get(
+    '/logout',
+    [LoginController::class, 'salir']
+);
 
-Route::get('/alertas', [AlertasController::class, 'index']);
-Route::post('/alertas', [AlertasController::class, 'guardar']);
+// =====================================================
+// INICIO
+// =====================================================
 
+Route::get(
+    '/inicio',
+    [InicioController::class, 'index']
+);
 
-Route::get('/reportes', [ReportesController::class, 'index']);
-Route::get('/reportes/pdf/{id}', [ReportesController::class, 'pdf']);
-Route::get('/reportes/pdf-todos', [ReportesController::class, 'pdfTodos']);
-Route::get('/reportes/editar/{id}', [ReportesController::class, 'editar']);
-Route::post('/reportes/actualizar/{id}', [ReportesController::class, 'actualizar']);
+// =====================================================
+// ALERTAS
+// =====================================================
 
+Route::get(
+    '/alertas',
+    [AlertasController::class, 'index']
+);
 
-Route::get('/usuarios', [UsuariosController::class, 'mostrarUsuarios']);
-Route::get('/usuarios/editar/{id}', [UsuariosController::class, 'editar']);
-Route::post('/usuarios/actualizar/{id}', [UsuariosController::class, 'actualizar']);
-Route::get('/usuarios/eliminar/{id}', [UsuariosController::class, 'eliminar']);
+Route::post(
+    '/alertas',
+    [AlertasController::class, 'guardar']
+);
 
-Route::get('/estadisticas', [EstadisticasController::class, 'index']);
+// =====================================================
+// REPORTES
+// =====================================================
 
+Route::get(
+    '/reportes',
+    [ReportesController::class, 'index']
+);
 
+Route::get(
+    '/reportes/pdf/{id}',
+    [ReportesController::class, 'pdf']
+);
+
+Route::get(
+    '/reportes/pdf-todos',
+    [ReportesController::class, 'pdfTodos']
+);
+
+Route::get(
+    '/reportes/editar/{id}',
+    [ReportesController::class, 'editar']
+);
+
+Route::post(
+    '/reportes/actualizar/{id}',
+    [ReportesController::class, 'actualizar']
+);
+
+// =====================================================
+// USUARIOS
+// =====================================================
+
+Route::get(
+    '/usuarios',
+    [UsuariosController::class, 'mostrarUsuarios']
+);
+
+Route::get(
+    '/usuarios/editar/{id}',
+    [UsuariosController::class, 'editar']
+);
+
+Route::post(
+    '/usuarios/actualizar/{id}',
+    [UsuariosController::class, 'actualizar']
+);
+
+// Aprobar usuario pendiente.
+Route::get(
+    '/usuarios/activar/{id}',
+    [UsuariosController::class, 'activar']
+);
+
+Route::get(
+    '/usuarios/eliminar/{id}',
+    [UsuariosController::class, 'eliminar']
+);
+
+// =====================================================
+// ESTADÍSTICAS
+// =====================================================
+
+Route::get(
+    '/estadisticas',
+    [EstadisticasController::class, 'index']
+);

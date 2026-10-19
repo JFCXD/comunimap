@@ -22,12 +22,25 @@ class UsuariosController extends Controller
         if (Session::get('rol') != 'Administrador') {
             return redirect('/inicio');
         }
-        if (!Session::has('idUsuario')) {
-            return redirect('/login');
-        }
-        $usuarios = DB::select("SELECT * FROM usuarios");
-        return view('usuarios.usuarios', compact('usuarios'));
+
+        // Mostrar primero los usuarios pendientes.
+        $usuarios = DB::select("
+            SELECT *
+            FROM usuarios
+            ORDER BY
+                CASE
+                    WHEN estado = 'Inactivo' THEN 0
+                    ELSE 1
+                END,
+                idUsuario DESC
+        ");
+
+        return view(
+            'usuarios.usuarios',
+            compact('usuarios')
+        );
     }
+
     public function editar($id)
     {
         if (Session::get('rol') != 'Administrador') {
@@ -35,13 +48,17 @@ class UsuariosController extends Controller
         }
 
         $usuario = DB::select("
-        SELECT *
-        FROM usuarios
-        WHERE idUsuario = ?
-    ", [$id]);
+            SELECT *
+            FROM usuarios
+            WHERE idUsuario = ?
+        ", [$id]);
 
-        return view('usuarios.editaru', compact('usuario'));
+        return view(
+            'usuarios.editaru',
+            compact('usuario')
+        );
     }
+
     public function actualizar(Request $request, $id)
     {
         if (Session::get('rol') != 'Administrador') {
@@ -49,15 +66,15 @@ class UsuariosController extends Controller
         }
 
         DB::update("
-        UPDATE usuarios
-        SET
-            nombre = ?,
-            email = ?,
-            telefono = ?,
-            rol = ?,
-            estado = ?
-        WHERE idUsuario = ?
-    ", [
+            UPDATE usuarios
+            SET
+                nombre = ?,
+                email = ?,
+                telefono = ?,
+                rol = ?,
+                estado = ?
+            WHERE idUsuario = ?
+        ", [
             $request->nombre,
             $request->email,
             $request->telefono,
@@ -66,19 +83,59 @@ class UsuariosController extends Controller
             $id
         ]);
 
-        return redirect('/usuarios');
+        return redirect('/usuarios')
+            ->with(
+                'success',
+                'Usuario actualizado correctamente.'
+            );
     }
+
+    // =====================================================
+    // ACTIVAR USUARIO
+    // =====================================================
+
+    public function activar($id)
+    {
+        if (!Session::has('idUsuario')) {
+            return redirect('/login');
+        }
+
+        if (Session::get('rol') != 'Administrador') {
+            return redirect('/inicio');
+        }
+
+        DB::update("
+            UPDATE usuarios
+            SET estado = 'Activo'
+            WHERE idUsuario = ?
+        ", [$id]);
+
+        return redirect('/usuarios')
+            ->with(
+                'success',
+                'Usuario aprobado y activado correctamente.'
+            );
+    }
+
     public function eliminar($id)
     {
+        if (!Session::has('idUsuario')) {
+            return redirect('/login');
+        }
+
         if (Session::get('rol') != 'Administrador') {
             return redirect('/inicio');
         }
 
         DB::delete("
-        DELETE FROM usuarios
-        WHERE idUsuario = ?
-    ", [$id]);
+            DELETE FROM usuarios
+            WHERE idUsuario = ?
+        ", [$id]);
 
-        return redirect('/usuarios');
+        return redirect('/usuarios')
+            ->with(
+                'success',
+                'Usuario eliminado correctamente.'
+            );
     }
 }
