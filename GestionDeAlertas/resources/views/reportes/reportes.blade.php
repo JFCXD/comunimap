@@ -19,6 +19,7 @@
 
             {{-- ENCABEZADO PRINCIPAL --}}
             <div class="page-breadcrumb bg-white">
+
                 <div class="row align-items-center">
 
                     <div class="col-lg-4">
@@ -30,14 +31,18 @@
                     <div class="col-lg-8 text-end">
 
                         @if(session('rol') == 'Administrador')
+
                             <a href="/reportes/pdf-todos" target="_blank" class="btn btn-primary">
                                 <i class="fa fa-file-pdf"></i>
                                 Exportar todos
                             </a>
+
                         @endif
 
                     </div>
+
                 </div>
+
             </div>
 
             <div class="container-fluid">
@@ -62,13 +67,14 @@
                         @endforeach
 
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+
                     </div>
 
                 @endif
 
-                {{-- ======================================
-                CASOS ESPECIALES PARA ADMINISTRADOR
-                ======================================= --}}
+                {{-- =========================================
+                CASOS ESPECIALES: SOLO ADMINISTRADOR
+                ========================================== --}}
                 @if(session('rol') == 'Administrador')
 
                     @php
@@ -102,7 +108,7 @@
 
                     @foreach($secciones as $seccion)
 
-                        {{-- Mostrar solo secciones con casos --}}
+                        {{-- No mostrar secciones vacías --}}
                         @if(count($seccion['casos']) > 0)
 
                             <div class="card mb-4">
@@ -186,41 +192,29 @@
                                                                 vecinos
                                                             </strong>
 
-                                                            <div class="mt-2" style="min-width: 150px;">
+                                                            <div class="mt-2">
 
                                                                 {{--
-                                                                Usamos un selector nativo.
+                                                                Botón de consulta.
 
-                                                                A diferencia del menú
-                                                                Bootstrap anterior,
-                                                                sus opciones se abren
-                                                                como las del selector
-                                                                de estados.
+                                                                Siempre dice "Usuarios".
+
+                                                                No permite seleccionar
+                                                                ni modificar personas.
                                                                 --}}
 
-                                                                <select class="form-select form-select-sm"
-                                                                    aria-label="Lista de vecinos del caso"
-                                                                    style="cursor: pointer; min-width: 150px;">
-
-                                                                    <option value="" selected>
-                                                                        Ver usuarios
-                                                                    </option>
-
-                                                                    @foreach($caso['usuarios'] as $usuario)
-
-                                                                        <option value="{{ $loop->index + 1 }}">
-                                                                            {{ $usuario }}
-                                                                        </option>
-
-                                                                    @endforeach
-
-                                                                </select>
+                                                                <button type="button" class="btn btn-outline-primary btn-sm"
+                                                                    data-bs-toggle="modal"
+                                                                    data-bs-target="#usuariosCaso{{ $caso['idReporte'] }}">
+                                                                    <i class="fa fa-users"></i>
+                                                                    Usuarios
+                                                                </button>
 
                                                             </div>
 
                                                         </td>
 
-                                                        {{-- PRIORIDAD SUGERIDA --}}
+                                                        {{-- PRIORIDAD --}}
                                                         <td>
 
                                                             <span
@@ -293,9 +287,9 @@
 
                 @endif
 
-                {{-- ======================================
+                {{-- =========================================
                 LISTA GENERAL DE REPORTES
-                ======================================= --}}
+                ========================================== --}}
                 <div class="card">
 
                     <div class="card-body">
@@ -445,6 +439,102 @@
 
             @include('plantillas.pie')
 
+            {{--
+            VENTANAS DE USUARIOS
+
+            Se crean FUERA de las tablas responsive.
+            Así no se recortan los nombres.
+
+            Solo aparecen para los administradores.
+            --}}
+            @if(session('rol') == 'Administrador')
+
+                @foreach($secciones as $seccion)
+
+                    @foreach($seccion['casos'] as $caso)
+
+                        <div class="modal fade" id="usuariosCaso{{ $caso['idReporte'] }}" tabindex="-1" aria-hidden="true">
+
+                            <div class="modal-dialog modal-dialog-centered">
+
+                                <div class="modal-content">
+
+                                    <div class="modal-header">
+
+                                        <h5 class="modal-title">
+
+                                            <i class="fa fa-users me-2"></i>
+
+                                            Usuarios del caso
+
+                                        </h5>
+
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Cerrar"></button>
+
+                                    </div>
+
+                                    <div class="modal-body">
+
+                                        <p class="text-muted mb-3">
+
+                                            <strong>
+                                                {{ $caso['titulo'] }}
+                                            </strong>
+
+                                            <span class="d-block mt-1">
+
+                                                {{ $caso['cantidadVecinos'] }}
+                                                vecinos diferentes
+
+                                            </span>
+
+                                        </p>
+
+                                        <div style="max-height: 300px; overflow-y: auto;">
+
+                                            <ul class="list-group">
+
+                                                @foreach($caso['usuarios'] as $usuario)
+
+                                                    <li class="list-group-item d-flex align-items-center">
+
+                                                        <i class="fa fa-user text-secondary me-3"></i>
+
+                                                        <span>
+                                                            {{ $usuario }}
+                                                        </span>
+
+                                                    </li>
+
+                                                @endforeach
+
+                                            </ul>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="modal-footer">
+
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                            Cerrar
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    @endforeach
+
+                @endforeach
+
+            @endif
+
         </div>
 
     </div>
@@ -452,7 +542,9 @@
     @include('plantillas.scripts')
 
     <script>
-        // Confirmar antes de actualizar varios reportes.
+        // Confirmación antes de cambiar el estado
+        // de todos los reportes de un grupo.
+
         document.addEventListener(
             'DOMContentLoaded',
             function () {
@@ -492,9 +584,12 @@
                             if (!window.confirm(mensaje)) {
                                 evento.preventDefault();
                             }
+
                         }
                     );
+
                 });
+
             }
         );
     </script>
