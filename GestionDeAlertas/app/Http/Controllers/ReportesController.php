@@ -5,23 +5,15 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReportesController extends Controller
 {
     /*
     |--------------------------------------------------------------------------
-    | LISTADO DE REPORTES
+    | LISTADO DE REPORTES Y COINCIDENCIAS
     |--------------------------------------------------------------------------
-    |
-    | El usuario normal sigue viendo solamente sus propios reportes.
-    | El administrador sigue viendo todos.
-    |
-    | La diferencia es que el cálculo de coincidencias se realiza utilizando
-    | TODOS los reportes activos de la comunidad, no solamente los visibles
-    | para el usuario actual.
-    |
     */
     public function index()
     {
@@ -29,119 +21,80 @@ class ReportesController extends Controller
             return redirect('/login');
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Todos los reportes
-        |--------------------------------------------------------------------------
-        |
-        | Esta colección se utiliza exclusivamente para calcular coincidencias.
-        |
-        */
+        // Todos los reportes se usan para calcular coincidencias,
+        // aunque un usuario normal solo vea sus propios reportes.
         $todosReportes = DB::select("
+            SELECT
+                idReporte,
+                estado,
+                idUsuario,
+                idCategoria,
+                latitud,
+                longitud
+            FROM reportes
+        ");
+
+        // Mantener la separación entre administrador y vecino.
+        $sql = "
             SELECT
                 r.idReporte,
                 r.titulo,
+                r.imagen,
                 r.estado,
                 r.idUsuario,
                 r.idCategoria,
                 r.latitud,
-                r.longitud
+                r.longitud,
+                r.fechaCreacion,
+                c.nombre,
+                u.nombre AS usuario
             FROM reportes r
-        ");
+            INNER JOIN categorias c
+                ON r.idCategoria = c.idCategoria
+            INNER JOIN usuarios u
+                ON r.idUsuario = u.idUsuario
+        ";
 
-        /*
-        |--------------------------------------------------------------------------
-        | Reportes visibles
-        |--------------------------------------------------------------------------
-        */
-
-        if (Session::get('rol') == 'Administrador') {
-
-            $reportes = DB::select("
-                SELECT
-                    r.idReporte,
-                    r.titulo,
-                    r.imagen,
-                    r.estado,
-                    r.idUsuario,
-                    r.idCategoria,
-                    r.latitud,
-                    r.longitud,
-                    r.fechaCreacion,
-
-                    c.nombre,
-                    u.nombre AS usuario
-
-                FROM reportes r
-
-                INNER JOIN categorias c
-                    ON r.idCategoria = c.idCategoria
-
-                INNER JOIN usuarios u
-                    ON r.idUsuario = u.idUsuario
-
-                ORDER BY r.idReporte DESC
-            ");
-
+        if (Session::get('rol') === 'Administrador') {
+            $reportes = DB::select(
+                $sql . " ORDER BY r.idReporte DESC"
+            );
         } else {
-
-            $reportes = DB::select("
-                SELECT
-                    r.idReporte,
-                    r.titulo,
-                    r.imagen,
-                    r.estado,
-                    r.idUsuario,
-                    r.idCategoria,
-                    r.latitud,
-                    r.longitud,
-                    r.fechaCreacion,
-
-                    c.nombre,
-                    u.nombre AS usuario
-
-                FROM reportes r
-
-                INNER JOIN categorias c
-                    ON r.idCategoria = c.idCategoria
-
-                INNER JOIN usuarios u
-                    ON r.idUsuario = u.idUsuario
-
-                WHERE r.idUsuario = ?
-
-                ORDER BY r.idReporte DESC
-            ", [
-                Session::get('idUsuario')
-            ]);
+            $reportes = DB::select(
+                $sql . "
+                    WHERE r.idUsuario = ?
+                    ORDER BY r.idReporte DESC
+                ",
+                [Session::get('idUsuario')]
+            );
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Calcular coincidencias
-        |--------------------------------------------------------------------------
-        */
-
+        // Calcular coincidencias para cada reporte visible.
         foreach ($reportes as $reporte) {
 
-            /*
-             * Un reporte solucionado ya no participa en una incidencia activa.
-             */
+            // Los reportes solucionados no participan.
             if ($this->estaSolucionado($reporte->estado)) {
-
                 $reporte->cantidadCoincidencias = 0;
                 $reporte->nivelCoincidencia = 'No aplica';
-
                 continue;
             }
 
-            $usuariosCoincidentes =
-                $this->obtenerUsuariosCoincidentes(
-                    $reporte,
-                    $todosReportes
-                );
+            // Sin coordenadas no se puede calcular distancia.
+            if (
+                $reporte->latitud === null ||
+                $reporte->longitud === null
+            ) {
+                $reporte->cantidadCoincidencias = 0;
+                $reporte->nivelCoincidencia = 'No aplica';
+                continue;
+            }
 
-            $cantidad = count($usuariosCoincidentes);
+            $usuarios = $this->obtenerUsuariosCoincidentes(
+                $reporte,
+                $todosReportes
+            );
+
+            $cantidad = count($usuarios);
 
             $reporte->cantidadCoincidencias = $cantidad;
 
@@ -157,12 +110,8 @@ class ReportesController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | CALCULAR DISTANCIA ENTRE DOS COORDENADAS
+    | DISTANCIA HAVERSINE EN METROS
     |--------------------------------------------------------------------------
-    |
-    | Fórmula Haversine.
-    | El resultado se devuelve en METROS.
-    |
     */
     private function calcularDistanciaMetros(
         float $latitud1,
@@ -170,30 +119,27 @@ class ReportesController extends Controller
         float $latitud2,
         float $longitud2
     ): float {
-
         $radioTierra = 6371000;
+
+        $diferenciaLatitud = deg2rad(
+            $latitud2 - $latitud1
+        );
+
+        $diferenciaLongitud = deg2rad(
+            $longitud2 - $longitud1
+        );
 
         $latitud1Rad = deg2rad($latitud1);
         $latitud2Rad = deg2rad($latitud2);
 
-        $diferenciaLatitud =
-            deg2rad($latitud2 - $latitud1);
-
-        $diferenciaLongitud =
-            deg2rad($longitud2 - $longitud1);
-
         $a =
-            sin($diferenciaLatitud / 2)
-            * sin($diferenciaLatitud / 2)
+            sin($diferenciaLatitud / 2) ** 2
             +
             cos($latitud1Rad)
             * cos($latitud2Rad)
-            * sin($diferenciaLongitud / 2)
-            * sin($diferenciaLongitud / 2);
+            * sin($diferenciaLongitud / 2) ** 2;
 
-        /*
-         * Protección para evitar pequeños errores de precisión.
-         */
+        // Evitar errores de precisión matemática.
         $a = min(1, max(0, $a));
 
         $c = 2 * atan2(
@@ -206,46 +152,30 @@ class ReportesController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | OBTENER USUARIOS COINCIDENTES
+    | BUSCAR VECINOS COINCIDENTES
     |--------------------------------------------------------------------------
     |
-    | Para contar como coincidencia:
-    |
-    | 1. Debe ser la misma categoría.
-    | 2. Debe estar a máximo 5 metros.
-    | 3. No debe estar solucionado.
-    | 4. Cada usuario solamente puede contar una vez.
+    | Condiciones:
+    | 1. Misma categoría.
+    | 2. Distancia máxima de 5 metros.
+    | 3. Reportes no solucionados.
+    | 4. Cada usuario cuenta una sola vez.
     |
     */
     private function obtenerUsuariosCoincidentes(
         $reporte,
         array $todosReportes
     ): array {
-
-        /*
-         * Si no existen coordenadas no podemos calcular proximidad.
-         */
-        if (
-            $reporte->latitud === null ||
-            $reporte->longitud === null
-        ) {
-            return [];
-        }
-
         $usuariosCoincidentes = [];
 
-        /*
-         * El creador del reporte actual cuenta como el primer vecino.
-         */
+        // El autor cuenta como el primer vecino.
         $usuariosCoincidentes[
             (string) $reporte->idUsuario
         ] = true;
 
         foreach ($todosReportes as $otroReporte) {
 
-            /*
-             * No comparar el reporte consigo mismo.
-             */
+            // No comparar el reporte consigo mismo.
             if (
                 (int) $otroReporte->idReporte ===
                 (int) $reporte->idReporte
@@ -253,9 +183,7 @@ class ReportesController extends Controller
                 continue;
             }
 
-            /*
-             * Solo misma categoría.
-             */
+            // Deben pertenecer a la misma categoría.
             if (
                 (int) $otroReporte->idCategoria !==
                 (int) $reporte->idCategoria
@@ -263,16 +191,12 @@ class ReportesController extends Controller
                 continue;
             }
 
-            /*
-             * Reportes solucionados no cuentan.
-             */
+            // Ignorar problemas ya solucionados.
             if ($this->estaSolucionado($otroReporte->estado)) {
                 continue;
             }
 
-            /*
-             * Debe tener coordenadas.
-             */
+            // Ignorar registros sin coordenadas.
             if (
                 $otroReporte->latitud === null ||
                 $otroReporte->longitud === null
@@ -280,9 +204,7 @@ class ReportesController extends Controller
                 continue;
             }
 
-            /*
-             * Calcular distancia en metros.
-             */
+            // Calcular distancia geográfica.
             $distancia = $this->calcularDistanciaMetros(
                 (float) $reporte->latitud,
                 (float) $reporte->longitud,
@@ -290,17 +212,9 @@ class ReportesController extends Controller
                 (float) $otroReporte->longitud
             );
 
-            /*
-             * Radio máximo de coincidencia: 5 metros.
-             */
             if ($distancia <= 5) {
 
-                /*
-                 * Usamos idUsuario como clave.
-                 *
-                 * Así, aunque el mismo usuario cree varios reportes
-                 * en la misma zona, solamente contará una vez.
-                 */
+                // Usar idUsuario como clave evita duplicados.
                 $usuariosCoincidentes[
                     (string) $otroReporte->idUsuario
                 ] = true;
@@ -312,13 +226,12 @@ class ReportesController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | NIVEL DE COINCIDENCIA
+    | NIVEL SEGÚN CANTIDAD DE VECINOS
     |--------------------------------------------------------------------------
     */
     private function obtenerNivelCoincidencia(
         int $cantidadUsuarios
     ): string {
-
         if ($cantidadUsuarios >= 5) {
             return 'Muy reportado';
         }
@@ -336,26 +249,18 @@ class ReportesController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | COMPROBAR SI UN REPORTE ESTÁ SOLUCIONADO
+    | VALIDAR ESTADO SOLUCIONADO
     |--------------------------------------------------------------------------
-    |
-    | Aunque ya unificamos la BD en "Solucionado", mantenemos también
-    | "Resuelto" temporalmente para que algún dato antiguo no cause errores.
-    |
     */
-    private function estaSolucionado(
-        ?string $estado
-    ): bool {
-
-        $estadoNormalizado =
-            mb_strtolower(trim($estado ?? ''));
+    private function estaSolucionado(?string $estado): bool
+    {
+        $estadoNormalizado = mb_strtolower(
+            trim($estado ?? '')
+        );
 
         return in_array(
             $estadoNormalizado,
-            [
-                'solucionado',
-                'resuelto'
-            ],
+            ['solucionado', 'resuelto'],
             true
         );
     }
@@ -382,20 +287,28 @@ class ReportesController extends Controller
                 r.imagen,
                 c.nombre AS categoria,
                 u.nombre AS usuario
-
             FROM reportes r
-
             INNER JOIN categorias c
                 ON r.idCategoria = c.idCategoria
-
             INNER JOIN usuarios u
                 ON r.idUsuario = u.idUsuario
-
             WHERE r.idReporte = ?
         ", [$id]);
 
-        if (count($reportes) == 0) {
+        if (count($reportes) === 0) {
             return redirect('/reportes');
+        }
+
+        // Respetar la propiedad de los reportes.
+        if (Session::get('rol') !== 'Administrador') {
+            $pertenece = DB::table('reportes')
+                ->where('idReporte', $id)
+                ->where('idUsuario', Session::get('idUsuario'))
+                ->exists();
+
+            if (!$pertenece) {
+                abort(403);
+            }
         }
 
         $pdf = Pdf::loadView(
@@ -419,7 +332,7 @@ class ReportesController extends Controller
             return redirect('/login');
         }
 
-        if (Session::get('rol') != 'Administrador') {
+        if (Session::get('rol') !== 'Administrador') {
             return redirect('/inicio');
         }
 
@@ -430,15 +343,11 @@ class ReportesController extends Controller
                 c.nombre AS categoria,
                 r.estado,
                 u.nombre AS usuario
-
             FROM reportes r
-
             INNER JOIN categorias c
                 ON r.idCategoria = c.idCategoria
-
             INNER JOIN usuarios u
                 ON r.idUsuario = u.idUsuario
-
             ORDER BY r.idReporte DESC
         ");
 
@@ -459,7 +368,7 @@ class ReportesController extends Controller
     */
     public function editar($id)
     {
-        if (Session::get('rol') != 'Administrador') {
+        if (Session::get('rol') !== 'Administrador') {
             return redirect('/inicio');
         }
 
@@ -476,10 +385,7 @@ class ReportesController extends Controller
 
         return view(
             'reportes.editarr',
-            compact(
-                'reporte',
-                'categorias'
-            )
+            compact('reporte', 'categorias')
         );
     }
 
@@ -488,17 +394,12 @@ class ReportesController extends Controller
     | ACTUALIZAR REPORTE
     |--------------------------------------------------------------------------
     */
-    public function actualizar(
-        Request $request,
-        $id
-    ) {
-        if (Session::get('rol') != 'Administrador') {
+    public function actualizar(Request $request, $id)
+    {
+        if (Session::get('rol') !== 'Administrador') {
             return redirect('/inicio');
         }
 
-        /*
-         * Obtener imagen actual.
-         */
         $reporte = DB::select("
             SELECT imagen
             FROM reportes
@@ -511,33 +412,23 @@ class ReportesController extends Controller
 
         $imagen = $reporte[0]->imagen;
 
-        /*
-         * Si se subió una nueva imagen.
-         */
+        // Reemplazar fotografía, si se envía una nueva.
         if ($request->hasFile('imagen')) {
 
-            /*
-             * Eliminar imagen anterior.
-             */
-            if (
-                $imagen &&
-                Storage::disk('public')
-                    ->exists($imagen)
-            ) {
-                Storage::disk('public')
-                    ->delete($imagen);
-            }
+            $request->validate([
+                'imagen' => [
+                    'image',
+                    'mimes:jpg,jpeg,png,webp',
+                    'max:5120'
+                ]
+            ]);
 
-            /*
-             * Guardar nueva imagen.
-             */
-            $imagen =
-                $request
-                    ->file('imagen')
-                    ->store(
-                        'reportes',
-                        'public'
-                    );
+            $nuevaImagen = $request
+                ->file('imagen')
+                ->store('reportes', 'public');
+
+            $imagenAnterior = $imagen;
+            $imagen = $nuevaImagen;
         }
 
         DB::update("
@@ -560,6 +451,15 @@ class ReportesController extends Controller
             $id
         ]);
 
+        // Eliminar la imagen vieja después de actualizar.
+        if (
+            isset($imagenAnterior) &&
+            $imagenAnterior &&
+            Storage::disk('public')->exists($imagenAnterior)
+        ) {
+            Storage::disk('public')->delete($imagenAnterior);
+        }
+
         return redirect('/reportes');
     }
 
@@ -576,23 +476,18 @@ class ReportesController extends Controller
                 'image',
                 'mimes:jpg,jpeg,png,webp',
                 'max:5120'
-            ],
+            ]
         ]);
 
         $ruta = $request
             ->file('imagen')
-            ->store(
-                'reportes',
-                'public'
-            );
+            ->store('reportes', 'public');
 
         return response()->json([
             'success' => true,
             'mensaje' => 'Imagen subida correctamente',
             'ruta' => $ruta,
-            'url' => asset(
-                'storage/' . $ruta
-            ),
+            'url' => asset('storage/' . $ruta)
         ], 201);
     }
 }
