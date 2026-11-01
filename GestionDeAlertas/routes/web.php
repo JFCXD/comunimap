@@ -23,10 +23,7 @@ Route::get(
     [RegistroController::class, 'index']
 );
 
-Route::post(
-    '/registro',
-    [RegistroController::class, 'guardar']
-);
+
 
 // =====================================================
 // LOGIN

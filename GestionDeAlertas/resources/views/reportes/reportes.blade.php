@@ -9,15 +9,8 @@
         </div>
     </div>
 
-    <div
-        id="main-wrapper"
-        data-layout="vertical"
-        data-navbarbg="skin5"
-        data-sidebartype="full"
-        data-sidebar-position="absolute"
-        data-header-position="absolute"
-        data-boxed-layout="full"
-    >
+    <div id="main-wrapper" data-layout="vertical" data-navbarbg="skin5" data-sidebartype="full"
+        data-sidebar-position="absolute" data-header-position="absolute" data-boxed-layout="full">
 
         @include('plantillas.encabezado2')
         @include('plantillas.menu')
@@ -37,11 +30,7 @@
                     <div class="col-lg-8 text-end">
 
                         @if(session('rol') == 'Administrador')
-                            <a
-                                href="/reportes/pdf-todos"
-                                target="_blank"
-                                class="btn btn-primary"
-                            >
+                            <a href="/reportes/pdf-todos" target="_blank" class="btn btn-primary">
                                 <i class="fa fa-file-pdf"></i>
                                 Exportar todos
                             </a>
@@ -55,41 +44,30 @@
 
                 {{-- MENSAJES DE RESULTADO --}}
                 @if(session('success'))
-                    <div
-                        class="alert alert-success alert-dismissible fade show"
-                        role="alert"
-                    >
+
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
                         {{ session('success') }}
 
-                        <button
-                            type="button"
-                            class="btn-close"
-                            data-bs-dismiss="alert"
-                            aria-label="Cerrar"
-                        ></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
                     </div>
+
                 @endif
 
                 @if($errors->any())
-                    <div
-                        class="alert alert-danger alert-dismissible fade show"
-                        role="alert"
-                    >
+
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+
                         @foreach($errors->all() as $error)
                             <div>{{ $error }}</div>
                         @endforeach
 
-                        <button
-                            type="button"
-                            class="btn-close"
-                            data-bs-dismiss="alert"
-                            aria-label="Cerrar"
-                        ></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
                     </div>
+
                 @endif
 
                 {{-- ======================================
-                     TABLAS ESPECIALES DE ADMINISTRADOR
+                CASOS ESPECIALES PARA ADMINISTRADOR
                 ======================================= --}}
                 @if(session('rol') == 'Administrador')
 
@@ -124,19 +102,15 @@
 
                     @foreach($secciones as $seccion)
 
-                        {{-- No mostrar título ni tabla vacía --}}
+                        {{-- Mostrar solo secciones con casos --}}
                         @if(count($seccion['casos']) > 0)
 
                             <div class="card mb-4">
 
                                 <div class="card-body">
 
-                                    <h4
-                                        class="card-title mb-3 text-{{ $seccion['color'] }}"
-                                    >
-                                        <i
-                                            class="fa {{ $seccion['icono'] }}"
-                                        ></i>
+                                    <h4 class="card-title mb-3 text-{{ $seccion['color'] }}">
+                                        <i class="fa {{ $seccion['icono'] }}"></i>
 
                                         {{ $seccion['titulo'] }}
                                     </h4>
@@ -147,9 +121,7 @@
 
                                     <div class="table-responsive">
 
-                                        <table
-                                            class="table table-hover align-middle"
-                                        >
+                                        <table class="table table-hover align-middle">
 
                                             <thead class="table-light">
 
@@ -177,9 +149,7 @@
                                                                 {{ $caso['titulo'] }}
                                                             </strong>
 
-                                                            <small
-                                                                class="d-block text-muted"
-                                                            >
+                                                            <small class="d-block text-muted">
                                                                 {{ $caso['cantidadReportes'] }}
                                                                 reportes agrupados
                                                             </small>
@@ -213,44 +183,38 @@
 
                                                             <strong>
                                                                 {{ $caso['cantidadVecinos'] }}
+                                                                vecinos
                                                             </strong>
 
-                                                            vecinos
+                                                            <div class="mt-2" style="min-width: 150px;">
 
-                                                            <div class="dropdown mt-2">
+                                                                {{--
+                                                                Usamos un selector nativo.
 
-                                                                <button
-                                                                    type="button"
-                                                                    class="btn btn-outline-primary btn-sm dropdown-toggle"
-                                                                    data-bs-toggle="dropdown"
-                                                                    aria-expanded="false"
-                                                                >
-                                                                    <i class="fa fa-users"></i>
-                                                                    Ver usuarios
-                                                                </button>
+                                                                A diferencia del menú
+                                                                Bootstrap anterior,
+                                                                sus opciones se abren
+                                                                como las del selector
+                                                                de estados.
+                                                                --}}
 
-                                                                <ul
-                                                                    class="dropdown-menu"
-                                                                    style="max-height: 240px; overflow-y: auto; min-width: 220px;"
-                                                                >
+                                                                <select class="form-select form-select-sm"
+                                                                    aria-label="Lista de vecinos del caso"
+                                                                    style="cursor: pointer; min-width: 150px;">
+
+                                                                    <option value="" selected>
+                                                                        Ver usuarios
+                                                                    </option>
 
                                                                     @foreach($caso['usuarios'] as $usuario)
 
-                                                                        <li>
-                                                                            <span
-                                                                                class="dropdown-item-text"
-                                                                            >
-                                                                                <i
-                                                                                    class="fa fa-user text-muted me-2"
-                                                                                ></i>
-
-                                                                                {{ $usuario }}
-                                                                            </span>
-                                                                        </li>
+                                                                        <option value="{{ $loop->index + 1 }}">
+                                                                            {{ $usuario }}
+                                                                        </option>
 
                                                                     @endforeach
 
-                                                                </ul>
+                                                                </select>
 
                                                             </div>
 
@@ -260,8 +224,7 @@
                                                         <td>
 
                                                             <span
-                                                                class="badge bg-{{ $seccion['color'] }} {{ $seccion['color'] == 'warning' || $seccion['color'] == 'info' ? 'text-dark' : '' }}"
-                                                            >
+                                                                class="badge bg-{{ $seccion['color'] }} {{ in_array($seccion['color'], ['warning', 'info']) ? 'text-dark' : '' }}">
                                                                 {{ $seccion['prioridad'] }}
                                                             </span>
 
@@ -270,30 +233,18 @@
                                                         {{-- CAMBIAR ESTADO DEL GRUPO --}}
                                                         <td>
 
-                                                            <form
-                                                                method="POST"
+                                                            <form method="POST"
                                                                 action="{{ url('/reportes/casos/' . $caso['idReporte'] . '/estado') }}"
                                                                 class="form-estado-grupo"
-                                                                data-reportes="{{ $caso['cantidadReportes'] }}"
-                                                            >
+                                                                data-reportes="{{ $caso['cantidadReportes'] }}">
 
                                                                 @csrf
 
-                                                                <div
-                                                                    class="d-flex flex-column gap-2"
-                                                                    style="min-width: 170px;"
-                                                                >
+                                                                <div class="d-flex flex-column gap-2" style="min-width: 170px;">
 
-                                                                    <select
-                                                                        name="estado"
-                                                                        class="form-select form-select-sm"
-                                                                        required
-                                                                    >
-                                                                        <option
-                                                                            value=""
-                                                                            selected
-                                                                            disabled
-                                                                        >
+                                                                    <select name="estado" class="form-select form-select-sm" required>
+
+                                                                        <option value="" selected disabled>
                                                                             Seleccionar estado
                                                                         </option>
 
@@ -311,10 +262,7 @@
 
                                                                     </select>
 
-                                                                    <button
-                                                                        type="submit"
-                                                                        class="btn btn-primary btn-sm"
-                                                                    >
+                                                                    <button type="submit" class="btn btn-primary btn-sm">
                                                                         <i class="fa fa-save"></i>
                                                                         Guardar estado
                                                                     </button>
@@ -346,7 +294,7 @@
                 @endif
 
                 {{-- ======================================
-                     LISTA GENERAL DE REPORTES
+                LISTA GENERAL DE REPORTES
                 ======================================= --}}
                 <div class="card">
 
@@ -358,9 +306,7 @@
 
                         <div class="table-responsive">
 
-                            <table
-                                class="table table-hover align-middle"
-                            >
+                            <table class="table table-hover align-middle">
 
                                 <thead class="table-light">
 
@@ -415,9 +361,9 @@
                                                         $reporte->estado == 'Resuelto'
                                                     )
 
-                                                        <span class="badge bg-success">
-                                                            Solucionado
-                                                        </span>
+                                                    <span class="badge bg-success">
+                                                        Solucionado
+                                                    </span>
 
                                                 @else
 
@@ -434,13 +380,8 @@
 
                                                 @if($reporte->imagen)
 
-                                                    <img
-                                                        src="{{ asset('storage/' . $reporte->imagen) }}"
-                                                        alt="Foto del reporte"
-                                                        width="80"
-                                                        height="60"
-                                                        style="object-fit: cover; border-radius: 8px;"
-                                                    >
+                                                    <img src="{{ asset('storage/' . $reporte->imagen) }}" alt="Foto del reporte"
+                                                        width="80" height="60" style="object-fit: cover; border-radius: 8px;">
 
                                                 @else
 
@@ -460,22 +401,15 @@
                                             {{-- ACCIONES GENERALES --}}
                                             <td>
 
-                                                <a
-                                                    href="{{ url('/reportes/pdf/' . $reporte->idReporte) }}"
-                                                    target="_blank"
-                                                    class="btn btn-primary btn-sm"
-                                                    title="Ver PDF"
-                                                >
+                                                <a href="{{ url('/reportes/pdf/' . $reporte->idReporte) }}" target="_blank"
+                                                    class="btn btn-primary btn-sm" title="Ver PDF">
                                                     <i class="fa fa-eye"></i>
                                                 </a>
 
                                                 @if(session('rol') == 'Administrador')
 
-                                                    <a
-                                                        href="{{ url('/reportes/editar/' . $reporte->idReporte) }}"
-                                                        class="btn btn-warning btn-sm"
-                                                        title="Editar reporte"
-                                                    >
+                                                    <a href="{{ url('/reportes/editar/' . $reporte->idReporte) }}"
+                                                        class="btn btn-warning btn-sm" title="Editar reporte">
                                                         <i class="fa fa-edit"></i>
                                                     </a>
 
@@ -488,12 +422,11 @@
                                     @empty
 
                                         <tr>
-                                            <td
-                                                colspan="6"
-                                                class="text-center text-muted py-4"
-                                            >
+
+                                            <td colspan="6" class="text-center text-muted py-4">
                                                 No existen reportes registrados.
                                             </td>
+
                                         </tr>
 
                                     @endforelse
@@ -519,7 +452,7 @@
     @include('plantillas.scripts')
 
     <script>
-        // Confirmación antes de cambiar varios reportes.
+        // Confirmar antes de actualizar varios reportes.
         document.addEventListener(
             'DOMContentLoaded',
             function () {
@@ -567,4 +500,5 @@
     </script>
 
 </body>
+
 </html>
