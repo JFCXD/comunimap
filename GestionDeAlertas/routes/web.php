@@ -100,6 +100,15 @@ Route::post(
 );
 
 // =====================================================
+// CAMBIAR ESTADO DE UN CASO AGRUPADO
+// =====================================================
+
+Route::post(
+    '/reportes/casos/{id}/estado',
+    [ReportesController::class, 'actualizarEstadoGrupo']
+);
+
+// =====================================================
 // USUARIOS
 // =====================================================
 
@@ -118,7 +127,6 @@ Route::post(
     [UsuariosController::class, 'actualizar']
 );
 
-// Aprobar usuario pendiente.
 Route::get(
     '/usuarios/activar/{id}',
     [UsuariosController::class, 'activar']

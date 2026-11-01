@@ -6,13 +6,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReportesController extends Controller
 {
     /*
     |--------------------------------------------------------------------------
-    | LISTADO GENERAL Y CASOS AGRUPADOS
+    | LISTADO DE REPORTES
     |--------------------------------------------------------------------------
     */
     public function index()
@@ -24,28 +25,8 @@ class ReportesController extends Controller
         $esAdministrador =
             Session::get('rol') === 'Administrador';
 
-        // Reportes usados para calcular las coincidencias.
-        $todosReportes = DB::select("
-            SELECT
-                r.idReporte,
-                r.titulo,
-                r.estado,
-                r.idUsuario,
-                r.idCategoria,
-                r.latitud,
-                r.longitud,
-                r.direccion,
-                c.nombre AS categoria,
-                u.nombre AS usuario
-            FROM reportes r
-            INNER JOIN categorias c
-                ON r.idCategoria = c.idCategoria
-            INNER JOIN usuarios u
-                ON r.idUsuario = u.idUsuario
-            ORDER BY r.idReporte DESC
-        ");
+        $todosReportes = $this->consultarReportes();
 
-        // La lista principal respeta los permisos existentes.
         $sql = "
             SELECT
                 r.idReporte,
@@ -80,7 +61,7 @@ class ReportesController extends Controller
             );
         }
 
-        // Seguimos calculando coincidencias para cada reporte.
+        // Mantener el cálculo de coincidencias.
         foreach ($reportes as $reporte) {
 
             if (
@@ -105,7 +86,6 @@ class ReportesController extends Controller
                 $this->obtenerNivelCoincidencia($cantidad);
         }
 
-        // Las tablas especiales serán solo administrativas.
         $casosAlta = [];
         $casosMedia = [];
         $casosBaja = [];
@@ -127,7 +107,6 @@ class ReportesController extends Controller
                 }
             }
 
-            // Los casos con más vecinos aparecen primero.
             $ordenar = function ($a, $b) {
                 return $b['cantidadVecinos']
                     <=> $a['cantidadVecinos'];
@@ -147,6 +126,48 @@ class ReportesController extends Controller
                 'casosBaja'
             )
         );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | CONSULTAR LOS REPORTES PARA AGRUPACIÓN
+    |--------------------------------------------------------------------------
+    */
+    private function consultarReportes(
+        bool $bloquear = false
+    ): array {
+        $consulta = DB::table('reportes as r')
+            ->join(
+                'categorias as c',
+                'r.idCategoria',
+                '=',
+                'c.idCategoria'
+            )
+            ->join(
+                'usuarios as u',
+                'r.idUsuario',
+                '=',
+                'u.idUsuario'
+            )
+            ->select(
+                'r.idReporte',
+                'r.titulo',
+                'r.estado',
+                'r.idUsuario',
+                'r.idCategoria',
+                'r.latitud',
+                'r.longitud',
+                'r.direccion',
+                'c.nombre as categoria',
+                'u.nombre as usuario'
+            )
+            ->orderByDesc('r.idReporte');
+
+        if ($bloquear) {
+            $consulta->lockForUpdate();
+        }
+
+        return $consulta->get()->all();
     }
 
     /*
@@ -190,12 +211,15 @@ class ReportesController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | COMPROBAR ESTADO SOLUCIONADO
+    | VALIDAR ESTADO SOLUCIONADO
     |--------------------------------------------------------------------------
     */
-    private function estaSolucionado(?string $estado): bool
-    {
-        $estado = mb_strtolower(trim($estado ?? ''));
+    private function estaSolucionado(
+        ?string $estado
+    ): bool {
+        $estado = mb_strtolower(
+            trim($estado ?? '')
+        );
 
         return in_array(
             $estado,
@@ -206,11 +230,13 @@ class ReportesController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | COMPROBAR SI DOS REPORTES COINCIDEN
+    | COMPARAR DOS REPORTES
     |--------------------------------------------------------------------------
     */
-    private function sonCoincidentes($primero, $segundo): bool
-    {
+    private function sonCoincidentes(
+        $primero,
+        $segundo
+    ): bool {
         if (
             $this->estaSolucionado($primero->estado) ||
             $this->estaSolucionado($segundo->estado)
@@ -246,7 +272,7 @@ class ReportesController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | CONTAR USUARIOS DISTINTOS POR REPORTE
+    | CONTAR VECINOS DISTINTOS
     |--------------------------------------------------------------------------
     */
     private function obtenerUsuariosCoincidentes(
@@ -267,7 +293,9 @@ class ReportesController extends Controller
             }
 
             if ($this->sonCoincidentes($reporte, $otro)) {
-                $usuarios[(string) $otro->idUsuario] = true;
+                $usuarios[
+                    (string) $otro->idUsuario
+                ] = true;
             }
         }
 
@@ -276,10 +304,8 @@ class ReportesController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | NIVEL HISTÓRICO DE COINCIDENCIA
+    | NIVEL DE COINCIDENCIAS
     |--------------------------------------------------------------------------
-    | Se conserva el cálculo, aunque ya no mostraremos
-    | la columna Nivel en la tabla principal.
     */
     private function obtenerNivelCoincidencia(
         int $cantidad
@@ -304,15 +330,16 @@ class ReportesController extends Controller
     | AGRUPAR CASOS ESPECIALES
     |--------------------------------------------------------------------------
     |
-    | Cada reporte puede pertenecer a un solo grupo.
-    | Se usa un reporte representativo como centro.
-    | Los demás deben quedar a 5 metros o menos
-    | de ese reporte y tener la misma categoría.
+    | Todos los integrantes deben estar a un máximo
+    | de 5 metros de un reporte representativo.
     |
-    | Se cuentan USUARIOS DISTINTOS.
+    | Se mantiene la agrupación de la etapa anterior
+    | para que la clasificación no cambie.
+    |
     */
-    private function agruparCasos(array $todosReportes): array
-    {
+    private function agruparCasos(
+        array $todosReportes
+    ): array {
         $activos = [];
 
         foreach ($todosReportes as $reporte) {
@@ -334,11 +361,6 @@ class ReportesController extends Controller
         $grupos = [];
         $utilizados = [];
 
-        /*
-         * Elegimos primero el grupo disponible con más
-         * vecinos distintos para dar prioridad a las
-         * zonas con mayor cantidad de afectados.
-         */
         while (true) {
 
             $mejorGrupo = [];
@@ -346,7 +368,13 @@ class ReportesController extends Controller
 
             foreach ($activos as $centro) {
 
-                if (isset($utilizados[$centro->idReporte])) {
+                if (
+                    isset(
+                    $utilizados[
+                        $centro->idReporte
+                    ]
+                )
+                ) {
                     continue;
                 }
 
@@ -355,15 +383,27 @@ class ReportesController extends Controller
 
                 foreach ($activos as $otro) {
 
-                    if (isset($utilizados[$otro->idReporte])) {
+                    if (
+                        isset(
+                        $utilizados[
+                            $otro->idReporte
+                        ]
+                    )
+                    ) {
                         continue;
                     }
 
-                    if ($this->sonCoincidentes($centro, $otro)) {
-
+                    if (
+                        $this->sonCoincidentes(
+                            $centro,
+                            $otro
+                        )
+                    ) {
                         $candidatos[] = $otro;
-                        $usuarios[(string) $otro->idUsuario] =
-                            $otro->usuario;
+
+                        $usuarios[
+                            (string) $otro->idUsuario
+                        ] = $otro->usuario;
                     }
                 }
 
@@ -381,7 +421,6 @@ class ReportesController extends Controller
                 }
             }
 
-            // No quedan grupos con dos o más vecinos.
             if ($mejorCantidad < 2) {
                 break;
             }
@@ -390,7 +429,9 @@ class ReportesController extends Controller
             $integrantes = $mejorGrupo['reportes'];
 
             foreach ($integrantes as $integrante) {
-                $utilizados[$integrante->idReporte] = true;
+                $utilizados[
+                    $integrante->idReporte
+                ] = true;
             }
 
             $nombres = array_values(
@@ -405,12 +446,10 @@ class ReportesController extends Controller
             );
 
             $grupos[] = [
-                'idReporte' => $centro->idReporte,
+                'idReporte' => (int) $centro->idReporte,
                 'titulo' => $centro->titulo,
                 'categoria' => $centro->categoria,
                 'direccion' => $centro->direccion,
-                'latitud' => $centro->latitud,
-                'longitud' => $centro->longitud,
                 'cantidadVecinos' => $mejorCantidad,
                 'cantidadReportes' => count($integrantes),
                 'usuarios' => $nombres,
@@ -419,6 +458,104 @@ class ReportesController extends Controller
         }
 
         return $grupos;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | ACTUALIZAR ESTADO DE TODOS LOS REPORTES DE UN GRUPO
+    |--------------------------------------------------------------------------
+    */
+    public function actualizarEstadoGrupo(
+        Request $request,
+        $id
+    ) {
+        if (!Session::has('idUsuario')) {
+            return redirect('/login');
+        }
+
+        if (Session::get('rol') !== 'Administrador') {
+            abort(403);
+        }
+
+        $datos = $request->validate([
+            'estado' => [
+                'required',
+                'in:Pendiente,En Proceso,Solucionado'
+            ]
+        ]);
+
+        $nuevoEstado = $datos['estado'];
+
+        // El identificador de la URL es solo el
+        // reporte representativo. No aceptamos IDs
+        // de otros reportes enviados por el navegador.
+        $idRepresentativo = (int) $id;
+
+        DB::transaction(function () use ($idRepresentativo, $nuevoEstado) {
+
+            // Consultar y bloquear los registros
+            // mientras se realiza la actualización.
+            $todosReportes =
+                $this->consultarReportes(true);
+
+            // Volver a calcular los grupos actuales.
+            $grupos =
+                $this->agruparCasos($todosReportes);
+
+            $grupoSeleccionado = null;
+
+            foreach ($grupos as $grupo) {
+
+                if (
+                    (int) $grupo['idReporte'] ===
+                    $idRepresentativo
+                ) {
+                    $grupoSeleccionado = $grupo;
+                    break;
+                }
+            }
+
+            // Si el grupo desapareció o cambió,
+            // no debemos modificar reportes equivocados.
+            if ($grupoSeleccionado === null) {
+
+                throw ValidationException::withMessages([
+                    'grupo' =>
+                        'El grupo cambió o ya no existe. '
+                        . 'Actualiza la página e inténtalo nuevamente.'
+                ]);
+            }
+
+            $idsReportes =
+                $grupoSeleccionado['idsReportes'];
+
+            if (count($idsReportes) < 2) {
+
+                throw ValidationException::withMessages([
+                    'grupo' =>
+                        'Este caso ya no tiene suficientes reportes coincidentes.'
+                ]);
+            }
+
+            // Una sola operación actualiza todos los
+            // reportes que integran el grupo.
+            DB::table('reportes')
+                ->whereIn(
+                    'idReporte',
+                    $idsReportes
+                )
+                ->update([
+                    'estado' => $nuevoEstado
+                ]);
+
+        }, 3);
+
+        return redirect('/reportes')
+            ->with(
+                'success',
+                'Se actualizó el estado de todos '
+                . 'los reportes del caso agrupado.'
+            );
     }
 
     /*
@@ -550,7 +687,7 @@ class ReportesController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | ACTUALIZAR REPORTE
+    | ACTUALIZAR REPORTE INDIVIDUAL
     |--------------------------------------------------------------------------
     */
     public function actualizar(Request $request, $id)
@@ -610,12 +747,15 @@ class ReportesController extends Controller
             $id
         ]);
 
-        // Borrar la foto anterior solo tras actualizar.
         if (
             $imagenAnterior &&
-            Storage::disk('public')->exists($imagenAnterior)
+            Storage::disk('public')->exists(
+                $imagenAnterior
+            )
         ) {
-            Storage::disk('public')->delete($imagenAnterior);
+            Storage::disk('public')->delete(
+                $imagenAnterior
+            );
         }
 
         return redirect('/reportes');
