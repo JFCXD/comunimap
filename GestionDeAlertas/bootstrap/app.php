@@ -12,8 +12,27 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+
+        /*
+        |--------------------------------------------------------------------------
+        | PROXIES DE CONFIANZA EN RAILWAY
+        |--------------------------------------------------------------------------
+        |
+        | Railway recibe las conexiones HTTPS y las
+        | reenvía a Laravel mediante un proxy.
+        |
+        | Esta configuración permite que Laravel
+        | reconozca correctamente el protocolo HTTPS
+        | original y genere enlaces y formularios seguros.
+        |
+        */
+
+        $middleware->trustProxies(
+            at: '*'
+        );
+
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
-    })->create();
+    })
+    ->create();
