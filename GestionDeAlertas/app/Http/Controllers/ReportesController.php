@@ -12,7 +12,7 @@ class ReportesController extends Controller
 {
     /*
     |--------------------------------------------------------------------------
-    | LISTADO DE REPORTES Y COINCIDENCIAS
+    | LISTADO GENERAL Y CASOS AGRUPADOS
     |--------------------------------------------------------------------------
     */
     public function index()
@@ -21,20 +21,31 @@ class ReportesController extends Controller
             return redirect('/login');
         }
 
-        // Todos los reportes se usan para calcular coincidencias,
-        // aunque un usuario normal solo vea sus propios reportes.
+        $esAdministrador =
+            Session::get('rol') === 'Administrador';
+
+        // Reportes usados para calcular las coincidencias.
         $todosReportes = DB::select("
             SELECT
-                idReporte,
-                estado,
-                idUsuario,
-                idCategoria,
-                latitud,
-                longitud
-            FROM reportes
+                r.idReporte,
+                r.titulo,
+                r.estado,
+                r.idUsuario,
+                r.idCategoria,
+                r.latitud,
+                r.longitud,
+                r.direccion,
+                c.nombre AS categoria,
+                u.nombre AS usuario
+            FROM reportes r
+            INNER JOIN categorias c
+                ON r.idCategoria = c.idCategoria
+            INNER JOIN usuarios u
+                ON r.idUsuario = u.idUsuario
+            ORDER BY r.idReporte DESC
         ");
 
-        // Mantener la separación entre administrador y vecino.
+        // La lista principal respeta los permisos existentes.
         $sql = "
             SELECT
                 r.idReporte,
@@ -55,7 +66,7 @@ class ReportesController extends Controller
                 ON r.idUsuario = u.idUsuario
         ";
 
-        if (Session::get('rol') === 'Administrador') {
+        if ($esAdministrador) {
             $reportes = DB::select(
                 $sql . " ORDER BY r.idReporte DESC"
             );
@@ -69,18 +80,11 @@ class ReportesController extends Controller
             );
         }
 
-        // Calcular coincidencias para cada reporte visible.
+        // Seguimos calculando coincidencias para cada reporte.
         foreach ($reportes as $reporte) {
 
-            // Los reportes solucionados no participan.
-            if ($this->estaSolucionado($reporte->estado)) {
-                $reporte->cantidadCoincidencias = 0;
-                $reporte->nivelCoincidencia = 'No aplica';
-                continue;
-            }
-
-            // Sin coordenadas no se puede calcular distancia.
             if (
+                $this->estaSolucionado($reporte->estado) ||
                 $reporte->latitud === null ||
                 $reporte->longitud === null
             ) {
@@ -97,14 +101,51 @@ class ReportesController extends Controller
             $cantidad = count($usuarios);
 
             $reporte->cantidadCoincidencias = $cantidad;
-
             $reporte->nivelCoincidencia =
                 $this->obtenerNivelCoincidencia($cantidad);
         }
 
+        // Las tablas especiales serán solo administrativas.
+        $casosAlta = [];
+        $casosMedia = [];
+        $casosBaja = [];
+
+        if ($esAdministrador) {
+
+            $grupos = $this->agruparCasos($todosReportes);
+
+            foreach ($grupos as $grupo) {
+
+                if ($grupo['cantidadVecinos'] >= 5) {
+                    $casosAlta[] = $grupo;
+
+                } elseif ($grupo['cantidadVecinos'] >= 3) {
+                    $casosMedia[] = $grupo;
+
+                } elseif ($grupo['cantidadVecinos'] === 2) {
+                    $casosBaja[] = $grupo;
+                }
+            }
+
+            // Los casos con más vecinos aparecen primero.
+            $ordenar = function ($a, $b) {
+                return $b['cantidadVecinos']
+                    <=> $a['cantidadVecinos'];
+            };
+
+            usort($casosAlta, $ordenar);
+            usort($casosMedia, $ordenar);
+            usort($casosBaja, $ordenar);
+        }
+
         return view(
             'reportes.reportes',
-            compact('reportes')
+            compact(
+                'reportes',
+                'casosAlta',
+                'casosMedia',
+                'casosBaja'
+            )
         );
     }
 
@@ -121,13 +162,11 @@ class ReportesController extends Controller
     ): float {
         $radioTierra = 6371000;
 
-        $diferenciaLatitud = deg2rad(
-            $latitud2 - $latitud1
-        );
+        $diferenciaLatitud =
+            deg2rad($latitud2 - $latitud1);
 
-        $diferenciaLongitud = deg2rad(
-            $longitud2 - $longitud1
-        );
+        $diferenciaLongitud =
+            deg2rad($longitud2 - $longitud1);
 
         $latitud1Rad = deg2rad($latitud1);
         $latitud2Rad = deg2rad($latitud2);
@@ -139,7 +178,6 @@ class ReportesController extends Controller
             * cos($latitud2Rad)
             * sin($diferenciaLongitud / 2) ** 2;
 
-        // Evitar errores de precisión matemática.
         $a = min(1, max(0, $a));
 
         $c = 2 * atan2(
@@ -152,95 +190,109 @@ class ReportesController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | BUSCAR VECINOS COINCIDENTES
+    | COMPROBAR ESTADO SOLUCIONADO
     |--------------------------------------------------------------------------
-    |
-    | Condiciones:
-    | 1. Misma categoría.
-    | 2. Distancia máxima de 5 metros.
-    | 3. Reportes no solucionados.
-    | 4. Cada usuario cuenta una sola vez.
-    |
+    */
+    private function estaSolucionado(?string $estado): bool
+    {
+        $estado = mb_strtolower(trim($estado ?? ''));
+
+        return in_array(
+            $estado,
+            ['solucionado', 'resuelto'],
+            true
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | COMPROBAR SI DOS REPORTES COINCIDEN
+    |--------------------------------------------------------------------------
+    */
+    private function sonCoincidentes($primero, $segundo): bool
+    {
+        if (
+            $this->estaSolucionado($primero->estado) ||
+            $this->estaSolucionado($segundo->estado)
+        ) {
+            return false;
+        }
+
+        if (
+            (int) $primero->idCategoria !==
+            (int) $segundo->idCategoria
+        ) {
+            return false;
+        }
+
+        if (
+            $primero->latitud === null ||
+            $primero->longitud === null ||
+            $segundo->latitud === null ||
+            $segundo->longitud === null
+        ) {
+            return false;
+        }
+
+        $distancia = $this->calcularDistanciaMetros(
+            (float) $primero->latitud,
+            (float) $primero->longitud,
+            (float) $segundo->latitud,
+            (float) $segundo->longitud
+        );
+
+        return $distancia <= 5;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | CONTAR USUARIOS DISTINTOS POR REPORTE
+    |--------------------------------------------------------------------------
     */
     private function obtenerUsuariosCoincidentes(
         $reporte,
         array $todosReportes
     ): array {
-        $usuariosCoincidentes = [];
+        $usuarios = [
+            (string) $reporte->idUsuario => true
+        ];
 
-        // El autor cuenta como el primer vecino.
-        $usuariosCoincidentes[
-            (string) $reporte->idUsuario
-        ] = true;
+        foreach ($todosReportes as $otro) {
 
-        foreach ($todosReportes as $otroReporte) {
-
-            // No comparar el reporte consigo mismo.
             if (
-                (int) $otroReporte->idReporte ===
-                (int) $reporte->idReporte
+                (int) $reporte->idReporte ===
+                (int) $otro->idReporte
             ) {
                 continue;
             }
 
-            // Deben pertenecer a la misma categoría.
-            if (
-                (int) $otroReporte->idCategoria !==
-                (int) $reporte->idCategoria
-            ) {
-                continue;
-            }
-
-            // Ignorar problemas ya solucionados.
-            if ($this->estaSolucionado($otroReporte->estado)) {
-                continue;
-            }
-
-            // Ignorar registros sin coordenadas.
-            if (
-                $otroReporte->latitud === null ||
-                $otroReporte->longitud === null
-            ) {
-                continue;
-            }
-
-            // Calcular distancia geográfica.
-            $distancia = $this->calcularDistanciaMetros(
-                (float) $reporte->latitud,
-                (float) $reporte->longitud,
-                (float) $otroReporte->latitud,
-                (float) $otroReporte->longitud
-            );
-
-            if ($distancia <= 5) {
-
-                // Usar idUsuario como clave evita duplicados.
-                $usuariosCoincidentes[
-                    (string) $otroReporte->idUsuario
-                ] = true;
+            if ($this->sonCoincidentes($reporte, $otro)) {
+                $usuarios[(string) $otro->idUsuario] = true;
             }
         }
 
-        return array_keys($usuariosCoincidentes);
+        return array_keys($usuarios);
     }
 
     /*
     |--------------------------------------------------------------------------
-    | NIVEL SEGÚN CANTIDAD DE VECINOS
+    | NIVEL HISTÓRICO DE COINCIDENCIA
     |--------------------------------------------------------------------------
+    | Se conserva el cálculo, aunque ya no mostraremos
+    | la columna Nivel en la tabla principal.
     */
     private function obtenerNivelCoincidencia(
-        int $cantidadUsuarios
+        int $cantidad
     ): string {
-        if ($cantidadUsuarios >= 5) {
+        if ($cantidad >= 5) {
             return 'Muy reportado';
         }
 
-        if ($cantidadUsuarios === 4) {
+        if ($cantidad === 4) {
             return 'Frecuente';
         }
 
-        if ($cantidadUsuarios >= 2) {
+        if ($cantidad >= 2) {
             return 'Recurrente';
         }
 
@@ -249,20 +301,124 @@ class ReportesController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | VALIDAR ESTADO SOLUCIONADO
+    | AGRUPAR CASOS ESPECIALES
     |--------------------------------------------------------------------------
+    |
+    | Cada reporte puede pertenecer a un solo grupo.
+    | Se usa un reporte representativo como centro.
+    | Los demás deben quedar a 5 metros o menos
+    | de ese reporte y tener la misma categoría.
+    |
+    | Se cuentan USUARIOS DISTINTOS.
     */
-    private function estaSolucionado(?string $estado): bool
+    private function agruparCasos(array $todosReportes): array
     {
-        $estadoNormalizado = mb_strtolower(
-            trim($estado ?? '')
-        );
+        $activos = [];
 
-        return in_array(
-            $estadoNormalizado,
-            ['solucionado', 'resuelto'],
-            true
-        );
+        foreach ($todosReportes as $reporte) {
+
+            if ($this->estaSolucionado($reporte->estado)) {
+                continue;
+            }
+
+            if (
+                $reporte->latitud === null ||
+                $reporte->longitud === null
+            ) {
+                continue;
+            }
+
+            $activos[] = $reporte;
+        }
+
+        $grupos = [];
+        $utilizados = [];
+
+        /*
+         * Elegimos primero el grupo disponible con más
+         * vecinos distintos para dar prioridad a las
+         * zonas con mayor cantidad de afectados.
+         */
+        while (true) {
+
+            $mejorGrupo = [];
+            $mejorCantidad = 0;
+
+            foreach ($activos as $centro) {
+
+                if (isset($utilizados[$centro->idReporte])) {
+                    continue;
+                }
+
+                $candidatos = [];
+                $usuarios = [];
+
+                foreach ($activos as $otro) {
+
+                    if (isset($utilizados[$otro->idReporte])) {
+                        continue;
+                    }
+
+                    if ($this->sonCoincidentes($centro, $otro)) {
+
+                        $candidatos[] = $otro;
+                        $usuarios[(string) $otro->idUsuario] =
+                            $otro->usuario;
+                    }
+                }
+
+                $cantidad = count($usuarios);
+
+                if ($cantidad > $mejorCantidad) {
+
+                    $mejorCantidad = $cantidad;
+
+                    $mejorGrupo = [
+                        'centro' => $centro,
+                        'reportes' => $candidatos,
+                        'usuarios' => $usuarios
+                    ];
+                }
+            }
+
+            // No quedan grupos con dos o más vecinos.
+            if ($mejorCantidad < 2) {
+                break;
+            }
+
+            $centro = $mejorGrupo['centro'];
+            $integrantes = $mejorGrupo['reportes'];
+
+            foreach ($integrantes as $integrante) {
+                $utilizados[$integrante->idReporte] = true;
+            }
+
+            $nombres = array_values(
+                $mejorGrupo['usuarios']
+            );
+
+            $ids = array_map(
+                function ($reporte) {
+                    return (int) $reporte->idReporte;
+                },
+                $integrantes
+            );
+
+            $grupos[] = [
+                'idReporte' => $centro->idReporte,
+                'titulo' => $centro->titulo,
+                'categoria' => $centro->categoria,
+                'direccion' => $centro->direccion,
+                'latitud' => $centro->latitud,
+                'longitud' => $centro->longitud,
+                'cantidadVecinos' => $mejorCantidad,
+                'cantidadReportes' => count($integrantes),
+                'usuarios' => $nombres,
+                'idsReportes' => $ids
+            ];
+        }
+
+        return $grupos;
     }
 
     /*
@@ -299,11 +455,14 @@ class ReportesController extends Controller
             return redirect('/reportes');
         }
 
-        // Respetar la propiedad de los reportes.
         if (Session::get('rol') !== 'Administrador') {
+
             $pertenece = DB::table('reportes')
                 ->where('idReporte', $id)
-                ->where('idUsuario', Session::get('idUsuario'))
+                ->where(
+                    'idUsuario',
+                    Session::get('idUsuario')
+                )
                 ->exists();
 
             if (!$pertenece) {
@@ -411,8 +570,8 @@ class ReportesController extends Controller
         }
 
         $imagen = $reporte[0]->imagen;
+        $imagenAnterior = null;
 
-        // Reemplazar fotografía, si se envía una nueva.
         if ($request->hasFile('imagen')) {
 
             $request->validate([
@@ -451,9 +610,8 @@ class ReportesController extends Controller
             $id
         ]);
 
-        // Eliminar la imagen vieja después de actualizar.
+        // Borrar la foto anterior solo tras actualizar.
         if (
-            isset($imagenAnterior) &&
             $imagenAnterior &&
             Storage::disk('public')->exists($imagenAnterior)
         ) {

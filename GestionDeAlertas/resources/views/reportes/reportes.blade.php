@@ -17,7 +17,7 @@
 
         <div class="page-wrapper">
 
-            {{-- ENCABEZADO DE REPORTES --}}
+            {{-- ENCABEZADO --}}
             <div class="page-breadcrumb bg-white">
                 <div class="row align-items-center">
 
@@ -44,31 +44,331 @@
 
             <div class="container-fluid">
 
-                {{-- EXPLICACIÓN PARA EL ADMINISTRADOR --}}
+                {{-- ===========================================
+                TABLAS ESPECIALES SOLO PARA ADMINISTRADOR
+                ============================================ --}}
                 @if(session('rol') == 'Administrador')
 
-                    <div class="alert alert-info">
+                    {{-- PRIORIDAD ALTA --}}
+                    @if(count($casosAlta) > 0)
 
-                        <strong>
-                            Coincidencias comunitarias:
-                        </strong>
+                        <div class="card mb-4">
 
-                        Se consideran reportes activos
-                        de la misma categoría, realizados
-                        por vecinos distintos y ubicados
-                        a una distancia máxima de 5 metros.
+                            <div class="card-body">
 
-                    </div>
+                                <h4 class="card-title mb-3 text-danger">
+                                    <i class="fa fa-exclamation-triangle"></i>
+                                    Casos de atención urgente
+                                </h4>
+
+                                <p class="text-muted">
+                                    Casos reportados por
+                                    5 o más vecinos diferentes.
+                                </p>
+
+                                <div class="table-responsive">
+
+                                    <table class="table table-hover align-middle">
+
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Problema</th>
+                                                <th>Categoría</th>
+                                                <th>Ubicación</th>
+                                                <th>Vecinos</th>
+                                                <th>Prioridad</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody>
+
+                                            @foreach($casosAlta as $caso)
+
+                                                <tr>
+
+                                                    <td>
+                                                        <strong>
+                                                            {{ $caso['titulo'] }}
+                                                        </strong>
+
+                                                        <small class="d-block text-muted">
+                                                            {{ $caso['cantidadReportes'] }}
+                                                            reportes agrupados
+                                                        </small>
+                                                    </td>
+
+                                                    <td>
+                                                        {{ $caso['categoria'] }}
+                                                    </td>
+
+                                                    <td>
+                                                        @if($caso['direccion'])
+                                                            {{ $caso['direccion'] }}
+                                                        @else
+                                                            <span class="text-muted">
+                                                                Ubicación en el mapa
+                                                            </span>
+                                                        @endif
+                                                    </td>
+
+                                                    <td>
+                                                        <strong>
+                                                            {{ $caso['cantidadVecinos'] }}
+                                                        </strong>
+                                                        vecinos
+
+                                                        <small class="d-block text-muted">
+                                                            {{ implode(', ', $caso['usuarios']) }}
+                                                        </small>
+                                                    </td>
+
+                                                    <td>
+                                                        <span class="badge bg-danger">
+                                                            Alta
+                                                        </span>
+                                                    </td>
+
+                                                    <td>
+                                                        <a href="{{ url('/reportes/pdf/' . $caso['idReporte']) }}" target="_blank"
+                                                            class="btn btn-primary btn-sm" title="Ver reporte representativo">
+                                                            <i class="fa fa-eye"></i>
+                                                            Ver
+                                                        </a>
+                                                    </td>
+
+                                                </tr>
+
+                                            @endforeach
+
+                                        </tbody>
+
+                                    </table>
+
+                                </div>
+
+                            </div>
+                        </div>
+
+                    @endif
+
+                    {{-- PRIORIDAD MEDIA --}}
+                    @if(count($casosMedia) > 0)
+
+                        <div class="card mb-4">
+
+                            <div class="card-body">
+
+                                <h4 class="card-title mb-3 text-warning">
+                                    <i class="fa fa-exclamation-circle"></i>
+                                    Casos que requieren atención
+                                </h4>
+
+                                <p class="text-muted">
+                                    Casos reportados por
+                                    3 o 4 vecinos diferentes.
+                                </p>
+
+                                <div class="table-responsive">
+
+                                    <table class="table table-hover align-middle">
+
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Problema</th>
+                                                <th>Categoría</th>
+                                                <th>Ubicación</th>
+                                                <th>Vecinos</th>
+                                                <th>Prioridad</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody>
+
+                                            @foreach($casosMedia as $caso)
+
+                                                <tr>
+
+                                                    <td>
+                                                        <strong>
+                                                            {{ $caso['titulo'] }}
+                                                        </strong>
+
+                                                        <small class="d-block text-muted">
+                                                            {{ $caso['cantidadReportes'] }}
+                                                            reportes agrupados
+                                                        </small>
+                                                    </td>
+
+                                                    <td>
+                                                        {{ $caso['categoria'] }}
+                                                    </td>
+
+                                                    <td>
+                                                        @if($caso['direccion'])
+                                                            {{ $caso['direccion'] }}
+                                                        @else
+                                                            <span class="text-muted">
+                                                                Ubicación en el mapa
+                                                            </span>
+                                                        @endif
+                                                    </td>
+
+                                                    <td>
+                                                        <strong>
+                                                            {{ $caso['cantidadVecinos'] }}
+                                                        </strong>
+                                                        vecinos
+
+                                                        <small class="d-block text-muted">
+                                                            {{ implode(', ', $caso['usuarios']) }}
+                                                        </small>
+                                                    </td>
+
+                                                    <td>
+                                                        <span class="badge bg-warning text-dark">
+                                                            Media
+                                                        </span>
+                                                    </td>
+
+                                                    <td>
+                                                        <a href="{{ url('/reportes/pdf/' . $caso['idReporte']) }}" target="_blank"
+                                                            class="btn btn-primary btn-sm" title="Ver reporte representativo">
+                                                            <i class="fa fa-eye"></i>
+                                                            Ver
+                                                        </a>
+                                                    </td>
+
+                                                </tr>
+
+                                            @endforeach
+
+                                        </tbody>
+
+                                    </table>
+
+                                </div>
+
+                            </div>
+                        </div>
+
+                    @endif
+
+                    {{-- PRIORIDAD BAJA --}}
+                    @if(count($casosBaja) > 0)
+
+                        <div class="card mb-4">
+
+                            <div class="card-body">
+
+                                <h4 class="card-title mb-3 text-info">
+                                    <i class="fa fa-clipboard-list"></i>
+                                    Casos en seguimiento
+                                </h4>
+
+                                <p class="text-muted">
+                                    Casos reportados por
+                                    2 vecinos diferentes.
+                                </p>
+
+                                <div class="table-responsive">
+
+                                    <table class="table table-hover align-middle">
+
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Problema</th>
+                                                <th>Categoría</th>
+                                                <th>Ubicación</th>
+                                                <th>Vecinos</th>
+                                                <th>Prioridad</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody>
+
+                                            @foreach($casosBaja as $caso)
+
+                                                <tr>
+
+                                                    <td>
+                                                        <strong>
+                                                            {{ $caso['titulo'] }}
+                                                        </strong>
+
+                                                        <small class="d-block text-muted">
+                                                            {{ $caso['cantidadReportes'] }}
+                                                            reportes agrupados
+                                                        </small>
+                                                    </td>
+
+                                                    <td>
+                                                        {{ $caso['categoria'] }}
+                                                    </td>
+
+                                                    <td>
+                                                        @if($caso['direccion'])
+                                                            {{ $caso['direccion'] }}
+                                                        @else
+                                                            <span class="text-muted">
+                                                                Ubicación en el mapa
+                                                            </span>
+                                                        @endif
+                                                    </td>
+
+                                                    <td>
+                                                        <strong>
+                                                            {{ $caso['cantidadVecinos'] }}
+                                                        </strong>
+                                                        vecinos
+
+                                                        <small class="d-block text-muted">
+                                                            {{ implode(', ', $caso['usuarios']) }}
+                                                        </small>
+                                                    </td>
+
+                                                    <td>
+                                                        <span class="badge bg-info text-dark">
+                                                            Baja
+                                                        </span>
+                                                    </td>
+
+                                                    <td>
+                                                        <a href="{{ url('/reportes/pdf/' . $caso['idReporte']) }}" target="_blank"
+                                                            class="btn btn-primary btn-sm" title="Ver reporte representativo">
+                                                            <i class="fa fa-eye"></i>
+                                                            Ver
+                                                        </a>
+                                                    </td>
+
+                                                </tr>
+
+                                            @endforeach
+
+                                        </tbody>
+
+                                    </table>
+
+                                </div>
+
+                            </div>
+                        </div>
+
+                    @endif
 
                 @endif
 
-                {{-- TABLA DE REPORTES --}}
+                {{-- ===========================================
+                TABLA GENERAL DE REPORTES
+                ============================================ --}}
                 <div class="card">
 
                     <div class="card-body">
 
                         <h4 class="card-title mb-4">
-                            Lista de Reportes
+                            Lista general de reportes
                         </h4>
 
                         <div class="table-responsive">
@@ -76,16 +376,16 @@
                             <table class="table table-hover align-middle">
 
                                 <thead class="table-light">
+
                                     <tr>
                                         <th>Título</th>
                                         <th>Categoría</th>
                                         <th>Estado</th>
-                                        <th>Coincidencias</th>
-                                        <th>Nivel</th>
                                         <th>Foto</th>
                                         <th>Usuario</th>
                                         <th>Acciones</th>
                                     </tr>
+
                                 </thead>
 
                                 <tbody>
@@ -94,19 +394,16 @@
 
                                         <tr>
 
-                                            {{-- TÍTULO --}}
                                             <td>
                                                 <strong>
                                                     {{ $reporte->titulo }}
                                                 </strong>
                                             </td>
 
-                                            {{-- CATEGORÍA --}}
                                             <td>
                                                 {{ $reporte->nombre }}
                                             </td>
 
-                                            {{-- ESTADO --}}
                                             <td>
 
                                                 @if($reporte->estado == 'Pendiente')
@@ -140,80 +437,12 @@
 
                                             </td>
 
-                                            {{-- CANTIDAD DE COINCIDENCIAS --}}
-                                            <td>
-
-                                                @if($reporte->nivelCoincidencia === 'No aplica')
-
-                                                    <span class="text-muted">
-                                                        —
-                                                    </span>
-
-                                                @else
-
-                                                    <strong>
-                                                        {{ $reporte->cantidadCoincidencias }}
-                                                    </strong>
-
-                                                    <small class="text-muted d-block">
-
-                                                        @if($reporte->cantidadCoincidencias === 1)
-                                                            vecino
-                                                        @else
-                                                            vecinos
-                                                        @endif
-
-                                                    </small>
-
-                                                @endif
-
-                                            </td>
-
-                                            {{-- NIVEL DE COINCIDENCIA --}}
-                                            <td>
-
-                                                @if($reporte->nivelCoincidencia === 'Muy reportado')
-
-                                                    <span class="badge bg-danger">
-                                                        Muy reportado
-                                                    </span>
-
-                                                @elseif($reporte->nivelCoincidencia === 'Frecuente')
-
-                                                    <span class="badge bg-warning text-dark">
-                                                        Frecuente
-                                                    </span>
-
-                                                @elseif($reporte->nivelCoincidencia === 'Recurrente')
-
-                                                    <span class="badge bg-info text-dark">
-                                                        Recurrente
-                                                    </span>
-
-                                                @elseif($reporte->nivelCoincidencia === 'Individual')
-
-                                                    <span class="badge bg-secondary">
-                                                        Individual
-                                                    </span>
-
-                                                @else
-
-                                                    <span class="text-muted">
-                                                        —
-                                                    </span>
-
-                                                @endif
-
-                                            </td>
-
-                                            {{-- FOTO --}}
                                             <td>
 
                                                 @if($reporte->imagen)
 
-                                                    <img src="{{ asset('storage/' . $reporte->imagen) }}"
-                                                        alt="Evidencia del reporte" width="80" height="60"
-                                                        style="object-fit: cover; border-radius: 8px;">
+                                                    <img src="{{ asset('storage/' . $reporte->imagen) }}" alt="Foto del reporte"
+                                                        width="80" height="60" style="object-fit: cover; border-radius: 8px;">
 
                                                 @else
 
@@ -225,12 +454,10 @@
 
                                             </td>
 
-                                            {{-- USUARIO --}}
                                             <td>
                                                 {{ $reporte->usuario }}
                                             </td>
 
-                                            {{-- ACCIONES --}}
                                             <td>
 
                                                 <a href="{{ url('/reportes/pdf/' . $reporte->idReporte) }}" target="_blank"
@@ -247,8 +474,9 @@
 
                                                 @endif
 
-                                                {{-- Mantener la eliminación existente.
-                                                Se revisará su seguridad después. --}}
+                                                {{-- Conservamos el botón anterior.
+                                                Revisar luego la protección
+                                                de su ruta en el servidor. --}}
                                                 <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal"
                                                     data-bs-target="#modalEliminar" data-titulo="{{ $reporte->titulo }}"
                                                     data-url="{{ url('/reportes/eliminar/' . $reporte->idReporte) }}"
@@ -263,7 +491,7 @@
                                     @empty
 
                                         <tr>
-                                            <td colspan="8" class="text-center text-muted py-4">
+                                            <td colspan="6" class="text-center text-muted py-4">
                                                 No existen reportes registrados.
                                             </td>
                                         </tr>
@@ -271,8 +499,11 @@
                                     @endforelse
 
                                 </tbody>
+
                             </table>
+
                         </div>
+
                     </div>
                 </div>
 
@@ -280,10 +511,11 @@
 
             @include('plantillas.pie')
 
-            {{-- MODAL DE CONFIRMACIÓN DE ELIMINACIÓN --}}
+            {{-- MODAL DE ELIMINACIÓN --}}
             <div class="modal fade" id="modalEliminar" tabindex="-1">
 
                 <div class="modal-dialog">
+
                     <div class="modal-content">
 
                         <div class="modal-header bg-secondary text-dark">
@@ -320,6 +552,7 @@
                         </div>
 
                     </div>
+
                 </div>
 
             </div>
@@ -330,36 +563,46 @@
     @include('plantillas.scripts')
 
     <script>
-        // Mostrar el nombre del reporte de forma segura.
-        // No insertar el título usando innerHTML.
+        document.addEventListener(
+            'DOMContentLoaded',
+            function () {
 
-        document.addEventListener('DOMContentLoaded', function () {
+                const modal = document.getElementById(
+                    'modalEliminar'
+                );
 
-            const modal = document.getElementById('modalEliminar');
-
-            if (!modal) {
-                return;
-            }
-
-            modal.addEventListener('show.bs.modal', function (evento) {
-
-                const boton = evento.relatedTarget;
-
-                if (!boton) {
+                if (!modal) {
                     return;
                 }
 
-                const nombre = boton.getAttribute('data-titulo') || '';
-                const url = boton.getAttribute('data-url') || '';
+                modal.addEventListener(
+                    'show.bs.modal',
+                    function (evento) {
 
-                const texto = document.getElementById('nombreRegistro');
-                const enlace = document.getElementById('btnEliminar');
+                        const boton = evento.relatedTarget;
 
-                texto.textContent = '¿Eliminar "' + nombre + '"?';
-                enlace.setAttribute('href', url);
-            });
+                        if (!boton) {
+                            return;
+                        }
 
-        });
+                        const titulo =
+                            boton.getAttribute('data-titulo') || '';
+
+                        const url =
+                            boton.getAttribute('data-url') || '';
+
+                        document.getElementById(
+                            'nombreRegistro'
+                        ).textContent =
+                            '¿Eliminar "' + titulo + '"?';
+
+                        document.getElementById(
+                            'btnEliminar'
+                        ).setAttribute('href', url);
+                    }
+                );
+            }
+        );
     </script>
 
 </body>
