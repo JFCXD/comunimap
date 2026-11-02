@@ -35,40 +35,6 @@
                 </div>
             </div>
             <div class="container-fluid">
-                <div class="row g-3 mb-3">
-                    <div class="col-12 col-md-6 {{ session('rol') == 'Administrador' ? 'col-xl-4' : 'col-xl-6' }}">
-                        <div class="card h-100">
-                            <div class="card-body">
-                                <a class="cm-quicklink" href="/alertas">
-                                    <span class="cm-quicklink-icon" style="background:#fff0e9;color:#dc5e35;"><i class="fas fa-plus-circle" aria-hidden="true"></i></span>
-                                    <span><strong>Registrar alerta</strong><small>Informar un problema dentro de la OTB</small></span>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-md-6 {{ session('rol') == 'Administrador' ? 'col-xl-4' : 'col-xl-6' }}">
-                        <div class="card h-100">
-                            <div class="card-body">
-                                <a class="cm-quicklink" href="/reportes">
-                                    <span class="cm-quicklink-icon"><i class="fas fa-clipboard-list" aria-hidden="true"></i></span>
-                                    <span><strong>{{ session('rol') == 'Administrador' ? 'Consultar reportes' : 'Mis reportes' }}</strong><small>{{ session('rol') == 'Administrador' ? 'Revisar las incidencias registradas' : 'Consultar el seguimiento de tus alertas' }}</small></span>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    @if(session('rol') == 'Administrador')
-                    <div class="col-12 col-md-6 col-xl-4">
-                        <div class="card h-100">
-                            <div class="card-body">
-                                <a class="cm-quicklink" href="/usuarios">
-                                    <span class="cm-quicklink-icon" style="background:#e8f8ef;color:#16834a;"><i class="fas fa-users" aria-hidden="true"></i></span>
-                                    <span><strong>Usuarios</strong><small>Revisar y aprobar solicitudes de registro</small></span>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    @endif
-                </div>
                 <div class="row g-3 align-items-stretch">
                     <div class="col-12 col-lg-8">
                         <div class="card h-100">
