@@ -46,11 +46,25 @@
     @include('plantillas.scripts')
     <script>
         // Crear mapa
-        var mapa = L.map('mapa').setView([-17.3935, -66.1570], 13);
+        var mapa = L.map('mapa').setView([-17.438828, -66.142760], 16);
         // Capa base
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap'
         }).addTo(mapa);
+        // Límite territorial: el mismo GeoJSON utilizado por la API de ComuniMap.
+        fetch("{{ asset('otb_limite.geojson') }}")
+            .then(function(respuesta) {
+                if (!respuesta.ok) throw new Error('No se pudo cargar el límite de la OTB');
+                return respuesta.json();
+            })
+            .then(function(limite) {
+                var capaOTB = L.geoJSON(limite, {
+                    style: { color: '#2563eb', weight: 4, fillColor: '#3b82f6', fillOpacity: 0.15 },
+                    interactive: false
+                }).addTo(mapa);
+                mapa.fitBounds(capaOTB.getBounds(), { padding: [24, 24] });
+            })
+            .catch(function(error) { console.error('ComuniMap OTB:', error); });
         // Iconos
         var iconoRojo = new L.Icon({
             iconUrl: "{{ asset('images/marker-icon-red.png') }}",
