@@ -1,28 +1,61 @@
 <header class="topbar" data-navbarbg="skin5">
     <nav class="navbar top-navbar navbar-expand-md navbar-dark">
         <div class="navbar-header" data-logobg="skin6">
-            <a class="navbar-brand" href="/inicio" aria-label="ComuniMap - Inicio">
+            <!-- ============================================================== -->
+            <!-- Logo -->
+            <!-- ============================================================== -->
+            <a class="navbar-brand" href="dashboard.html">
+                <!-- Logo icon -->
                 <img src="{{ secure_asset('ample/plugins/images/comunimap-logo.png') }}" alt="ComuniMap"
-                    style="width:190px;height:56px;max-width:100%;object-fit:contain;">
+                    style="width: 190px; height: 60px; object-fit: contain;">
             </a>
-            <a class="nav-toggler waves-effect waves-light d-block d-md-none" href="javascript:void(0)"
-                aria-label="Abrir o cerrar menú">
-                <i class="ti-menu ti-close"></i>
-            </a>
+            <!-- ============================================================== -->
+            <!-- End Logo -->
+            <!-- ============================================================== -->
+            <!-- ============================================================== -->
+            <!-- toggle and nav items -->
+            <!-- ============================================================== -->
+            <a class="nav-toggler waves-effect waves-light text-dark d-block d-md-none" href="javascript:void(0)"><i
+                    class="ti-menu ti-close"></i></a>
         </div>
+        <!-- ============================================================== -->
+        <!-- End Logo -->
+        <!-- ============================================================== -->
         <div class="navbar-collapse collapse" id="navbarSupportedContent" data-navbarbg="skin5">
+
+            <!-- ============================================================== -->
+            <!-- Right side toggle and nav items -->
+            <!-- ============================================================== -->
             <ul class="navbar-nav ms-auto d-flex align-items-center">
-                <li class="nav-item">
-                    <div class="profile-pic" aria-label="Cuenta activa">
-                        <i class="fas fa-user-circle" aria-hidden="true" style="font-size:28px;color:#2563eb;"></i>
-                        <span class="font-medium">
-                            {{ session('nombre') }}
-                            <small style="display:block;font-size:11px;color:#667991;">
-                                {{ session('rol') == 'Administrador' ? 'Administrador' : 'Vecino' }}
-                            </small>
-                        </span>
-                    </div>
+
+                <!-- ============================================================== -->
+                <!-- Search -->
+                <!-- ============================================================== -->
+                <li class=" in">
+                    <form role="search" class="app-search d-none d-md-block me-3">
+                        <input type="text" placeholder="Search..." class="form-control mt-0">
+                        <a href="" class="active">
+                            <i class="fa fa-search"></i>
+                        </a>
+                    </form>
                 </li>
+
+                <!-- ============================================================== -->
+                <!-- User profile and search -->
+                <!-- ============================================================== -->
+                <li>
+                    <a class="profile-pic" href="#">
+                        <img src="{{ secure_asset('ample/plugins/images/users/varun.jpg') }}" alt="user-img" width="36"
+                            class="img-circle">
+
+                        <span class="text-white font-medium">
+                            {{ session('nombre') }}
+                        </span>
+                </li>
+
+                <!-- ============================================================== -->
+                <!-- User profile and search -->
+                <!-- ============================================================== -->
             </ul>
         </div>
     </nav>
