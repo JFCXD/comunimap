@@ -6,42 +6,42 @@
             <ul id="sidebarnav">
                 <!-- User Profile-->
                 <li class="sidebar-item pt-2">
-                    <a class="sidebar-link waves-effect waves-dark sidebar-link {{ request()->is('inicio') || request()->is('inicio/*') ? 'cm-active' : '' }}" href="/inicio" aria-expanded="false">
-                        <i class="fas fa-home" aria-hidden="true"></i>
-                        <span class="hide-menu">Inicio</span>
+                    <a class="sidebar-link waves-effect waves-dark sidebar-link" href="/inicio" aria-expanded="false">
+                        <i class="fas fa-eject" aria-hidden="true"></i>
+                        <span class="hide-menu">INICIO</span>
                     </a>
                 </li>
                 <li class="sidebar-item">
-                    <a class="sidebar-link waves-effect waves-dark sidebar-link {{ request()->is('alertas') || request()->is('alertas/*') ? 'cm-active' : '' }}" href="/alertas" aria-expanded="false">
-                        <i class="fas fa-plus-circle" aria-hidden="true"></i>
-                        <span class="hide-menu">Registrar alerta</span>
+                    <a class="sidebar-link waves-effect waves-dark sidebar-link" href="/alertas" aria-expanded="false">
+                        <i class="fas fa-exclamation" aria-hidden="true"></i>
+                        <span class="hide-menu">ALERTAS</span>
                     </a>
                 </li>
                 <li class="sidebar-item">
-                    <a class="sidebar-link waves-effect waves-dark sidebar-link {{ request()->is('reportes') || request()->is('reportes/*') ? 'cm-active' : '' }}" href="/reportes" aria-expanded="false">
+                    <a class="sidebar-link waves-effect waves-dark sidebar-link" href="/reportes" aria-expanded="false">
                         <i class=" fas fa-exclamation-triangle" aria-hidden="true"></i>
-                        <span class="hide-menu">Reportes</span>
+                        <span class="hide-menu">REPORTES</span>
                     </a>
                 </li>
                 @if(session('rol') == 'Administrador')
                     <li class="sidebar-item">
-                        <a class="sidebar-link waves-effect waves-dark sidebar-link {{ request()->is('usuarios') || request()->is('usuarios/*') ? 'cm-active' : '' }}" href="/usuarios" aria-expanded="false">
+                        <a class="sidebar-link waves-effect waves-dark sidebar-link" href="/usuarios" aria-expanded="false">
                             <i class="fa fa-user" aria-hidden="true"></i>
-                            <span class="hide-menu">Usuarios</span>
+                            <span class="hide-menu">USUARIOS</span>
                         </a>
                     </li>
                     <li class="sidebar-item">
-                        <a class="sidebar-link waves-effect waves-dark sidebar-link {{ request()->is('estadisticas') || request()->is('estadisticas/*') ? 'cm-active' : '' }}" href="/estadisticas"
+                        <a class="sidebar-link waves-effect waves-dark sidebar-link" href="/estadisticas"
                             aria-expanded="false">
                             <i class="fas fa-chart-pie" aria-hidden="true"></i>
-                            <span class="hide-menu">Estadísticas</span>
+                            <span class="hide-menu">ESTADISTICAS</span>
                         </a>
                     </li>
                 @endif
                 <li class="sidebar-item">
-                    <a class="sidebar-link waves-effect waves-dark sidebar-link {{ request()->is('logout') || request()->is('logout/*') ? 'cm-active' : '' }}" href="/logout" aria-expanded="false">
-                        <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
-                        <span class="hide-menu">Cerrar sesión</span>
+                    <a class="sidebar-link waves-effect waves-dark sidebar-link" href="/logout" aria-expanded="false">
+                        <i class="fas fa-arrow-left" aria-hidden="true"></i>
+                        <span class="hide-menu">CERRAR SESIÓN</span>
                     </a>
                 </li>
 
