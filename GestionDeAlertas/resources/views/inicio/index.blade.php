@@ -17,23 +17,66 @@
 
         <div class="page-wrapper">
 
-            <div class="page-breadcrumb bg-white">
+            <div class="page-breadcrumb">
                 <div class="row align-items-center">
-                    <div class="col-lg-3 col-md-4 col-sm-4 col-xs-12">
-                        <h4 class="page-title">INICIO</h4>
+                    <div class="col-12">
+                        <h4 class="page-title">{{ session('rol') == 'Administrador' ? 'Inicio · Panel administrativo' : '¡Bienvenido a ComuniMap!' }}</h4>
+                        <span class="cm-kicker">{{ session('rol') == 'Administrador' ? 'Consulta los reportes y gestiona las alertas de la OTB.' : 'Consulta el mapa de tu barrio y registra los problemas que encuentres.' }}</span>
                     </div>
                 </div>
             </div>
             <div class="container-fluid">
+                <div class="row g-3 mb-2">
+                    <div class="col-12 col-md-6 col-xl-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <a href="/alertas" class="cm-action-card">
+                                    <span class="cm-action-icon" style="background:#fff0eb;color:#db522c"><i class="fas fa-plus-circle" aria-hidden="true"></i></span>
+                                    <span><strong>Registrar alerta</strong><small>Comunicar un problema dentro de la OTB</small></span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-xl-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <a href="/reportes" class="cm-action-card">
+                                    <span class="cm-action-icon"><i class="fas fa-clipboard-list" aria-hidden="true"></i></span>
+                                    <span><strong>{{ session('rol') == 'Administrador' ? 'Gestionar reportes' : 'Mis reportes' }}</strong><small>{{ session('rol') == 'Administrador' ? 'Revisar las incidencias registradas' : 'Consultar el estado de tus alertas' }}</small></span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    @if(session('rol') == 'Administrador')
+                    <div class="col-12 col-md-6 col-xl-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <a href="/usuarios" class="cm-action-card">
+                                    <span class="cm-action-icon" style="background:#eaf8ef;color:#16834a"><i class="fas fa-users" aria-hidden="true"></i></span>
+                                    <span><strong>Administrar usuarios</strong><small>Revisar las solicitudes y cuentas</small></span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+                </div>
                 <div class="row">
-                    <div class="col-lg-12">
+                    <div class="col-12">
                         <div class="card">
                             <div class="card-body">
-                                <h4 class="card-title">
-                                    Mapa de Alertas
-                                </h4>
-                                <div id="mapa" style="height:600px;border-radius:10px;">
+                                <div class="cm-map-heading">
+                                    <div>
+                                        <h4 class="card-title mb-1">Mapa de reportes de la OTB</h4>
+                                        <span class="cm-kicker">Perímetro y reportes comunitarios</span>
+                                    </div>
+                                    <div class="cm-map-legend" aria-label="Estados de los reportes">
+                                        <span><i class="cm-dot" style="background:#2563eb"></i>Límite OTB</span>
+                                        <span><i class="cm-dot" style="background:#dc3545"></i>Pendiente</span>
+                                        <span><i class="cm-dot" style="background:#e4ad20"></i>En proceso</span>
+                                        <span><i class="cm-dot" style="background:#198754"></i>Solucionado</span>
+                                    </div>
                                 </div>
+                                <div id="mapa" style="height:min(64vh,620px);min-height:370px;border-radius:12px;overflow:hidden;"></div>
                             </div>
                         </div>
                     </div>
