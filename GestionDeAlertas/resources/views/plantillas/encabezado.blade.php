@@ -114,5 +114,42 @@
         .cm-footer.footer { padding:14px!important; }
         .page-breadcrumb { padding-top:15px!important; }
       }
+
+      /* Teléfonos: menú deslizable sin reducir el ancho de Inicio ni del mapa. */
+      @media (max-width:767px) {
+        #main-wrapper[data-layout="vertical"] { overflow-x:hidden; }
+        #main-wrapper[data-layout="vertical"] .page-wrapper {
+          margin-left:0!important; width:100%!important; min-width:0;
+        }
+        #main-wrapper[data-layout="vertical"] .left-sidebar {
+          position:fixed!important; top:0!important; bottom:0!important;
+          left:-280px!important; width:min(260px,85vw)!important;
+          max-width:85vw; height:100dvh!important; z-index:1100!important;
+          transition:left .23s ease!important; overflow-y:auto;
+        }
+        #main-wrapper[data-layout="vertical"].show-sidebar .left-sidebar {
+          left:0!important;
+        }
+        #main-wrapper[data-layout="vertical"] .topbar .top-navbar .navbar-header {
+          width:100%!important; min-width:0; display:flex; align-items:center;
+          justify-content:space-between; padding:0 12px;
+        }
+        #main-wrapper[data-layout="vertical"] .topbar .navbar-brand {
+          width:auto!important; margin:0; padding:5px 0;
+        }
+        #main-wrapper[data-layout="vertical"] .topbar .navbar-brand img {
+          width:160px!important; height:48px!important; max-width:65vw!important;
+        }
+        #main-wrapper[data-layout="vertical"] .topbar .nav-toggler {
+          display:inline-flex!important; align-items:center; justify-content:center;
+          color:white!important; width:42px; height:42px; font-size:19px;
+        }
+        #main-wrapper[data-layout="vertical"].show-sidebar .page-wrapper:before {
+          content:""; position:fixed; inset:0; z-index:1050;
+          background:rgba(10,27,51,.42);
+        }
+        #main-wrapper[data-layout="vertical"] .card,
+        #main-wrapper[data-layout="vertical"] .container-fluid { min-width:0; }
+      }
     </style>
 </head>
