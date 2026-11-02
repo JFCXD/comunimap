@@ -537,8 +537,9 @@ class ReportesController extends Controller
                 ]);
             }
 
-            // Una sola operación actualiza todos los
-            // reportes que integran el grupo.
+            // Actualizar todos los integrantes y generar avisos
+            // únicamente para aquellos cuyo estado realmente cambió.
+            // Los avisos se guardan en la misma transacción.
             DB::table('reportes')
                 ->whereIn(
                     'idReporte',
@@ -548,6 +549,20 @@ class ReportesController extends Controller
                     'estado' => $nuevoEstado
                 ]);
 
+            $idsDelGrupo = array_fill_keys(
+                array_map('intval', $idsReportes),
+                true
+            );
+
+            foreach ($todosReportes as $reporteGrupo) {
+                if (isset($idsDelGrupo[(int) $reporteGrupo->idReporte])) {
+                    $this->registrarNotificacionEstado(
+                        $reporteGrupo,
+                        $nuevoEstado
+                    );
+                }
+            }
+
         }, 3);
 
         return redirect('/reportes')
@@ -556,6 +571,52 @@ class ReportesController extends Controller
                 'Se actualizó el estado de todos '
                 . 'los reportes del caso agrupado.'
             );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | NOTIFICACIONES INTERNAS POR CAMBIO DE ESTADO
+    |--------------------------------------------------------------------------
+    | Reutiliza la tabla de notificaciones de ComuniMap.
+    | Se ejecuta dentro de la transacción que modifica el reporte.
+    | No notifica cuando el estado ya era el mismo ni al volver a Pendiente.
+    */
+    private function registrarNotificacionEstado(
+        $reporteAnterior,
+        string $nuevoEstado
+    ): void {
+        $estadoAnterior = trim(
+            (string) ($reporteAnterior->estado ?? '')
+        );
+
+        if ($estadoAnterior === $nuevoEstado) {
+            return;
+        }
+
+        if ($nuevoEstado === 'En Proceso') {
+            $titulo = 'Tu reporte está siendo atendido';
+            $mensaje = 'El reporte "' .
+                (string) $reporteAnterior->titulo .
+                '" cambió a En Proceso.';
+            $tipo = 'EN_PROCESO';
+        } elseif ($nuevoEstado === 'Solucionado') {
+            $titulo = 'Tu reporte fue solucionado';
+            $mensaje = 'El reporte "' .
+                (string) $reporteAnterior->titulo .
+                '" fue marcado como Solucionado.';
+            $tipo = 'SOLUCIONADO';
+        } else {
+            return;
+        }
+
+        DB::table('notificaciones')->insert([
+            'idUsuario' => (int) $reporteAnterior->idUsuario,
+            'idReporte' => (int) $reporteAnterior->idReporte,
+            'titulo' => $titulo,
+            'mensaje' => $mensaje,
+            'tipo' => $tipo,
+            'leida' => 0
+        ]);
     }
 
     /*
@@ -727,25 +788,41 @@ class ReportesController extends Controller
             $imagen = $nuevaImagen;
         }
 
-        DB::update("
-            UPDATE reportes
-            SET
-                titulo = ?,
-                descripcion = ?,
-                direccion = ?,
-                estado = ?,
-                idCategoria = ?,
-                imagen = ?
-            WHERE idReporte = ?
-        ", [
-            $request->titulo,
-            $request->descripcion,
-            $request->direccion,
-            $request->estado,
-            $request->idCategoria,
-            $imagen,
-            $id
+        $request->validate([
+            'estado' => [
+                'required',
+                'in:Pendiente,En Proceso,Solucionado'
+            ]
         ]);
+
+        DB::transaction(function () use ($request, $id, $imagen) {
+            $reporteAnterior = DB::table('reportes')
+                ->where('idReporte', $id)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$reporteAnterior) {
+                throw ValidationException::withMessages([
+                    'reporte' => 'El reporte ya no existe.'
+                ]);
+            }
+
+            DB::table('reportes')
+                ->where('idReporte', $id)
+                ->update([
+                    'titulo' => $request->titulo,
+                    'descripcion' => $request->descripcion,
+                    'direccion' => $request->direccion,
+                    'estado' => $request->estado,
+                    'idCategoria' => $request->idCategoria,
+                    'imagen' => $imagen
+                ]);
+
+            $this->registrarNotificacionEstado(
+                $reporteAnterior,
+                $request->estado
+            );
+        }, 3);
 
         if (
             $imagenAnterior &&
