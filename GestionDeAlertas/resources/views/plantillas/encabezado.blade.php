@@ -80,5 +80,39 @@
         .card-body { padding:16px; }
         .topbar .cm-account { padding:8px 12px; }
       }
+
+      /* Distribución compacta, pensada para pantallas de escritorio y móvil */
+      .page-breadcrumb { padding-top:14px!important; padding-bottom:8px!important; }
+      .page-breadcrumb .page-title { margin-bottom:2px; font-size:23px; }
+      .container-fluid { padding-top:8px!important; }
+      .cm-page-heading { border-left:4px solid var(--cm-blue); padding-left:14px; }
+      .cm-page-heading .cm-subtitle { margin-top:4px; }
+      .cm-overview-map { height:clamp(350px, 54vh, 530px); min-height:350px; border-radius:12px; overflow:hidden; }
+      .cm-summary-list { display:grid; gap:12px; }
+      .cm-summary-item { display:flex; align-items:center; justify-content:space-between; border-radius:12px; padding:13px 15px; background:#f3f7ff; }
+      .cm-summary-item strong { font-size:24px; line-height:1.1; color:#17395e; }
+      .cm-summary-item span { font-size:13px; color:#486078; }
+      .cm-summary-item.cm-pending { background:#fff0ef; }
+      .cm-summary-item.cm-working { background:#fff8e8; }
+      .cm-summary-item.cm-solved { background:#eaf8f0; }
+      .cm-summary-item.cm-pending strong { color:#c53939; }
+      .cm-summary-item.cm-working strong { color:#976800; }
+      .cm-summary-item.cm-solved strong { color:#17734b; }
+      .cm-status-bar { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:15px; }
+      .cm-status-pill { background:#f5f8fd; border:1px solid #e4ebf5; border-radius:12px; padding:10px 14px; display:flex; gap:10px; align-items:center; flex:1 1 135px; }
+      .cm-status-pill strong { font-size:20px; color:#163355; }
+      .cm-status-pill small { color:#697b92; font-size:12px; }
+      .cm-report-table { min-width:680px; }
+      .cm-report-table thead th { background:#f4f7fb; color:#3d526e; font-size:12px; border:0; padding:14px 12px; }
+      .cm-report-table tbody td { padding:13px 12px; border-color:#edf1f7; vertical-align:middle; }
+      .cm-report-table .badge { border-radius:20px; font-size:12px; padding:6px 10px; }
+      .cm-footer.footer { position:relative!important; left:auto!important; right:auto!important; bottom:auto!important; width:100%; padding:15px 28px!important; background:transparent!important; color:#64748b!important; font-size:12px; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; border-top:1px solid #e2eaf5; }
+      .cm-footer strong { color:#2563eb; }
+      @media (max-width:991px) { .cm-overview-map { height:430px; } }
+      @media (max-width:767px) {
+        .cm-overview-map { height:390px; min-height:300px; }
+        .cm-footer.footer { padding:14px!important; }
+        .page-breadcrumb { padding-top:15px!important; }
+      }
     </style>
 </head>
