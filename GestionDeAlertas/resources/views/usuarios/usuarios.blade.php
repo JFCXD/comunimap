@@ -17,29 +17,21 @@
 
         <div class="page-wrapper">
 
-            <div class="page-breadcrumb bg-white">
-
-                <div class="row align-items-center">
-
-                    <div class="col-lg-3">
-                        <h4 class="page-title">
-                            USUARIOS
-                        </h4>
+            <div class="page-breadcrumb">
+                <div class="row align-items-center g-2">
+                    <div class="col-md-7">
+                        <div class="cm-page-heading">
+                            <h4 class="page-title">Usuarios</h4>
+                            <p class="cm-subtitle mb-0">Gestiona las cuentas y revisa las solicitudes pendientes.</p>
+                        </div>
                     </div>
-
-                    <div class="col-lg-9 text-end">
-
+                    <div class="col-md-5 text-md-end">
                         <a href="/registro" class="btn btn-success">
-                            <i class="fa fa-user-plus"></i>
-                            Nuevo Usuario
+                            <i class="fa fa-user-plus me-1" aria-hidden="true"></i> Nuevo usuario
                         </a>
-
                     </div>
-
                 </div>
-
             </div>
-
             <div class="container-fluid">
 
                 {{-- =====================================================
@@ -73,9 +65,15 @@
 
                 @endphp
 
+                <div class="cm-status-bar" aria-label="Resumen de usuarios">
+                    <div class="cm-status-pill"><i class="fas fa-users text-primary" aria-hidden="true"></i><span><strong>{{ count($usuarios) }}</strong><br><small>Usuarios registrados</small></span></div>
+                    <div class="cm-status-pill"><i class="fas fa-user-clock text-warning" aria-hidden="true"></i><span><strong>{{ $pendientes->count() }}</strong><br><small>Pendientes de aprobación</small></span></div>
+                    <div class="cm-status-pill"><i class="fas fa-user-check text-success" aria-hidden="true"></i><span><strong>{{ collect($usuarios)->filter(fn($u) => strtolower(trim($u->estado)) === 'activo')->count() }}</strong><br><small>Usuarios activos</small></span></div>
+                </div>
+
                 @if($pendientes->count() > 0)
 
-                    <div class="card border-warning mb-4">
+                    <div class="card border-warning mb-3">
 
                         <div class="card-body">
 
@@ -187,8 +185,8 @@
 
                     <div class="card-body">
 
-                        <h4 class="card-title mb-4">
-                            Lista de Usuarios
+                        <h4 class="card-title mb-3">
+                            Lista de usuarios
                         </h4>
 
                         <div class="table-responsive">
