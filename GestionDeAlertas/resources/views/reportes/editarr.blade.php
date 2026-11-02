@@ -82,9 +82,9 @@
                                     {{ $reporte[0]->estado=='En Proceso' ? 'selected':'' }}>
                                     En Proceso
                                 </option>
-                                <option value="Resuelto"
-                                    {{ $reporte[0]->estado=='Resuelto' ? 'selected':'' }}>
-                                    Resuelto
+                                <option value="Solucionado"
+                                    {{ in_array($reporte[0]->estado, ['Solucionado', 'Resuelto'], true) ? 'selected':'' }}>
+                                    Solucionado
                                 </option>
                             </select>
                         </div>
