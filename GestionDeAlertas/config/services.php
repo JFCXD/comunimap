@@ -14,6 +14,10 @@ return [
     |
     */
 
+    'comunimap' => [
+        'web_push_secret' => env('COMUNIMAP_WEB_PUSH_SECRET', ''),
+    ],
+
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],
