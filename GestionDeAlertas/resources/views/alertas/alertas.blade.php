@@ -69,6 +69,9 @@
                                         <label>Ubicación</label>
                                         <input type="text" id="ubicacion" name="ubicacion" class="form-control"
                                             readonly>
+                                        @error('ubicacion')
+                                            <div class="text-danger small mt-2">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                     <button type="submit" class="btn btn-danger w-100">
                                         Registrar Alerta
