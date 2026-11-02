@@ -31,8 +31,16 @@
         .cm-auth-card a { color:#1d59ca; font-weight:650; }
         .cm-auth-note { background:#edf7f0; color:#286245; border:1px solid #d4e9db; padding:12px 14px; border-radius:10px; font-size:13px; line-height:1.5; }
         .cm-auth-switch { margin-top:24px; text-align:center; color:#63758e; }
-        .cm-auth-recaptcha { max-width:100%; overflow-x:auto; }
-        @media(max-width:760px) {
+        .cm-auth-recaptcha { max-width:100%; min-height:80px; overflow:visible; }
+        .cm-auth-recaptcha .g-recaptcha { transform-origin:left top; }
+        @media(min-width:901px) and (max-width:1050px) {
+            .cm-auth-card { padding-left:30px; padding-right:30px; }
+        }
+        @media(max-width:900px) {
+            .cm-auth-recaptcha { min-height:72px; }
+            .cm-auth-recaptcha .g-recaptcha { transform:scale(.9); }
+        }
+        @media(max-width:900px) {
             .cm-auth-panel { grid-template-columns:1fr; width:min(520px,100%); border-radius:17px; }
             .cm-auth-brand { padding:22px 25px; gap:8px; }
             .cm-auth-brand img { width:155px; max-height:58px; }
@@ -42,7 +50,11 @@
             .cm-auth-card { padding:28px 24px; }
             .cm-auth-shell { padding:16px 12px; align-items:flex-start; }
         }
-        @media(max-width:380px) { .cm-auth-card { padding:24px 17px; } }
+        @media(max-width:380px) {
+            .cm-auth-card { padding:24px 17px; }
+            .cm-auth-recaptcha { min-height:65px; }
+            .cm-auth-recaptcha .g-recaptcha { transform:scale(.79); }
+        }
     </style>
 </head>
 <body class="cm-auth-body">
