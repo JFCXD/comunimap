@@ -17,35 +17,39 @@
 
         <div class="page-wrapper">
 
-            {{-- ENCABEZADO PRINCIPAL --}}
-            <div class="page-breadcrumb bg-white">
-
-                <div class="row align-items-center">
-
-                    <div class="col-lg-4">
-                        <h4 class="page-title">
-                            REPORTES
-                        </h4>
+            {{-- ENCABEZADO Y RESUMEN: SOLO PRESENTACIÓN --}}
+            @php
+                $cmTotalReportes = count($reportes);
+                $cmPendientesReportes = collect($reportes)->filter(fn($r) => $r->estado === 'Pendiente')->count();
+                $cmProcesoReportes = collect($reportes)->filter(fn($r) => $r->estado === 'En Proceso')->count();
+                $cmSolucionadosReportes = collect($reportes)->filter(fn($r) => in_array($r->estado, ['Solucionado', 'Resuelto']))->count();
+            @endphp
+            <div class="page-breadcrumb">
+                <div class="row align-items-center g-2">
+                    <div class="col-md-7">
+                        <div class="cm-page-heading">
+                            <h4 class="page-title">{{ session('rol') == 'Administrador' ? 'Reportes del barrio' : 'Mis reportes' }}</h4>
+                            <p class="cm-subtitle mb-0">{{ session('rol') == 'Administrador' ? 'Consulta y seguimiento de las incidencias registradas.' : 'Revisa el estado de tus incidencias registradas.' }}</p>
+                        </div>
                     </div>
-
-                    <div class="col-lg-8 text-end">
-
+                    <div class="col-md-5 text-md-end">
                         @if(session('rol') == 'Administrador')
-
                             <a href="/reportes/pdf-todos" target="_blank" class="btn btn-primary">
-                                <i class="fa fa-file-pdf"></i>
-                                Exportar todos
+                                <i class="fa fa-file-pdf me-1"></i> Exportar todos
                             </a>
-
                         @endif
-
                     </div>
-
                 </div>
-
             </div>
 
             <div class="container-fluid">
+
+                <div class="cm-status-bar" aria-label="Resumen de reportes">
+                    <div class="cm-status-pill"><i class="fas fa-clipboard-list text-primary" aria-hidden="true"></i><span><strong>{{ $cmTotalReportes }}</strong><br><small>Total</small></span></div>
+                    <div class="cm-status-pill"><i class="fas fa-exclamation-circle text-danger" aria-hidden="true"></i><span><strong>{{ $cmPendientesReportes }}</strong><br><small>Pendientes</small></span></div>
+                    <div class="cm-status-pill"><i class="fas fa-clock text-warning" aria-hidden="true"></i><span><strong>{{ $cmProcesoReportes }}</strong><br><small>En proceso</small></span></div>
+                    <div class="cm-status-pill"><i class="fas fa-check-circle text-success" aria-hidden="true"></i><span><strong>{{ $cmSolucionadosReportes }}</strong><br><small>Solucionados</small></span></div>
+                </div>
 
                 {{-- MENSAJES DE RESULTADO --}}
                 @if(session('success'))
@@ -294,13 +298,13 @@
 
                     <div class="card-body">
 
-                        <h4 class="card-title mb-4">
-                            Lista general de reportes
+                        <h4 class="card-title mb-3">
+                            {{ session('rol') == 'Administrador' ? 'Lista general de reportes' : 'Reportes registrados' }}
                         </h4>
 
                         <div class="table-responsive">
 
-                            <table class="table table-hover align-middle">
+                            <table class="table table-hover align-middle cm-report-table">
 
                                 <thead class="table-light">
 
