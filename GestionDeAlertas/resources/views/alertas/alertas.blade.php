@@ -12,46 +12,49 @@
         @include('plantillas.encabezado2')
         @include('plantillas.menu')
         <div class="page-wrapper">
-            <div class="page-breadcrumb bg-white">
+            <div class="page-breadcrumb">
                 <div class="row align-items-center">
                     <div class="col-md-6">
-                        <h4 class="page-title">ALERTAS</h4>
+                        <div class="cm-page-heading"><h4 class="page-title">Registrar alerta</h4><p class="cm-subtitle mb-0">Selecciona un punto dentro de la OTB y describe el problema.</p></div>
                     </div>
                 </div>
             </div>
             <div class="container-fluid">
-                <div class="row">
+                <div class="row g-3 align-items-start">
                     <!-- MAPA -->
-                    <div class="col-lg-8">
+                    <div class="col-12 col-lg-7">
                         <div class="card">
                             <div class="card-body">
-                                <div id="mapa" style="height:550px;"></div>
+                                <h4 class="card-title mb-1"><i class="fas fa-map-marked-alt text-primary me-2"></i>Ubicación del problema</h4>
+                                <p class="cm-subtitle mb-3">Haz clic en el mapa para seleccionar dónde ocurrió.</p>
+                                <div id="mapa" style="height:clamp(350px,60vh,580px);border-radius:12px;overflow:hidden;"></div>
+                                <p class="cm-subtitle mt-3 mb-0"><i class="fas fa-info-circle me-1"></i>La ubicación debe estar dentro del perímetro azul de la OTB.</p>
                             </div>
                         </div>
                     </div>
                     <!-- FORMULARIO -->
-                    <div class="col-lg-4">
+                    <div class="col-12 col-lg-5">
                         <div class="card">
                             <div class="card-body">
-                                <h4 class="card-title mb-4">
-                                    Registrar Alerta
+                                <h4 class="card-title mb-3">
+                                    Datos del reporte
                                 </h4>
                                 <form action="/alertas" method="POST" enctype="multipart/form-data">
                                     @csrf
                                     <div class="mb-3">
-                                        <label>Título</label>
+                                        <label class="form-label fw-semibold">Título</label>
                                         <input type="text" name="titulo" class="form-control" required>
                                     </div>
                                     <div class="mb-3">
-                                        <label>Descripción</label>
+                                        <label class="form-label fw-semibold">Descripción</label>
                                         <textarea name="descripcion" class="form-control" rows="4" required></textarea>
                                     </div>
                                     <div class="mb-3">
-                                        <label>Dirección</label>
+                                        <label class="form-label fw-semibold">Dirección</label>
                                         <input type="text" name="direccion" class="form-control" required>
                                     </div>
                                     <div class="mb-3">
-                                        <label>Categoría</label>
+                                        <label class="form-label fw-semibold">Categoría</label>
                                         <select name="idCategoria" class="form-control" required>
                                             <option value="">Seleccione una categoría</option>
                                             @foreach($categorias as $categoria)
@@ -62,11 +65,11 @@
                                         </select>
                                     </div>
                                     <div class="mb-3">
-                                        <label>Foto del problema</label>
+                                        <label class="form-label fw-semibold">Foto del problema</label>
                                         <input type="file" name="imagen" class="form-control" accept="image/*">
                                     </div>
                                     <div class="mb-3">
-                                        <label>Ubicación</label>
+                                        <label class="form-label fw-semibold">Ubicación</label>
                                         <input type="text" id="ubicacion" name="ubicacion" class="form-control"
                                             readonly>
                                         @error('ubicacion')
@@ -74,7 +77,7 @@
                                         @enderror
                                     </div>
                                     <button type="submit" class="btn btn-danger w-100">
-                                        Registrar Alerta
+                                        <i class="fas fa-paper-plane me-1" aria-hidden="true"></i> Enviar reporte
                                     </button>
                                 </form>
                             </div>
