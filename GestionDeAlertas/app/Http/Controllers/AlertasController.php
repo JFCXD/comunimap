@@ -14,7 +14,12 @@ class AlertasController extends Controller
             return redirect('/login');
         }
 
-        return view('alertas.alertas');
+        $categorias = DB::table('categorias')
+            ->select('idCategoria', 'nombre')
+            ->orderBy('idCategoria')
+            ->get();
+
+        return view('alertas.alertas', compact('categorias'));
     }
 
     public function guardar(Request $request)
