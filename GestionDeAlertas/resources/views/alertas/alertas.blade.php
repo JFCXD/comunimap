@@ -54,11 +54,11 @@
                                         <label>Categoría</label>
                                         <select name="idCategoria" class="form-control" required>
                                             <option value="">Seleccione una categoría</option>
-                                            <option value="1">Basura</option>
-                                            <option value="2">Alumbrado Público</option>
-                                            <option value="3">Calles</option>
-                                            <option value="4">Áreas Verdes</option>
-                                            <option value="5">Seguridad</option>
+                                            @foreach($categorias as $categoria)
+                                                <option value="{{ $categoria->idCategoria }}" {{ old('idCategoria') == $categoria->idCategoria ? 'selected' : '' }}>
+                                                    {{ $categoria->nombre }}
+                                                </option>
+                                            @endforeach
                                         </select>
                                     </div>
                                     <div class="mb-3">
