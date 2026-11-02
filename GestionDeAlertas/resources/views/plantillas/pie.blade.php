@@ -1,3 +1,6 @@
-<footer class="footer text-center"> 2021 © Ample Admin brought to you by <a
-                    href="https://www.wrappixel.com/">wrappixel.com</a>
-            </footer>
+<footer class="footer cm-footer">
+    <span><i class="fas fa-map-marker-alt me-1" aria-hidden="true"></i>
+        <strong>ComuniMap</strong> · Gestión comunitaria de la OTB
+    </span>
+    <span class="cm-footer-copy">&copy; {{ date('Y') }} ComuniMap</span>
+</footer>
