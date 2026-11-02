@@ -65,13 +65,7 @@
 
                 @endphp
 
-                <div class="cm-status-bar" aria-label="Resumen de usuarios">
-                    <div class="cm-status-pill"><i class="fas fa-users text-primary" aria-hidden="true"></i><span><strong>{{ count($usuarios) }}</strong><br><small>Usuarios registrados</small></span></div>
-                    <div class="cm-status-pill"><i class="fas fa-user-clock text-warning" aria-hidden="true"></i><span><strong>{{ $pendientes->count() }}</strong><br><small>Pendientes de aprobación</small></span></div>
-                    <div class="cm-status-pill"><i class="fas fa-user-check text-success" aria-hidden="true"></i><span><strong>{{ collect($usuarios)->filter(fn($u) => strtolower(trim($u->estado)) === 'activo')->count() }}</strong><br><small>Usuarios activos</small></span></div>
-                </div>
-
-                @if($pendientes->count() > 0)
+@if($pendientes->count() > 0)
 
                     <div class="card border-warning mb-3">
 
