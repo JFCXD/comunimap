@@ -22,19 +22,20 @@
                  ENCABEZADO
             ========================== -->
 
-            <div class="page-breadcrumb bg-white">
+            <div class="page-breadcrumb">
 
                 <div class="row align-items-center">
 
-                    <div class="col-lg-6">
-
+                    <div class="col-12">
+                        <div class="cm-page-heading">
                         <h4 class="page-title">
-                            ESTADÍSTICAS
+                            Estadísticas
                         </h4>
 
                         <p class="estadisticas-subtitulo">
-                            Resumen general del sistema
+                            Consulta los reportes, estados y categorías del barrio.
                         </p>
+                        </div>
 
                     </div>
 
@@ -185,12 +186,12 @@
                      GRÁFICOS
                 ========================== -->
 
-                <div class="row">
+                <div class="row g-3">
 
 
                     <!-- GRÁFICO CIRCULAR -->
 
-                    <div class="col-lg-6 col-md-12">
+                    <div class="col-12 col-lg-6">
 
                         <div class="dashboard-card">
 
@@ -229,7 +230,7 @@
 
                     <!-- CATEGORÍAS -->
 
-                    <div class="col-lg-6 col-md-12">
+                    <div class="col-12 col-lg-6">
 
                         <div class="dashboard-card">
 
