@@ -140,38 +140,60 @@ class AlertasController extends Controller
         // GUARDAR REPORTE
         // =====================================================
 
-        DB::insert("
-            INSERT INTO reportes
-            (
-                titulo,
-                descripcion,
-                ubicacion,
-                latitud,
-                longitud,
-                direccion,
-                estado,
-                prioridad,
-                idUsuario,
-                idCategoria,
-                imagen
-            )
-            VALUES
-            (
-                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
-            )
-        ", [
-            trim($request->titulo),
-            trim($request->descripcion),
-            $ubicacion,
-            $latitud,
-            $longitud,
-            $request->direccion,
-            'Pendiente',
-            null,
-            Session::get('idUsuario'),
-            $request->idCategoria,
-            $rutaImagen
-        ]);
+        // Guardar reporte y avisos internos juntos para evitar registros incompletos.
+        $idsAvisos = DB::transaction(function () use ($request, $ubicacion, $latitud, $longitud, $rutaImagen) {
+            $idReporte = DB::table('reportes')->insertGetId([
+                'titulo' => trim($request->titulo),
+                'descripcion' => trim($request->descripcion),
+                'ubicacion' => $ubicacion,
+                'latitud' => $latitud,
+                'longitud' => $longitud,
+                'direccion' => $request->direccion,
+                'estado' => 'Pendiente',
+                'prioridad' => null,
+                'idUsuario' => Session::get('idUsuario'),
+                'idCategoria' => $request->idCategoria,
+                'imagen' => $rutaImagen,
+            ], 'idReporte');
+
+            $ids = [];
+            $administradores = DB::table('usuarios')
+                ->where('rol', 'Administrador')
+                ->where('estado', 'Activo')
+                ->where('idUsuario', '!=', Session::get('idUsuario'))
+                ->pluck('idUsuario');
+
+            foreach ($administradores as $idAdmin) {
+                $ids[] = (int) DB::table('notificaciones')->insertGetId([
+                    'idUsuario' => (int) $idAdmin,
+                    'idReporte' => $idReporte,
+                    'titulo' => 'Nuevo reporte',
+                    'mensaje' => mb_substr('Se registró un nuevo reporte en ComuniMap: ' . trim($request->titulo), 0, 255),
+                    'tipo' => 'NUEVO_REPORTE',
+                    'leida' => 0,
+                ], 'idNotificacion');
+            }
+            return $ids;
+        });
+
+        // Enviar push fuera de la transacción. El reporte sigue guardado si Firebase falla.
+        $secretoPush = (string) config('services.comunimap.web_push_secret', '');
+        if ($idsAvisos && strlen($secretoPush) >= 32) {
+            foreach (array_chunk($idsAvisos, 50) as $lote) {
+                try {
+                    $respuesta = \Illuminate\Support\Facades\Http::timeout(12)
+                        ->withHeaders(['X-Comunimap-Web-Push-Secret' => $secretoPush])
+                        ->post('https://comunimap-api-production.up.railway.app/push_notificaciones_web.php', [
+                            'idsNotificaciones' => $lote,
+                        ]);
+                    if (!$respuesta->successful()) {
+                        \Log::warning('ComuniMap: fallo push de nuevo reporte', ['status' => $respuesta->status()]);
+                    }
+                } catch (\Throwable $e) {
+                    \Log::warning('ComuniMap: no se pudo enviar push de nuevo reporte', ['error' => $e->getMessage()]);
+                }
+            }
+        }
 
         return redirect('/alertas');
     }
