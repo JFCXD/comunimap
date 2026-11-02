@@ -1,44 +1,56 @@
-@include('plantillas.encabezado')
 @extends('plantillas.principal')
+
 @section('contenido')
-    <div class="text-center mb-4">
-        <h3 class="mt-3">
-            Sistema de Gestión de Alertas Comunitarias
-        </h3>
-        <p class="text-muted">
-            Registro de Usuario
-        </p>
-    </div>
+    <h2 class="cm-auth-title">Crear una cuenta</h2>
+    <p class="cm-auth-help">Regístrate para comunicar los problemas de tu barrio.</p>
+
+    @if(session('error'))
+        <div class="alert alert-danger" role="alert">{{ session('error') }}</div>
+    @endif
+    @if($errors->any())
+        <div class="alert alert-danger" role="alert">
+            @foreach($errors->all() as $error)
+                <div>{{ $error }}</div>
+            @endforeach
+        </div>
+    @endif
+
     <form action="/registro" method="POST">
         @csrf
         <div class="mb-3">
-            <label>Nombre</label>
-            <input type="text" name="nombre" class="form-control" required>
+            <label for="cm-reg-nombre" class="form-label">Nombre completo</label>
+            <input id="cm-reg-nombre" type="text" name="nombre" class="form-control"
+                value="{{ old('nombre') }}" autocomplete="name" required>
         </div>
         <div class="mb-3">
-            <label>Correo Electrónico</label>
-            <input type="email" name="email" class="form-control" required>
+            <label for="cm-reg-email" class="form-label">Correo electrónico</label>
+            <input id="cm-reg-email" type="email" name="email" class="form-control"
+                value="{{ old('email') }}" autocomplete="email" required>
         </div>
         <div class="mb-3">
-            <label>Teléfono</label>
-            <input type="text" name="telefono" class="form-control">
+            <label for="cm-reg-telefono" class="form-label">Teléfono (opcional)</label>
+            <input id="cm-reg-telefono" type="tel" name="telefono" class="form-control"
+                value="{{ old('telefono') }}" autocomplete="tel">
         </div>
         <div class="mb-3">
-            <label>Contraseña</label>
-            <input type="password" name="password" class="form-control" required>
+            <label for="cm-reg-pass" class="form-label">Contraseña</label>
+            <input id="cm-reg-pass" type="password" name="password" class="form-control"
+                autocomplete="new-password" required>
         </div>
         <div class="mb-3">
-            <label>Confirmar Contraseña</label>
-            <input type="password" name="confirmar" class="form-control" required>
+            <label for="cm-reg-confirmar" class="form-label">Confirmar contraseña</label>
+            <input id="cm-reg-confirmar" type="password" name="confirmar" class="form-control"
+                autocomplete="new-password" required>
         </div>
+        <p class="cm-auth-note">
+            <i class="fas fa-info-circle me-1" aria-hidden="true"></i>
+            Después de registrarte, el administrador debe aprobar tu cuenta para que puedas ingresar.
+        </p>
         <button type="submit" class="btn btn-success w-100">
-            Registrarse
+            <i class="fas fa-user-plus me-2" aria-hidden="true"></i>Registrarse
         </button>
     </form>
-    <div class="text-center mt-4">
-        ¿Ya tienes una cuenta?
-        <a href="/login">
-            Iniciar sesión
-        </a>
+    <div class="cm-auth-switch">
+        ¿Ya tienes una cuenta? <a href="/login">Inicia sesión</a>
     </div>
 @endsection
