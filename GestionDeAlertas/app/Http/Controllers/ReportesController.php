@@ -491,7 +491,8 @@ class ReportesController extends Controller
         // de otros reportes enviados por el navegador.
         $idRepresentativo = (int) $id;
 
-        DB::transaction(function () use ($idRepresentativo, $nuevoEstado) {
+        $idsNotificaciones = DB::transaction(function () use ($idRepresentativo, $nuevoEstado) {
+            $idsNotificaciones = [];
 
             // Consultar y bloquear los registros
             // mientras se realiza la actualización.
@@ -556,14 +557,20 @@ class ReportesController extends Controller
 
             foreach ($todosReportes as $reporteGrupo) {
                 if (isset($idsDelGrupo[(int) $reporteGrupo->idReporte])) {
-                    $this->registrarNotificacionEstado(
+                    $idNotificacion = $this->registrarNotificacionEstado(
                         $reporteGrupo,
                         $nuevoEstado
                     );
+                    if ($idNotificacion !== null) {
+                        $idsNotificaciones[] = $idNotificacion;
+                    }
                 }
             }
 
+            return $idsNotificaciones;
         }, 3);
+
+        $this->enviarPushNotificaciones($idsNotificaciones);
 
         return redirect('/reportes')
             ->with(
@@ -584,13 +591,13 @@ class ReportesController extends Controller
     private function registrarNotificacionEstado(
         $reporteAnterior,
         string $nuevoEstado
-    ): void {
+    ): ?int {
         $estadoAnterior = trim(
             (string) ($reporteAnterior->estado ?? '')
         );
 
         if ($estadoAnterior === $nuevoEstado) {
-            return;
+            return null;
         }
 
         if ($nuevoEstado === 'En Proceso') {
@@ -606,17 +613,65 @@ class ReportesController extends Controller
                 '" fue marcado como Solucionado.';
             $tipo = 'SOLUCIONADO';
         } else {
-            return;
+            return null;
         }
 
-        DB::table('notificaciones')->insert([
+        return (int) DB::table('notificaciones')->insertGetId([
             'idUsuario' => (int) $reporteAnterior->idUsuario,
             'idReporte' => (int) $reporteAnterior->idReporte,
             'titulo' => $titulo,
             'mensaje' => $mensaje,
             'tipo' => $tipo,
             'leida' => 0
-        ]);
+        ], 'idNotificacion');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | ENVIAR PUSH DESPUÉS DEL COMMIT
+    |--------------------------------------------------------------------------
+    | La API valida una clave privada independiente y lee los
+    | destinatarios desde las notificaciones ya guardadas.
+    | Nunca se reenvían actualizaciones de estados a la API.
+    */
+    private function enviarPushNotificaciones(array $ids): void
+    {
+        $ids = array_values(array_unique(array_map('intval', $ids)));
+        if (!$ids) {
+            return;
+        }
+
+        $secreto = (string) env('COMUNIMAP_WEB_PUSH_SECRET', '');
+        if (strlen($secreto) < 32) {
+            \Log::warning('ComuniMap: falta COMUNIMAP_WEB_PUSH_SECRET en Laravel');
+            return;
+        }
+
+        $url = 'https://comunimap-api-production.up.railway.app/push_notificaciones_web.php';
+
+        foreach (array_chunk($ids, 50) as $lote) {
+            try {
+                $respuesta = \Illuminate\Support\Facades\Http::timeout(25)
+                    ->acceptJson()
+                    ->withHeaders([
+                        'X-Comunimap-Web-Push-Secret' => $secreto,
+                    ])
+                    ->post($url, [
+                        'idsNotificaciones' => $lote
+                    ]);
+
+                if (!$respuesta->successful() ||
+                    $respuesta->json('success') !== true) {
+                    \Log::warning('ComuniMap: el envío push fue rechazado', [
+                        'status' => $respuesta->status(),
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                \Log::warning('ComuniMap: no se pudo contactar la API push', [
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
     }
 
     /*
@@ -795,7 +850,7 @@ class ReportesController extends Controller
             ]
         ]);
 
-        DB::transaction(function () use ($request, $id, $imagen) {
+        $idNotificacion = DB::transaction(function () use ($request, $id, $imagen) {
             $reporteAnterior = DB::table('reportes')
                 ->where('idReporte', $id)
                 ->lockForUpdate()
@@ -818,11 +873,15 @@ class ReportesController extends Controller
                     'imagen' => $imagen
                 ]);
 
-            $this->registrarNotificacionEstado(
+            return $this->registrarNotificacionEstado(
                 $reporteAnterior,
                 $request->estado
             );
         }, 3);
+
+        if ($idNotificacion !== null) {
+            $this->enviarPushNotificaciones([$idNotificacion]);
+        }
 
         if (
             $imagenAnterior &&
