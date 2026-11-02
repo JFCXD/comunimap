@@ -17,17 +17,26 @@
 
         <div class="page-wrapper">
 
+            @php
+                // Resumen de los reportes que ya carga Inicio; sin nuevas consultas.
+                $cmTotal = count($reportes);
+                $cmPendientes = collect($reportes)->filter(fn($r) => $r->estado === 'Pendiente')->count();
+                $cmEnProceso = collect($reportes)->filter(fn($r) => $r->estado === 'En Proceso')->count();
+                $cmSolucionados = collect($reportes)->filter(fn($r) => in_array($r->estado, ['Solucionado', 'Resuelto']))->count();
+            @endphp
             <div class="page-breadcrumb">
                 <div class="row align-items-center">
                     <div class="col-12">
-                        <h4 class="page-title">{{ session('rol') == 'Administrador' ? 'Panel de inicio' : 'Bienvenido a ComuniMap' }}</h4>
-                        <p class="cm-subtitle mb-0">{{ session('rol') == 'Administrador' ? 'Consulta las incidencias y administra el barrio.' : 'Consulta los reportes de tu barrio y comunica cualquier problema.' }}</p>
+                        <div class="cm-page-heading">
+                            <h4 class="page-title">{{ session('rol') == 'Administrador' ? 'Panel de inicio' : 'Bienvenido a ComuniMap' }}</h4>
+                            <p class="cm-subtitle mb-0">{{ session('rol') == 'Administrador' ? 'Consulta las incidencias y administra el barrio.' : 'Consulta los reportes de tu barrio y comunica cualquier problema.' }}</p>
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="container-fluid">
                 <div class="row g-3 mb-3">
-                    <div class="col-12 col-md-6 col-xl-4">
+                    <div class="col-12 col-md-6 {{ session('rol') == 'Administrador' ? 'col-xl-4' : 'col-xl-6' }}">
                         <div class="card h-100">
                             <div class="card-body">
                                 <a class="cm-quicklink" href="/alertas">
@@ -37,7 +46,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-12 col-md-6 col-xl-4">
+                    <div class="col-12 col-md-6 {{ session('rol') == 'Administrador' ? 'col-xl-4' : 'col-xl-6' }}">
                         <div class="card h-100">
                             <div class="card-body">
                                 <a class="cm-quicklink" href="/reportes">
@@ -60,23 +69,33 @@
                     </div>
                     @endif
                 </div>
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card">
+                <div class="row g-3 align-items-stretch">
+                    <div class="col-12 col-lg-8">
+                        <div class="card h-100">
                             <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center flex-wrap mb-3" style="gap:12px;">
-                                    <div>
-                                        <h4 class="card-title mb-1">Mapa de reportes de la OTB</h4>
-                                        <p class="cm-subtitle mb-0">Reportes registrados y perímetro del barrio</p>
-                                    </div>
-                                    <div class="cm-legend" aria-label="Leyenda de los estados">
-                                        <span><i class="cm-legend-dot" style="background:#2563eb"></i>Límite OTB</span>
-                                        <span><i class="cm-legend-dot" style="background:#dc3545"></i>Pendiente</span>
-                                        <span><i class="cm-legend-dot" style="background:#f4b52b"></i>En proceso</span>
-                                        <span><i class="cm-legend-dot" style="background:#198754"></i>Solucionado</span>
-                                    </div>
+                                <h4 class="card-title mb-1"><i class="fas fa-map-marked-alt text-primary me-2" aria-hidden="true"></i>Mapa de reportes de la OTB</h4>
+                                <p class="cm-subtitle mb-3">Reportes registrados y perímetro del barrio</p>
+                                <div id="mapa" class="cm-overview-map"></div>
+                                <div class="cm-legend mt-3" aria-label="Leyenda de los estados">
+                                    <span><i class="cm-legend-dot" style="background:#2563eb"></i>Límite OTB</span>
+                                    <span><i class="cm-legend-dot" style="background:#dc3545"></i>Pendiente</span>
+                                    <span><i class="cm-legend-dot" style="background:#f4b52b"></i>En proceso</span>
+                                    <span><i class="cm-legend-dot" style="background:#198754"></i>Solucionado</span>
                                 </div>
-                                <div id="mapa" style="height:600px;max-height:70vh;min-height:380px;border-radius:12px;overflow:hidden;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-lg-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h4 class="card-title mb-1"><i class="fas fa-chart-bar text-primary me-2" aria-hidden="true"></i>Resumen de reportes</h4>
+                                <p class="cm-subtitle mb-3">{{ session('rol') == 'Administrador' ? 'Situación de los reportes del barrio' : 'Reportes mostrados en este mapa' }}</p>
+                                <div class="cm-summary-list">
+                                    <div class="cm-summary-item"><span>Total de reportes</span><strong>{{ $cmTotal }}</strong></div>
+                                    <div class="cm-summary-item cm-pending"><span>Pendientes</span><strong>{{ $cmPendientes }}</strong></div>
+                                    <div class="cm-summary-item cm-working"><span>En proceso</span><strong>{{ $cmEnProceso }}</strong></div>
+                                    <div class="cm-summary-item cm-solved"><span>Solucionados</span><strong>{{ $cmSolucionados }}</strong></div>
+                                </div>
                             </div>
                         </div>
                     </div>
