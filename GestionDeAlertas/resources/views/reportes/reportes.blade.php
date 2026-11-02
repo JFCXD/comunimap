@@ -44,14 +44,7 @@
 
             <div class="container-fluid">
 
-                <div class="cm-status-bar" aria-label="Resumen de reportes">
-                    <div class="cm-status-pill"><i class="fas fa-clipboard-list text-primary" aria-hidden="true"></i><span><strong>{{ $cmTotalReportes }}</strong><br><small>Total</small></span></div>
-                    <div class="cm-status-pill"><i class="fas fa-exclamation-circle text-danger" aria-hidden="true"></i><span><strong>{{ $cmPendientesReportes }}</strong><br><small>Pendientes</small></span></div>
-                    <div class="cm-status-pill"><i class="fas fa-clock text-warning" aria-hidden="true"></i><span><strong>{{ $cmProcesoReportes }}</strong><br><small>En proceso</small></span></div>
-                    <div class="cm-status-pill"><i class="fas fa-check-circle text-success" aria-hidden="true"></i><span><strong>{{ $cmSolucionadosReportes }}</strong><br><small>Solucionados</small></span></div>
-                </div>
-
-                {{-- MENSAJES DE RESULTADO --}}
+{{-- MENSAJES DE RESULTADO --}}
                 @if(session('success'))
 
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
