@@ -641,7 +641,7 @@ class ReportesController extends Controller
             return;
         }
 
-        $secreto = (string) env('COMUNIMAP_WEB_PUSH_SECRET', '');
+        $secreto = (string) config('services.comunimap.web_push_secret', '');
         if (strlen($secreto) < 32) {
             \Log::warning('ComuniMap: falta COMUNIMAP_WEB_PUSH_SECRET en Laravel');
             return;
