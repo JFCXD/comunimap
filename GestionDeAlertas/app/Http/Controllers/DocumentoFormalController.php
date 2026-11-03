@@ -260,7 +260,7 @@ TEXTO;
             if (!is_file($rutaLogo) || filesize($rutaLogo) > 1024 * 1024) continue;
             $bytesLogo = file_get_contents($rutaLogo);
             if ($bytesLogo === false) continue;
-            $mimeLogo = (new \\finfo(FILEINFO_MIME_TYPE))->buffer($bytesLogo);
+            $mimeLogo = (new \finfo(FILEINFO_MIME_TYPE))->buffer($bytesLogo);
             if ($mimeLogo !== 'image/png') continue;
             $emblemas[$lado] = 'data:image/png;base64,'.base64_encode($bytesLogo);
         }
