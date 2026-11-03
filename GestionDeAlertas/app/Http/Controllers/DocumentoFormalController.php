@@ -170,17 +170,43 @@ TEXTO;
                 ]);
 
             if (!$respuesta->successful()) {
-                \Log::warning('ComuniMap IA: Gemini respondió HTTP '.$respuesta->status());
-                return response()->json(['success' => false,
-                    'message' => 'No se pudo generar el borrador. Puedes continuar manualmente o intentarlo después.'], 503);
+                $codigo = $respuesta->status();
+                // Registrar solo el estado y código, nunca la clave ni datos de los vecinos.
+                $codigoGoogle = $respuesta->json('error.status');
+                \Log::warning('ComuniMap IA: Gemini rechazó solicitud', [
+                    'http' => $codigo,
+                    'codigo_google' => is_string($codigoGoogle) ? substr($codigoGoogle, 0, 50) : 'desconocido',
+                    'modelo' => $modelo,
+                ]);
+                $mensaje = match (true) {
+                    $codigo === 400 => 'Gemini rechazó el formato de la solicitud (HTTP 400). Se debe revisar la integración.',
+                    $codigo === 401, $codigo === 403 => 'Google rechazó la clave o sus permisos (HTTP '.$codigo.'). Revisa la clave en Railway.',
+                    $codigo === 404 => 'Gemini no encuentra el modelo configurado (HTTP 404). Revisa GEMINI_MODEL.',
+                    $codigo === 429 => 'Gemini alcanzó el límite de solicitudes o cuota (HTTP 429). Inténtalo después o revisa las cuotas.',
+                    $codigo >= 500 => 'Gemini está temporalmente no disponible (HTTP '.$codigo.'). Inténtalo más tarde.',
+                    default => 'Gemini rechazó la solicitud (HTTP '.$codigo.'). Revisa los registros de Railway.',
+                };
+                return response()->json(['success' => false, 'message' => $mensaje], 503);
             }
 
-            $texto = $respuesta->json('candidates.0.content.parts.0.text');
-            if (!is_string($texto)) {
-                throw new \RuntimeException('Respuesta sin texto');
+            $partes = $respuesta->json('candidates.0.content.parts');
+            $texto = is_array($partes) ? implode('', array_values(array_filter(
+                array_map(fn($parte) => is_array($parte) && isset($parte['text']) && is_string($parte['text']) ? $parte['text'] : '', $partes),
+                fn($v) => $v !== ''
+            ))) : '';
+            if ($texto === '') {
+                \Log::warning('ComuniMap IA: Gemini respondió sin texto', [
+                    'finishReason' => $respuesta->json('candidates.0.finishReason') ?? 'desconocido',
+                ]);
+                return response()->json(['success' => false,
+                    'message' => 'Gemini no devolvió texto para la carta. Intenta nuevamente.'], 503);
             }
             $borrador = json_decode($texto, true);
-            if (!is_array($borrador)) throw new \RuntimeException('Respuesta no es JSON');
+            if (!is_array($borrador)) {
+                \Log::warning('ComuniMap IA: Gemini devolvió un JSON no válido');
+                return response()->json(['success' => false,
+                    'message' => 'La respuesta de Gemini no tenía el formato esperado. Inténtalo nuevamente.'], 503);
+            }
             foreach (['asunto' => 180, 'antecedentes' => 3500, 'solicitud' => 2200] as $campo => $longitud) {
                 if (!isset($borrador[$campo]) || !is_string($borrador[$campo])
                     || trim($borrador[$campo]) === '' || mb_strlen($borrador[$campo]) > $longitud) {
