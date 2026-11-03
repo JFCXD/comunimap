@@ -31,7 +31,14 @@ class InicioController extends Controller
         ON r.idUsuario = u.idUsuario
 ");
 
-        return view('inicio.index', compact('reportes'));
+        // Mostrar en Inicio únicamente la publicación más reciente que ya sea pública.
+        $ultimaPublicacion = DB::table('publicaciones')
+            ->where('estado', 'Publicado')
+            ->orderByDesc('fechaCreacion')
+            ->orderByDesc('idPublicacion')
+            ->first();
+
+        return view('inicio.index', compact('reportes', 'ultimaPublicacion'));
     }
 
 }
