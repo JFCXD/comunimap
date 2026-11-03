@@ -43,28 +43,6 @@
 
         <div class="card mb-4">
             <div class="card-body">
-                <h5><i class="fa fa-magic me-1"></i> Generar borrador con IA (opcional)</h5>
-                <p class="text-muted small">A partir de los reportes seleccionados, la IA configurada puede proponer el asunto, los antecedentes y la solicitud. Revisa siempre los hechos antes de aceptarla. No se cambiarán los reportes.</p>
-                <label class="form-label" for="cmIndicaciones">Indicaciones adicionales (opcional)</label>
-                <input id="cmIndicaciones" type="text" class="form-control mb-2" maxlength="500" placeholder="Ej.: redactar de forma breve y cordial">
-                <button type="button" id="cmGenerarIA" class="btn btn-outline-primary"><i class="fa fa-magic me-1"></i> Generar borrador con IA</button>
-                <p id="cmEstadoIA" role="status" aria-live="polite" class="small mt-2 mb-0"></p>
-                <div id="cmPropuestaIA" class="mt-3 d-none">
-                    <div class="alert alert-warning small">Propuesta de IA: verifica que los datos sean correctos. Tu carta actual no cambia hasta que pulses «Usar esta propuesta».</div>
-                    <label class="form-label" for="cmAsuntoIA">Asunto propuesto</label>
-                    <input id="cmAsuntoIA" class="form-control mb-2" readonly>
-                    <label class="form-label" for="cmAntecedentesIA">Antecedentes propuestos</label>
-                    <textarea id="cmAntecedentesIA" class="form-control mb-2" rows="5" readonly></textarea>
-                    <label class="form-label" for="cmSolicitudIA">Solicitud propuesta</label>
-                    <textarea id="cmSolicitudIA" class="form-control mb-2" rows="4" readonly></textarea>
-                    <button type="button" id="cmAceptarIA" class="btn btn-primary">Usar esta propuesta</button>
-                    <button type="button" id="cmDescartarIA" class="btn btn-outline-secondary">Descartar</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="card mb-4">
-            <div class="card-body">
                 <h5 class="mb-3">Datos de la carta</h5>
                 <div class="row g-3">
                     <div class="col-md-4">
@@ -127,72 +105,7 @@
     </form>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const formulario = document.getElementById('cmFormularioCarta');
-    const boton = document.getElementById('cmGenerarIA');
-    const estado = document.getElementById('cmEstadoIA');
-    const contenedor = document.getElementById('cmPropuestaIA');
-    const campo = nombre => formulario.elements.namedItem(nombre);
 
-    boton.addEventListener('click', async () => {
-        const institucion = (campo('institucion').value || '').trim();
-        const destinatario = (campo('destinatario').value || '').trim();
-        if (!institucion || !destinatario) {
-            estado.textContent = 'Primero indica la institución y el destinatario de la carta.';
-            return;
-        }
-        const reportes = Array.from(formulario.querySelectorAll('input[name="reportes[]"]')).map(x => x.value);
-        boton.disabled = true;
-        estado.textContent = 'Generando una propuesta de carta...';
-        contenedor.classList.add('d-none');
-        try {
-            const respuesta = await fetch(@json(route('documentos.borrador-ia')), {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': formulario.querySelector('input[name="_token"]').value
-                },
-                body: JSON.stringify({
-                    reportes,
-                    institucion,
-                    destinatario,
-                    cargo_destinatario: campo('cargo_destinatario').value || '',
-                    indicaciones: document.getElementById('cmIndicaciones').value || ''
-                })
-            });
-            const datos = await respuesta.json();
-            if (!respuesta.ok || !datos.success || !datos.borrador) {
-                throw new Error(datos.message || 'No fue posible generar el borrador.');
-            }
-            document.getElementById('cmAsuntoIA').value = datos.borrador.asunto;
-            document.getElementById('cmAntecedentesIA').value = datos.borrador.antecedentes;
-            document.getElementById('cmSolicitudIA').value = datos.borrador.solicitud;
-            contenedor.classList.remove('d-none');
-            estado.textContent = 'Propuesta lista. Léela y decide si deseas utilizarla.';
-        } catch (error) {
-            estado.textContent = error.message || 'No se pudo conectar con la IA; continúa manualmente.';
-        } finally {
-            boton.disabled = false;
-        }
-    });
-
-    document.getElementById('cmAceptarIA').addEventListener('click', () => {
-        campo('asunto').value = document.getElementById('cmAsuntoIA').value;
-        campo('antecedentes').value = document.getElementById('cmAntecedentesIA').value;
-        campo('solicitud').value = document.getElementById('cmSolicitudIA').value;
-        contenedor.classList.add('d-none');
-        estado.textContent = 'Propuesta incorporada. Puedes editarla libremente antes de generar el PDF.';
-    });
-
-    document.getElementById('cmDescartarIA').addEventListener('click', () => {
-        contenedor.classList.add('d-none');
-        estado.textContent = 'Propuesta descartada. Tu carta anterior se conserva.';
-    });
-});
-</script>
 @include('plantillas.pie')
 </div>
 </div>
