@@ -9,6 +9,7 @@ use App\Http\Controllers\UsuariosController;
 use App\Http\Controllers\EstadisticasController;
 use App\Http\Controllers\RegistroController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\ComunidadController;
 
 Route::get('/', function () {
     return redirect('/login');
@@ -147,3 +148,9 @@ Route::get(
     '/estadisticas',
     [EstadisticasController::class, 'index']
 );
+
+// COMUNIDAD: lectura para usuarios activos; escritura y publicación solo administrador.
+Route::get('/comunidad', [ComunidadController::class, 'index'])->name('comunidad.index');
+Route::post('/comunidad', [ComunidadController::class, 'guardar'])->name('comunidad.guardar');
+Route::post('/comunidad/{id}/estado', [ComunidadController::class, 'estado'])->whereNumber('id')->name('comunidad.estado');
+Route::post('/comunidad/{id}/votar', [ComunidadController::class, 'votar'])->whereNumber('id')->name('comunidad.votar');
