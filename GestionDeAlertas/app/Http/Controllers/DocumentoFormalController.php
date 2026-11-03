@@ -105,8 +105,13 @@ class DocumentoFormalController extends Controller
             'indicaciones' => ['nullable', 'string', 'max:500'],
         ]);
         $reportes = $this->reportes($this->ids($entrada['reportes']));
+        $proveedor = strtolower((string) config('services.documentos_ai.provider', 'openai'));
+        if (!in_array($proveedor, ['openai', 'gemini'], true)) {
+            return response()->json(['success' => false, 'message' => 'El proveedor de IA configurado no es válido.'], 503);
+        }
+
         $apiKey = (string) config('services.gemini.api_key', '');
-        if (strlen($apiKey) < 20) {
+        if ($proveedor === 'gemini' && strlen($apiKey) < 20) {
             return response()->json([
                 'success' => false,
                 'message' => 'La asistencia con IA todavía no está configurada en Railway. Puedes redactar la carta manualmente.',
@@ -151,6 +156,113 @@ TEXTO;
             'indicaciones_adicionales' => $entrada['indicaciones'] ?? '',
             'reportes' => $hechos,
         ], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+        // OpenAI Responses API: generar solo una propuesta, nunca editar reportes ni enviar cartas.
+        if ($proveedor === 'openai') {
+            $claveOpenAI = (string) config('services.documentos_ai.openai_api_key', '');
+            if (strlen($claveOpenAI) < 20) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'OpenAI todavía no está configurado en Railway. Agrega OPENAI_API_KEY para generar borradores.',
+                ], 503);
+            }
+            $modeloOpenAI = (string) config('services.documentos_ai.openai_model', 'gpt-4.1-mini');
+            if (!preg_match('/^[a-zA-Z0-9._-]+$/D', $modeloOpenAI)) {
+                return response()->json(['success' => false, 'message' => 'El modelo de OpenAI configurado no es válido.'], 503);
+            }
+            try {
+                $respuestaIA = Http::withToken($claveOpenAI)
+                    ->acceptJson()->timeout(40)->connectTimeout(8)
+                    ->post('https://api.openai.com/v1/responses', [
+                        'model' => $modeloOpenAI,
+                        'instructions' => $instruccion,
+                        'input' => [['role' => 'user', 'content' => $entradaModelo]],
+                        'max_output_tokens' => 1500,
+                        'store' => false,
+                        'text' => [
+                            'format' => [
+                                'type' => 'json_schema',
+                                'name' => 'carta_otb',
+                                'strict' => true,
+                                'schema' => [
+                                    'type' => 'object',
+                                    'properties' => [
+                                        'asunto' => ['type' => 'string'],
+                                        'antecedentes' => ['type' => 'string'],
+                                        'solicitud' => ['type' => 'string'],
+                                    ],
+                                    'required' => ['asunto', 'antecedentes', 'solicitud'],
+                                    'additionalProperties' => false,
+                                ],
+                            ],
+                        ],
+                    ]);
+                if (!$respuestaIA->successful()) {
+                    $codigo = $respuestaIA->status();
+                    $codigoProveedor = $respuestaIA->json('error.code');
+                    \\Log::warning('ComuniMap cartas: error OpenAI', [
+                        'http' => $codigo,
+                        'codigo' => is_string($codigoProveedor) ? substr($codigoProveedor, 0, 70) : 'desconocido',
+                        'modelo' => $modeloOpenAI,
+                    ]);
+                    $mensaje = match (true) {
+                        $codigo === 400 => 'OpenAI rechazó el formato de la petición (HTTP 400).',
+                        $codigo === 401, $codigo === 403 => 'OpenAI rechazó la clave o el permiso de acceso (HTTP '.$codigo.').',
+                        $codigo === 404 => 'El modelo indicado en OPENAI_MODEL no está disponible para la cuenta.',
+                        $codigo === 429 => 'OpenAI alcanzó el límite o la cuota de facturación (HTTP 429). Revisa Usage y Billing.',
+                        $codigo >= 500 => 'OpenAI no está disponible temporalmente (HTTP '.$codigo.').',
+                        default => 'No se pudo generar la carta con OpenAI (HTTP '.$codigo.').',
+                    };
+                    return response()->json(['success' => false, 'message' => $mensaje], 503);
+                }
+
+                $items = $respuestaIA->json('output');
+                $textoIA = '';
+                if (is_array($items)) {
+                    foreach ($items as $item) {
+                        if (!is_array($item) || ($item['type'] ?? null) !== 'message') continue;
+                        foreach (($item['content'] ?? []) as $bloque) {
+                            if (is_array($bloque) && ($bloque['type'] ?? '') === 'output_text'
+                                && isset($bloque['text']) && is_string($bloque['text'])) {
+                                $textoIA .= $bloque['text'];
+                            }
+                        }
+                    }
+                }
+                if ($textoIA === '') {
+                    \\Log::warning('ComuniMap cartas: OpenAI no devolvió texto',
+                        ['status' => $respuestaIA->json('status') ?? 'desconocido']);
+                    return response()->json(['success' => false,
+                        'message' => 'OpenAI no devolvió un borrador. Inténtalo de nuevo.'], 503);
+                }
+
+                $borradorOpenAI = json_decode($textoIA, true);
+                if (!is_array($borradorOpenAI)) {
+                    return response()->json(['success' => false,
+                        'message' => 'OpenAI devolvió un formato inesperado. Inténtalo nuevamente.'], 503);
+                }
+                foreach (['asunto' => 180, 'antecedentes' => 3500, 'solicitud' => 2200] as $campo => $maximo) {
+                    if (!isset($borradorOpenAI[$campo]) || !is_string($borradorOpenAI[$campo])
+                        || trim($borradorOpenAI[$campo]) === '' || mb_strlen($borradorOpenAI[$campo]) > $maximo) {
+                        return response()->json(['success' => false,
+                            'message' => 'La propuesta generada es incompleta o demasiado extensa. Inténtalo de nuevo.'], 503);
+                    }
+                }
+                return response()->json([
+                    'success' => true,
+                    'borrador' => [
+                        'asunto' => trim($borradorOpenAI['asunto']),
+                        'antecedentes' => trim($borradorOpenAI['antecedentes']),
+                        'solicitud' => trim($borradorOpenAI['solicitud']),
+                    ],
+                    'advertencia' => 'Borrador de IA: verifica todos los hechos antes de usarlo.',
+                ]);
+            } catch (\\Throwable $e) {
+                \\Log::warning('ComuniMap cartas: fallo al conectar con OpenAI (sin registrar datos privados)');
+                return response()->json(['success' => false,
+                    'message' => 'No se pudo conectar con OpenAI. La redacción manual sigue disponible.'], 503);
+            }
+        }
+
         $modelo = (string) config('services.gemini.model', 'gemini-3.6-flash');
         if (!preg_match('/^[a-zA-Z0-9._-]+$/D', $modelo)) {
             $modelo = 'gemini-3.6-flash';
