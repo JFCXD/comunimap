@@ -24,6 +24,38 @@ class ComunidadController extends Controller
         return $usuario && $usuario->rol === 'Administrador';
     }
 
+    /**
+     * Solicita a la API el aviso push de una publicación ya guardada.
+     * Usa el secreto compartido de Railway, sin revelar credenciales a Android.
+     * Los errores de FCM no cancelan la publicación.
+     */
+    private function avisarPublicacion(int $idPublicacion): void
+    {
+        $secreto = (string) config('services.comunimap.web_push_secret', '');
+        if (strlen($secreto) < 32) {
+            \Log::warning('ComuniMap Comunidad: falta secreto para notificaciones push');
+            return;
+        }
+        try {
+            $respuesta = \Illuminate\Support\Facades\Http::timeout(30)
+                ->acceptJson()
+                ->withHeaders(['X-Comunimap-Web-Push-Secret' => $secreto])
+                ->post('https://comunimap-api-production.up.railway.app/push_comunidad.php',
+                    ['idPublicacion' => $idPublicacion]);
+            if (!$respuesta->successful() || $respuesta->json('success') !== true) {
+                \Log::warning('ComuniMap Comunidad: fallo de notificación push', [
+                    'status' => $respuesta->status(),
+                    'idPublicacion' => $idPublicacion,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            \Log::warning('ComuniMap Comunidad: API push no disponible', [
+                'idPublicacion' => $idPublicacion,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
     public function index(Request $request)
     {
         $usuario = $this->usuario();
@@ -105,7 +137,7 @@ class ComunidadController extends Controller
         }
 
         try {
-            DB::transaction(function () use ($datos, $usuario, $tipo, $respuestas, $rutaImagen) {
+            $nuevoId = DB::transaction(function () use ($datos, $usuario, $tipo, $respuestas, $rutaImagen) {
                 $id = DB::table('publicaciones')->insertGetId([
                     'idAutor' => $usuario->idUsuario,
                     'tipo' => $tipo,
@@ -126,10 +158,15 @@ class ComunidadController extends Controller
                         'orden' => $indice + 1,
                     ]);
                 }
+                return (int) $id;
             });
         } catch (\Throwable $e) {
             if ($rutaImagen && file_exists(public_path($rutaImagen))) @unlink(public_path($rutaImagen));
             throw $e;
+        }
+
+        if ($datos['estado'] === 'Publicado') {
+            $this->avisarPublicacion($nuevoId);
         }
 
         return redirect('/comunidad')->with('success', 'Publicación guardada correctamente.');
@@ -206,7 +243,17 @@ class ComunidadController extends Controller
                 return back()->withErrors(['estado' => 'La encuesta necesita opciones y una fecha de cierre.']);
             }
         }
-        DB::table('publicaciones')->where('idPublicacion', $id)->update(['estado' => $datos['estado']]);
+        $publicadaAhora = DB::transaction(function () use ($id, $datos) {
+            $actual = DB::table('publicaciones')->where('idPublicacion', $id)
+                ->lockForUpdate()->first();
+            if (!$actual) abort(404);
+            DB::table('publicaciones')->where('idPublicacion', $id)
+                ->update(['estado' => $datos['estado']]);
+            return $datos['estado'] === 'Publicado' && $actual->estado !== 'Publicado';
+        });
+        if ($publicadaAhora) {
+            $this->avisarPublicacion((int) $id);
+        }
         return back()->with('success', 'Estado de la publicación actualizado.');
     }
 
