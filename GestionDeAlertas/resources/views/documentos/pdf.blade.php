@@ -5,7 +5,12 @@
 <style>
 @page { margin: 2.05cm 2.1cm 1.95cm; }
 body { font-family: "DejaVu Sans", sans-serif; color:#222; font-size:10.5px; line-height:1.60; }
-.membrete { text-align:center; padding:0 0 9px; margin:0 0 23px; border-bottom:2px solid #353535; }
+.membrete { text-align:center; padding:0 0 11px; margin:0 0 23px; border-bottom:2px solid #353535; }
+.membrete-tabla { width:100%; border-collapse:collapse; table-layout:fixed; }
+.membrete-logo { width:17%; text-align:center; vertical-align:middle; }
+.membrete-logo img { max-width:82px; max-height:75px; object-fit:contain; }
+.membrete-texto { width:66%; text-align:center; vertical-align:middle; }
+.sublinea { margin-top:4px; font-size:8px; color:#434343; }
 .otb { font-size:15px; font-weight:700; letter-spacing:.3px; }
 .ciudad { font-size:9px; font-weight:600; margin-top:4px; }
 .linea { font-size:8px; color:#555; margin-top:3px; }
@@ -29,9 +34,26 @@ body { font-family: "DejaVu Sans", sans-serif; color:#222; font-size:10.5px; lin
 </head>
 <body>
 <div class="membrete">
-    <div class="otb">OTB BARRIO UNIVERSITARIO ALTO</div>
-    <div class="ciudad">COCHABAMBA — BOLIVIA</div>
-    <div class="linea">Organización Territorial de Base</div>
+    <table class="membrete-tabla">
+        <tr>
+            <td class="membrete-logo">
+                @if(!empty($emblemas['izquierdo']))
+                    <img src="{{ $emblemas['izquierdo'] }}" alt="Escudo oficial">
+                @endif
+            </td>
+            <td class="membrete-texto">
+                <div class="otb">OTB BARRIO UNIVERSITARIO ALTO</div>
+                <div class="ciudad">COCHABAMBA — BOLIVIA</div>
+                <div class="linea">Organización Territorial de Base</div>
+                <div class="sublinea">Solicitud formal de atención comunitaria</div>
+            </td>
+            <td class="membrete-logo">
+                @if(!empty($emblemas['derecho']))
+                    <img src="{{ $emblemas['derecho'] }}" alt="Logotipo oficial">
+                @endif
+            </td>
+        </tr>
+    </table>
 </div>
 <div class="fecha">Cochabamba, {{ \Carbon\Carbon::parse($datos['fecha'])->locale('es')->translatedFormat('d \d\e F \d\e Y') }}</div>
 <div class="destinatario">
@@ -52,7 +74,7 @@ body { font-family: "DejaVu Sans", sans-serif; color:#222; font-size:10.5px; lin
     <strong>{{ $datos['remitente'] }}</strong><br>
     @if(!empty($datos['cargo_remitente']))<span class="cargo">{{ $datos['cargo_remitente'] }}</span><br>@endif
     <span class="cargo">OTB Barrio Universitario Alto</span>
-    <div class="sello">Espacio para sello de la OTB</div>
+    <div class="sello">Sello de la OTB</div>
 </div>
 <div class="pie">OTB BARRIO UNIVERSITARIO ALTO — COCHABAMBA, BOLIVIA</div>
 @if(count($fotos) > 0)
