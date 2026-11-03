@@ -146,6 +146,11 @@ class ComunidadController extends Controller
             $pub = DB::table('publicaciones')->where('idPublicacion', $id)->lockForUpdate()->first();
             if (!$pub) abort(404);
 
+            // Mantener la pregunta y el cierre intactos una vez registrada la primera respuesta.
+            if ($pub->tipo === 'Encuesta' && DB::table('votos_encuesta')->where('idPublicacion', $id)->exists()) {
+                throw ValidationException::withMessages(['titulo' => 'Esta encuesta ya recibió votos y no puede editarse. Puedes archivarla si es necesario.']);
+            }
+
             $campos = [
                 'titulo' => trim($datos['titulo']),
                 'descripcion' => trim($datos['descripcion']),
