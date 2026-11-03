@@ -13,6 +13,13 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
 
+        // Ruta interna de la API PHP: usa secreto de servicio, no sesión web.
+        // Mantener protección CSRF para todos los formularios existentes.
+        $middleware->validateCsrfTokens(except: [
+            'comunidad/imagen/subir',
+        ]);
+
+
         /*
         |--------------------------------------------------------------------------
         | PROXIES DE CONFIANZA EN RAILWAY
