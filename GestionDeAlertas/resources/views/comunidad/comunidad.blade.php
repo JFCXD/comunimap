@@ -131,7 +131,6 @@
               <div class="small text-muted mt-2">{{ $totalVotos }} {{ $totalVotos == 1 ? 'voto registrado' : 'votos registrados' }}</div>
             </div>
             @endif
-            <div class="small text-muted"><i class="fas fa-comment-slash me-1"></i>Sin comentarios</div>
           </div>
           @if($pub->imagen)
           <img class="cm-post-image" src="{{ asset($pub->imagen) }}" alt="Imagen de {{ $pub->titulo }}" loading="lazy">
