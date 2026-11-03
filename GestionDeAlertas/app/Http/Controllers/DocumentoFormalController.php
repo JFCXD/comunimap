@@ -34,7 +34,11 @@ class DocumentoFormalController extends Controller
             $resultado[] = (int) $id;
         }
 
-        return array_values(array_unique($resultado));
+        $unicos = array_values(array_unique($resultado));
+        if (count($unicos) !== count($resultado)) {
+            throw ValidationException::withMessages(['reportes' => 'No selecciones el mismo reporte dos veces.']);
+        }
+        return $unicos;
     }
 
     private function reportes(array $ids)
@@ -99,6 +103,7 @@ class DocumentoFormalController extends Controller
             'antecedentes' => ['required', 'string', 'max:15000'],
             'solicitud' => ['required', 'string', 'max:10000'],
             'incluir_anexos' => ['nullable', 'in:1'],
+            'modo' => ['nullable', 'in:vista_previa,descargar'],
         ]);
 
         $ids = $this->ids($datos['reportes']);
@@ -135,6 +140,9 @@ class DocumentoFormalController extends Controller
             'fotos' => $fotos,
         ])->setPaper('a4');
 
-        return $pdf->download('carta-formal-comunimap-'.date('Ymd').'.pdf');
+        $nombre = 'carta-formal-comunimap-'.date('Ymd').'.pdf';
+        return ($datos['modo'] ?? 'descargar') === 'vista_previa'
+            ? $pdf->stream($nombre)
+            : $pdf->download($nombre);
     }
 }
