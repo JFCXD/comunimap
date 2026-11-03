@@ -126,14 +126,7 @@ class ComunidadController extends Controller
 
         $rutaImagen = null;
         if ($request->hasFile('imagen')) {
-            $archivo = $request->file('imagen');
-            $nombre = bin2hex(random_bytes(16)).'.'.$archivo->extension();
-            $carpeta = public_path('uploads/comunidad');
-            if (!is_dir($carpeta) && !mkdir($carpeta, 0755, true) && !is_dir($carpeta)) {
-                throw ValidationException::withMessages(['imagen' => 'No se pudo preparar el almacenamiento de imágenes.']);
-            }
-            $archivo->move($carpeta, $nombre);
-            $rutaImagen = 'uploads/comunidad/'.$nombre;
+            $rutaImagen = ImagenComunidadController::guardarArchivo($request->file('imagen'));
         }
 
         try {
@@ -161,7 +154,7 @@ class ComunidadController extends Controller
                 return (int) $id;
             });
         } catch (\Throwable $e) {
-            if ($rutaImagen && file_exists(public_path($rutaImagen))) @unlink(public_path($rutaImagen));
+            if ($rutaImagen) ImagenComunidadController::eliminarArchivo($rutaImagen);
             throw $e;
         }
 
