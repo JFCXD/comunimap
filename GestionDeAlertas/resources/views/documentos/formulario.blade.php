@@ -44,7 +44,7 @@
         <div class="card mb-4">
             <div class="card-body">
                 <h5><i class="fa fa-magic me-1"></i> Generar borrador con IA (opcional)</h5>
-                <p class="text-muted small">A partir de los reportes seleccionados, Gemini puede proponer el asunto, los antecedentes y la solicitud. Revisa siempre los hechos antes de aceptarla. No se cambiarán los reportes.</p>
+                <p class="text-muted small">A partir de los reportes seleccionados, la IA configurada puede proponer el asunto, los antecedentes y la solicitud. Revisa siempre los hechos antes de aceptarla. No se cambiarán los reportes.</p>
                 <label class="form-label" for="cmIndicaciones">Indicaciones adicionales (opcional)</label>
                 <input id="cmIndicaciones" type="text" class="form-control mb-2" maxlength="500" placeholder="Ej.: redactar de forma breve y cordial">
                 <button type="button" id="cmGenerarIA" class="btn btn-outline-primary"><i class="fa fa-magic me-1"></i> Generar borrador con IA</button>
