@@ -295,6 +295,15 @@
                             {{ session('rol') == 'Administrador' ? 'Lista general de reportes' : 'Reportes registrados' }}
                         </h4>
 
+                        @if(session('rol') == 'Administrador')
+                            <form id="cmCartaConjunta" method="GET" action="{{ route('documentos.preparar') }}"></form>
+                            <div class="d-flex gap-2 align-items-center flex-wrap mb-3">
+                                <button class="btn btn-outline-primary btn-sm" type="submit" form="cmCartaConjunta">
+                                    <i class="fa fa-file-text-o me-1"></i> Carta con reportes seleccionados
+                                </button>
+                                <small class="text-muted">Marca de 1 a 30 reportes para preparar una carta conjunta.</small>
+                            </div>
+                        @endif
                         <div class="table-responsive">
 
                             <table class="table table-hover align-middle cm-report-table">
@@ -302,6 +311,9 @@
                                 <thead class="table-light">
 
                                     <tr>
+                                        @if(session('rol') == 'Administrador')
+                                            <th scope="col">Seleccionar</th>
+                                        @endif
                                         <th>Título</th>
                                         <th>Categoría</th>
                                         <th>Estado</th>
@@ -317,6 +329,13 @@
                                     @forelse($reportes as $reporte)
 
                                         <tr>
+                                            @if(session('rol') == 'Administrador')
+                                                <td>
+                                                    <input class="form-check-input" type="checkbox" form="cmCartaConjunta"
+                                                           name="reportes[]" value="{{ $reporte->idReporte }}"
+                                                           aria-label="Seleccionar reporte {{ $reporte->idReporte }} para carta formal">
+                                                </td>
+                                            @endif
 
                                             {{-- TÍTULO --}}
                                             <td>
@@ -399,9 +418,10 @@
 
                                                 @if(session('rol') == 'Administrador')
 
-                                                    <a href="{{ url('/reportes/editar/' . $reporte->idReporte) }}"
-                                                        class="btn btn-warning btn-sm" title="Editar reporte">
-                                                        <i class="fa fa-edit"></i>
+                                                    <a href="{{ route('documentos.preparar', ['reportes' => [$reporte->idReporte]]) }}"
+                                                        class="btn btn-warning btn-sm" title="Generar carta formal de este reporte"
+                                                        aria-label="Generar carta formal del reporte {{ $reporte->idReporte }}">
+                                                        <i class="fa fa-file-text-o"></i>
                                                     </a>
 
                                                 @endif
@@ -414,7 +434,7 @@
 
                                         <tr>
 
-                                            <td colspan="6" class="text-center text-muted py-4">
+                                            <td colspan="{{ session('rol') == 'Administrador' ? 7 : 6 }}" class="text-center text-muted py-4">
                                                 No existen reportes registrados.
                                             </td>
 
