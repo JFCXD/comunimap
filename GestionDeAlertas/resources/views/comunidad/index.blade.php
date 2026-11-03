@@ -138,6 +138,32 @@
           @endif
           @if($admin)
           <div class="card-footer bg-white">
+            <details class="mb-3">
+              <summary class="text-primary" style="cursor:pointer"><i class="fas fa-edit me-1"></i> Editar publicación</summary>
+              <div class="pt-3">
+                <form method="POST" action="{{ route('comunidad.actualizar', $pub->idPublicacion) }}">
+                  @csrf
+                  <div class="mb-2"><label class="form-label fw-semibold" for="editTitulo-{{ $pub->idPublicacion }}">Título</label>
+                    <input id="editTitulo-{{ $pub->idPublicacion }}" name="titulo" class="form-control" maxlength="180" required value="{{ $pub->titulo }}"></div>
+                  <div class="mb-2"><label class="form-label fw-semibold" for="editDescripcion-{{ $pub->idPublicacion }}">Descripción</label>
+                    <textarea id="editDescripcion-{{ $pub->idPublicacion }}" name="descripcion" rows="4" class="form-control" maxlength="10000" required>{{ $pub->descripcion }}</textarea></div>
+                  @if($pub->tipo === 'Actividad')
+                  <div class="row g-2 mb-2">
+                    <div class="col-md-4"><label class="form-label" for="editFecha-{{ $pub->idPublicacion }}">Fecha</label><input id="editFecha-{{ $pub->idPublicacion }}" name="fechaActividad" type="date" class="form-control" value="{{ $pub->fechaActividad }}" required></div>
+                    <div class="col-md-4"><label class="form-label" for="editHora-{{ $pub->idPublicacion }}">Hora</label><input id="editHora-{{ $pub->idPublicacion }}" name="horaActividad" type="time" class="form-control" value="{{ $pub->horaActividad ? substr($pub->horaActividad,0,5) : '' }}" required></div>
+                    <div class="col-md-4"><label class="form-label" for="editLugar-{{ $pub->idPublicacion }}">Lugar</label><input id="editLugar-{{ $pub->idPublicacion }}" name="lugarActividad" class="form-control" value="{{ $pub->lugarActividad }}" required maxlength="255"></div>
+                  </div>
+                  @endif
+                  @if($pub->tipo === 'Encuesta')
+                  <div class="mb-2"><label class="form-label" for="editCierre-{{ $pub->idPublicacion }}">Modificar cierre (solo antes de recibir votos)</label>
+                    <input id="editCierre-{{ $pub->idPublicacion }}" name="fechaCierre" type="datetime-local" class="form-control" value="{{ $pub->fechaCierre ? \Carbon\Carbon::parse($pub->fechaCierre)->format('Y-m-d\\TH:i') : '' }}">
+                    <div class="small text-muted mt-1">Las opciones de una encuesta no se modifican una vez creada, para conservar la validez de los votos.</div>
+                  </div>
+                  @endif
+                  <button class="btn btn-primary btn-sm" type="submit">Guardar cambios</button>
+                </form>
+              </div>
+            </details>
             <form method="POST" action="{{ route('comunidad.estado', $pub->idPublicacion) }}" class="d-flex align-items-center flex-wrap gap-2">
               @csrf
               <label class="small mb-0" for="estado-{{ $pub->idPublicacion }}">Estado:</label>
