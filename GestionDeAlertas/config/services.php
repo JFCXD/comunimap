@@ -19,6 +19,11 @@ return [
         'image_upload_secret' => env('COMUNIMAP_IMAGE_UPLOAD_SECRET', ''),
     ],
 
+    'gemini' => [
+        'api_key' => env('GEMINI_API_KEY', ''),
+        'model' => env('GEMINI_MODEL', 'gemini-2.5-flash'),
+    ],
+
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],
