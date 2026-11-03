@@ -10,6 +10,7 @@ use App\Http\Controllers\EstadisticasController;
 use App\Http\Controllers\RegistroController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\ComunidadController;
+use App\Http\Controllers\ImagenComunidadController;
 
 Route::get('/', function () {
     return redirect('/login');
@@ -155,3 +156,9 @@ Route::post('/comunidad', [ComunidadController::class, 'guardar'])->name('comuni
 Route::post('/comunidad/{id}/actualizar', [ComunidadController::class, 'actualizar'])->whereNumber('id')->name('comunidad.actualizar');
 Route::post('/comunidad/{id}/estado', [ComunidadController::class, 'estado'])->whereNumber('id')->name('comunidad.estado');
 Route::post('/comunidad/{id}/votar', [ComunidadController::class, 'votar'])->whereNumber('id')->name('comunidad.votar');
+
+// Imágenes de Comunidad: lectura pública y subida desde API con secreto de servicio.
+Route::get('/comunidad/imagen/{nombre}', [ImagenComunidadController::class, 'mostrar'])
+    ->name('comunidad.imagen');
+Route::post('/comunidad/imagen/subir', [ImagenComunidadController::class, 'subirDesdeApi'])
+    ->name('comunidad.imagen.subir');
