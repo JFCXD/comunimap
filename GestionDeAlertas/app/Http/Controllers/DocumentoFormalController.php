@@ -144,9 +144,9 @@ TEXTO;
             'indicaciones_adicionales' => $entrada['indicaciones'] ?? '',
             'reportes' => $hechos,
         ], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
-        $modelo = (string) config('services.gemini.model', 'gemini-2.5-flash');
+        $modelo = (string) config('services.gemini.model', 'gemini-3.6-flash');
         if (!preg_match('/^[a-zA-Z0-9._-]+$/D', $modelo)) {
-            $modelo = 'gemini-2.5-flash';
+            $modelo = 'gemini-3.6-flash';
         }
 
         try {
