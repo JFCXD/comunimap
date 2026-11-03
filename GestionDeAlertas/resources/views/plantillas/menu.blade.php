@@ -12,6 +12,12 @@
                     </a>
                 </li>
                 <li class="sidebar-item">
+                    <a class="sidebar-link waves-effect waves-dark sidebar-link {{ request()->is('comunidad') || request()->is('comunidad/*') ? 'cm-selected' : '' }}" href="/comunidad" aria-expanded="false">
+                        <i class="fas fa-users" aria-hidden="true"></i>
+                        <span class="hide-menu">Comunidad</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
                     <a class="sidebar-link waves-effect waves-dark sidebar-link {{ request()->is('alertas') || request()->is('alertas/*') ? 'cm-selected' : '' }}" href="/alertas" aria-expanded="false">
                         <i class="fas fa-plus-circle" aria-hidden="true"></i>
                         <span class="hide-menu">Registrar alerta</span>
