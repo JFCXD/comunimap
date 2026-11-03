@@ -19,18 +19,6 @@ return [
         'image_upload_secret' => env('COMUNIMAP_IMAGE_UPLOAD_SECRET', ''),
     ],
 
-    // Proveedor configurable para borradores formales; la clave nunca llega al navegador.
-    'documentos_ai' => [
-        'provider' => env('DOCUMENTOS_AI_PROVIDER', 'openai'),
-        'openai_api_key' => env('OPENAI_API_KEY', ''),
-        'openai_model' => env('OPENAI_MODEL', 'gpt-4.1-mini'),
-    ],
-
-    'gemini' => [
-        'api_key' => env('GEMINI_API_KEY', ''),
-        'model' => env('GEMINI_MODEL', 'gemini-3.6-flash'),
-    ],
-
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],
