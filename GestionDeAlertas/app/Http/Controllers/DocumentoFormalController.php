@@ -116,7 +116,14 @@ class DocumentoFormalController extends Controller
         $hechos = $reportes->map(fn ($r) => [
             'codigo' => (int) $r->idReporte,
             'titulo' => mb_substr((string) $r->titulo, 0, 180),
-            'descripcion' => mb_substr((string) $r->descripcion, 0, 1000),
+            'descripcion' => mb_substr(
+                preg_replace(
+                    ['/[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}/iu', '/(?<!\\d)(?:\\+?591[ -]?)?[67]\\d{7}(?!\\d)/u'],
+                    '[dato de contacto omitido]',
+                    (string) $r->descripcion
+                ),
+                0, 1000
+            ),
             'categoria' => (string) $r->categoria,
             'ubicacion' => mb_substr((string) ($r->direccion ?: $r->ubicacion ?: 'No indicada'), 0, 240),
             'fecha' => $r->fechaCreacion,
