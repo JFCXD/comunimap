@@ -53,7 +53,7 @@ class ComunidadController extends Controller
                 ->whereIn('idPublicacion', $ids)->pluck('idOpcion', 'idPublicacion');
         }
 
-        return view('comunidad.index', compact('publicaciones', 'opciones', 'misVotos', 'admin'));
+        return view('comunidad.comunidad', compact('publicaciones', 'opciones', 'misVotos', 'admin'));
     }
 
     public function guardar(Request $request)
