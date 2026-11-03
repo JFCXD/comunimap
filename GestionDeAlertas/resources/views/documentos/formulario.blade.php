@@ -1,4 +1,11 @@
-@include('plantillas.cabecera')
+@include('plantillas.encabezado')
+<body>
+<div class="preloader"><div class="lds-ripple"><div class="lds-pos"></div><div class="lds-pos"></div></div></div>
+<div id="main-wrapper" data-layout="vertical" data-navbarbg="skin5" data-sidebartype="full"
+     data-sidebar-position="absolute" data-header-position="absolute" data-boxed-layout="full">
+@include('plantillas.encabezado2')
+@include('plantillas.menu')
+<div class="page-wrapper">
 
 <div class="container py-4" style="max-width:1000px">
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -98,3 +105,8 @@
 </div>
 
 @include('plantillas.pie')
+</div>
+</div>
+@include('plantillas.scripts')
+</body>
+</html>
