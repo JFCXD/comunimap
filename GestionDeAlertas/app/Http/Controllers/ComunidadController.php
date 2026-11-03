@@ -62,6 +62,12 @@ class ComunidadController extends Controller
         if (!$usuario) return redirect('/login');
         if (!$this->administrador($usuario)) abort(403);
 
+        // El formulario conserva las opciones ocultas al elegir Comunicado o Actividad.
+        // Solo son datos válidos cuando realmente se está creando una Encuesta.
+        if ($request->input('tipo') !== 'Encuesta') {
+            $request->request->remove('opciones');
+        }
+
         $datos = $request->validate([
             'tipo' => ['required', Rule::in(['Comunicado', 'Actividad', 'Encuesta'])],
             'titulo' => ['required', 'string', 'max:180'],
