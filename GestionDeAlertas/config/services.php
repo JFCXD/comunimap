@@ -16,6 +16,7 @@ return [
 
     'comunimap' => [
         'web_push_secret' => env('COMUNIMAP_WEB_PUSH_SECRET', ''),
+        'image_upload_secret' => env('COMUNIMAP_IMAGE_UPLOAD_SECRET', ''),
     ],
 
     'postmark' => [
