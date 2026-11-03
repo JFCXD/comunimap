@@ -133,7 +133,7 @@
             @endif
           </div>
           @if($pub->imagen)
-          <img class="cm-post-image" src="{{ asset($pub->imagen) }}" alt="Imagen de {{ $pub->titulo }}" loading="lazy">
+          <img class="cm-post-image" src="{{ str_starts_with($pub->imagen, 'comunidad/') ? route('comunidad.imagen', ['nombre' => basename($pub->imagen)]) : asset($pub->imagen) }}" alt="Imagen de {{ $pub->titulo }}" loading="lazy">
           @endif
           @if($admin)
           <div class="card-footer bg-white">
