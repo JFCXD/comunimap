@@ -34,6 +34,8 @@ class ComunidadController extends Controller
             ->leftJoin('usuarios as u', 'u.idUsuario', '=', 'p.idAutor')
             ->select('p.*', 'u.nombre as autor')
             ->when(!$admin, fn($q) => $q->where('p.estado', 'Publicado'))
+            // Permite abrir la publicación exacta desde la tarjeta de Inicio.
+            ->when($request->filled('publicacion'), fn($q) => $q->where('p.idPublicacion', $request->query('publicacion')))
             ->orderByDesc('p.fechaCreacion')->orderByDesc('p.idPublicacion')
             ->paginate(10);
 
