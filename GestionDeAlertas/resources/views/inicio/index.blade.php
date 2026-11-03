@@ -17,13 +17,6 @@
 
         <div class="page-wrapper">
 
-            @php
-                // Resumen de los reportes que ya carga Inicio; sin nuevas consultas.
-                $cmTotal = count($reportes);
-                $cmPendientes = collect($reportes)->filter(fn($r) => $r->estado === 'Pendiente')->count();
-                $cmEnProceso = collect($reportes)->filter(fn($r) => $r->estado === 'En Proceso')->count();
-                $cmSolucionados = collect($reportes)->filter(fn($r) => in_array($r->estado, ['Solucionado', 'Resuelto']))->count();
-            @endphp
             <div class="page-breadcrumb">
                 <div class="row align-items-center">
                     <div class="col-12">
@@ -53,15 +46,31 @@
                     </div>
                     <div class="col-12 col-lg-4">
                         <div class="card h-100">
-                            <div class="card-body">
-                                <h4 class="card-title mb-1"><i class="fas fa-chart-bar text-primary me-2" aria-hidden="true"></i>Resumen de reportes</h4>
-                                <p class="cm-subtitle mb-3">{{ session('rol') == 'Administrador' ? 'Situación de los reportes del barrio' : 'Reportes mostrados en este mapa' }}</p>
-                                <div class="cm-summary-list">
-                                    <div class="cm-summary-item"><span>Total de reportes</span><strong>{{ $cmTotal }}</strong></div>
-                                    <div class="cm-summary-item cm-pending"><span>Pendientes</span><strong>{{ $cmPendientes }}</strong></div>
-                                    <div class="cm-summary-item cm-working"><span>En proceso</span><strong>{{ $cmEnProceso }}</strong></div>
-                                    <div class="cm-summary-item cm-solved"><span>Solucionados</span><strong>{{ $cmSolucionados }}</strong></div>
-                                </div>
+                            <div class="card-body d-flex flex-column">
+                                <h4 class="card-title mb-1"><i class="fas fa-bullhorn text-primary me-2" aria-hidden="true"></i>Última publicación</h4>
+                                <p class="cm-subtitle mb-3">Novedades de la OTB Universidad Alto</p>
+                                @if($ultimaPublicacion)
+                                    <div class="d-flex align-items-center gap-2 mb-3">
+                                        <span class="badge bg-primary">{{ $ultimaPublicacion->tipo }}</span>
+                                        <small class="text-muted">{{ \Carbon\Carbon::parse($ultimaPublicacion->fechaCreacion)->format('d/m/Y H:i') }}</small>
+                                    </div>
+                                    <h5 class="mb-2">{{ $ultimaPublicacion->titulo }}</h5>
+                                    <p class="text-muted mb-3" style="overflow-wrap:anywhere;">{{ \Illuminate\Support\Str::limit($ultimaPublicacion->descripcion, 180) }}</p>
+                                    @if($ultimaPublicacion->tipo === 'Actividad')
+                                        <div class="small text-muted mb-3">
+                                            <div><i class="far fa-calendar-alt me-1"></i> {{ $ultimaPublicacion->fechaActividad ? \Carbon\Carbon::parse($ultimaPublicacion->fechaActividad)->format('d/m/Y') : 'Fecha por definir' }}</div>
+                                            @if($ultimaPublicacion->lugarActividad)<div><i class="fas fa-location-dot me-1"></i> {{ $ultimaPublicacion->lugarActividad }}</div>@endif
+                                        </div>
+                                    @elseif($ultimaPublicacion->tipo === 'Encuesta')
+                                        <p class="small text-primary mb-3"><i class="fas fa-poll me-1"></i> Consulta la encuesta en Comunidad</p>
+                                    @endif
+                                    <a class="btn btn-primary mt-auto" href="{{ route('comunidad.index', ['publicacion' => $ultimaPublicacion->idPublicacion]) }}#publicacion-{{ $ultimaPublicacion->idPublicacion }}">
+                                        Ver publicación <i class="fas fa-arrow-right ms-1" aria-hidden="true"></i>
+                                    </a>
+                                @else
+                                    <p class="text-muted mb-3">Todavía no hay publicaciones de la OTB.</p>
+                                    <a class="btn btn-outline-primary mt-auto" href="{{ route('comunidad.index') }}">Ir a Comunidad</a>
+                                @endif
                             </div>
                         </div>
                     </div>
