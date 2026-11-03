@@ -199,7 +199,7 @@ TEXTO;
                 if (!$respuestaIA->successful()) {
                     $codigo = $respuestaIA->status();
                     $codigoProveedor = $respuestaIA->json('error.code');
-                    \\Log::warning('ComuniMap cartas: error OpenAI', [
+                    \Log::warning('ComuniMap cartas: error OpenAI', [
                         'http' => $codigo,
                         'codigo' => is_string($codigoProveedor) ? substr($codigoProveedor, 0, 70) : 'desconocido',
                         'modelo' => $modeloOpenAI,
@@ -229,7 +229,7 @@ TEXTO;
                     }
                 }
                 if ($textoIA === '') {
-                    \\Log::warning('ComuniMap cartas: OpenAI no devolvió texto',
+                    \Log::warning('ComuniMap cartas: OpenAI no devolvió texto',
                         ['status' => $respuestaIA->json('status') ?? 'desconocido']);
                     return response()->json(['success' => false,
                         'message' => 'OpenAI no devolvió un borrador. Inténtalo de nuevo.'], 503);
@@ -256,8 +256,8 @@ TEXTO;
                     ],
                     'advertencia' => 'Borrador de IA: verifica todos los hechos antes de usarlo.',
                 ]);
-            } catch (\\Throwable $e) {
-                \\Log::warning('ComuniMap cartas: fallo al conectar con OpenAI (sin registrar datos privados)');
+            } catch (\Throwable $e) {
+                \Log::warning('ComuniMap cartas: fallo al conectar con OpenAI (sin registrar datos privados)');
                 return response()->json(['success' => false,
                     'message' => 'No se pudo conectar con OpenAI. La redacción manual sigue disponible.'], 503);
             }
