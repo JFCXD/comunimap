@@ -152,5 +152,6 @@ Route::get(
 // COMUNIDAD: lectura para usuarios activos; escritura y publicación solo administrador.
 Route::get('/comunidad', [ComunidadController::class, 'index'])->name('comunidad.index');
 Route::post('/comunidad', [ComunidadController::class, 'guardar'])->name('comunidad.guardar');
+Route::post('/comunidad/{id}/actualizar', [ComunidadController::class, 'actualizar'])->whereNumber('id')->name('comunidad.actualizar');
 Route::post('/comunidad/{id}/estado', [ComunidadController::class, 'estado'])->whereNumber('id')->name('comunidad.estado');
 Route::post('/comunidad/{id}/votar', [ComunidadController::class, 'votar'])->whereNumber('id')->name('comunidad.votar');
