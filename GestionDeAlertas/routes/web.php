@@ -10,6 +10,7 @@ use App\Http\Controllers\EstadisticasController;
 use App\Http\Controllers\RegistroController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\ComunidadController;
+use App\Http\Controllers\DocumentoFormalController;
 use App\Http\Controllers\ImagenComunidadController;
 
 Route::get('/', function () {
@@ -162,3 +163,7 @@ Route::get('/comunidad/imagen/{nombre}', [ImagenComunidadController::class, 'mos
     ->name('comunidad.imagen');
 Route::post('/comunidad/imagen/subir', [ImagenComunidadController::class, 'subirDesdeApi'])
     ->name('comunidad.imagen.subir');
+
+// CARTAS FORMALES: únicamente administración web; no alteran reportes.
+Route::get('/documentos/preparar', [DocumentoFormalController::class, 'preparar'])->name('documentos.preparar');
+Route::post('/documentos/descargar', [DocumentoFormalController::class, 'descargar'])->name('documentos.descargar');
