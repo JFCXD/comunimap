@@ -167,7 +167,3 @@ Route::post('/comunidad/imagen/subir', [ImagenComunidadController::class, 'subir
 // CARTAS FORMALES: únicamente administración web; no alteran reportes.
 Route::get('/documentos/preparar', [DocumentoFormalController::class, 'preparar'])->name('documentos.preparar');
 Route::post('/documentos/descargar', [DocumentoFormalController::class, 'descargar'])->name('documentos.descargar');
-
-// IA opcional de documentos: 5 solicitudes por minuto, solo administración.
-Route::post('/documentos/borrador-ia', [DocumentoFormalController::class, 'generarBorrador'])
-    ->middleware('throttle:5,1')->name('documentos.borrador-ia');
