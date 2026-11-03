@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -126,6 +125,57 @@ class ComunidadController extends Controller
         }
 
         return redirect('/comunidad')->with('success', 'Publicación guardada correctamente.');
+    }
+
+    public function actualizar(Request $request, $id)
+    {
+        $usuario = $this->usuario();
+        if (!$usuario) return redirect('/login');
+        if (!$this->administrador($usuario)) abort(403);
+
+        $datos = $request->validate([
+            'titulo' => ['required', 'string', 'max:180'],
+            'descripcion' => ['required', 'string', 'max:10000'],
+            'fechaActividad' => ['nullable', 'date'],
+            'horaActividad' => ['nullable', 'date_format:H:i'],
+            'lugarActividad' => ['nullable', 'string', 'max:255'],
+            'fechaCierre' => ['nullable', 'date'],
+        ]);
+
+        DB::transaction(function () use ($id, $datos) {
+            $pub = DB::table('publicaciones')->where('idPublicacion', $id)->lockForUpdate()->first();
+            if (!$pub) abort(404);
+
+            $campos = [
+                'titulo' => trim($datos['titulo']),
+                'descripcion' => trim($datos['descripcion']),
+            ];
+
+            if ($pub->tipo === 'Actividad') {
+                foreach (['fechaActividad', 'horaActividad', 'lugarActividad'] as $campo) {
+                    if (empty($datos[$campo])) {
+                        throw ValidationException::withMessages([$campo => 'Completa la información de la actividad.']);
+                    }
+                    $campos[$campo] = $datos[$campo];
+                }
+            }
+            if ($pub->tipo === 'Encuesta') {
+                // Las preguntas y opciones pueden corregirse antes de la votación,
+                // pero nunca se alteran después de registrar votos.
+                if (!empty($datos['fechaCierre'])) {
+                    if (DB::table('votos_encuesta')->where('idPublicacion', $id)->exists()) {
+                        throw ValidationException::withMessages(['fechaCierre' => 'No se puede modificar el cierre después de recibir votos.']);
+                    }
+                    if (\Carbon\Carbon::parse($datos['fechaCierre'])->isPast()) {
+                        throw ValidationException::withMessages(['fechaCierre' => 'La fecha de cierre debe ser futura.']);
+                    }
+                    $campos['fechaCierre'] = $datos['fechaCierre'];
+                }
+            }
+            DB::table('publicaciones')->where('idPublicacion', $id)->update($campos);
+        });
+
+        return redirect('/comunidad#publicacion-'.$id)->with('success', 'Publicación editada correctamente.');
     }
 
     public function estado(Request $request, $id)
