@@ -252,10 +252,24 @@ TEXTO;
             }
         }
 
+        // Logotipos institucionales opcionales, nunca se inventan ni descargan de terceros.
+        // Colocar imágenes oficiales en public/otb-documentos/escudo.png y logo.png.
+        $emblemas = [];
+        foreach (['izquierdo' => 'escudo.png', 'derecho' => 'logo.png'] as $lado => $archivo) {
+            $rutaLogo = public_path('otb-documentos/'.$archivo);
+            if (!is_file($rutaLogo) || filesize($rutaLogo) > 1024 * 1024) continue;
+            $bytesLogo = file_get_contents($rutaLogo);
+            if ($bytesLogo === false) continue;
+            $mimeLogo = (new \\finfo(FILEINFO_MIME_TYPE))->buffer($bytesLogo);
+            if ($mimeLogo !== 'image/png') continue;
+            $emblemas[$lado] = 'data:image/png;base64,'.base64_encode($bytesLogo);
+        }
+
         $pdf = Pdf::loadView('documentos.pdf', [
             'datos' => $datos,
             'reportes' => $reportes,
             'fotos' => $fotos,
+            'emblemas' => $emblemas,
         ])->setPaper('a4');
 
         $nombre = 'carta-formal-comunimap-'.date('Ymd').'.pdf';
