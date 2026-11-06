@@ -411,9 +411,10 @@
                                             {{-- ACCIONES GENERALES --}}
                                             <td>
 
-                                                <a href="{{ url('/reportes/pdf/' . $reporte->idReporte) }}" target="_blank"
-                                                    class="btn btn-primary btn-sm" title="Ver PDF">
-                                                    <i class="fa fa-eye"></i>
+                                                <a href="{{ route('reportes.ver', ['id' => $reporte->idReporte]) }}"
+                                                    class="btn btn-primary btn-sm" title="Ver detalles del reporte"
+                                                    aria-label="Ver detalles del reporte {{ $reporte->idReporte }}">
+                                                    <i class="fa-solid fa-eye" aria-hidden="true"></i>
                                                 </a>
 
                                                 @if(session('rol') == 'Administrador')
@@ -421,7 +422,7 @@
                                                     <a href="{{ route('documentos.preparar', ['reportes' => [$reporte->idReporte]]) }}"
                                                         class="btn btn-warning btn-sm" title="Generar carta formal de este reporte"
                                                         aria-label="Generar carta formal del reporte {{ $reporte->idReporte }}">
-                                                        <i class="fa fa-file-text-o"></i>
+                                                        <i class="fa-solid fa-file-lines" aria-hidden="true"></i>
                                                     </a>
 
                                                 @endif
