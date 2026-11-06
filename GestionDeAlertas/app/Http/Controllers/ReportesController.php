@@ -679,6 +679,36 @@ class ReportesController extends Controller
     | PDF INDIVIDUAL
     |--------------------------------------------------------------------------
     */
+    /**
+     * Consulta de un reporte, sin editarlo ni modificar su estado.
+     * Un vecino solamente puede consultar sus propios reportes.
+     */
+    public function ver($id)
+    {
+        if (!Session::has('idUsuario')) {
+            return redirect('/login');
+        }
+
+        $consulta = DB::table('reportes as r')
+            ->join('categorias as c', 'r.idCategoria', '=', 'c.idCategoria')
+            ->join('usuarios as u', 'r.idUsuario', '=', 'u.idUsuario')
+            ->where('r.idReporte', $id)
+            ->select('r.idReporte', 'r.titulo', 'r.descripcion', 'r.ubicacion',
+                'r.direccion', 'r.estado', 'r.imagen', 'r.fechaCreacion',
+                'r.idUsuario', 'c.nombre as categoria', 'u.nombre as usuario');
+
+        if (Session::get('rol') !== 'Administrador') {
+            $consulta->where('r.idUsuario', Session::get('idUsuario'));
+        }
+
+        $reporte = $consulta->first();
+        if (!$reporte) {
+            abort(404);
+        }
+
+        return view('reportes.ver', compact('reporte'));
+    }
+
     public function pdf($id)
     {
         if (!Session::has('idUsuario')) {
