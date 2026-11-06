@@ -84,6 +84,8 @@ Route::get(
     [ReportesController::class, 'index']
 );
 
+Route::get('/reportes/ver/{id}', [ReportesController::class, 'ver'])->whereNumber('id')->name('reportes.ver');
+
 Route::get(
     '/reportes/pdf/{id}',
     [ReportesController::class, 'pdf']
