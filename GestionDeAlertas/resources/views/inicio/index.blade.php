@@ -99,7 +99,9 @@
                     style: { color: '#2563eb', weight: 4, fillColor: '#3b82f6', fillOpacity: 0.15 },
                     interactive: false
                 }).addTo(mapa);
-                mapa.fitBounds(capaOTB.getBounds(), { padding: [24, 24] });
+                if (!new URLSearchParams(window.location.search).get('reporte')) {
+                    mapa.fitBounds(capaOTB.getBounds(), { padding: [24, 24] });
+                }
             })
             .catch(function(error) { console.error('ComuniMap OTB:', error); });
         // Iconos
@@ -127,6 +129,9 @@
             popupAnchor: [1, -34],
             shadowSize: [41, 41]
         });
+        // Desde /reportes/ver/{id}: centra el mapa de Inicio y abre el reporte elegido.
+        var reporteSeleccionado = new URLSearchParams(window.location.search).get('reporte');
+        var marcadorSeleccionado = null;
         @foreach($reportes as $reporte)
                     var punto = "{{ $reporte->ubicacion }}".split(",");
                     var icono = iconoRojo;
@@ -136,7 +141,7 @@
                     if ("{{ $reporte->estado }}" == "Solucionado") {
                         icono = iconoVerde;
                     }
-                    L.marker([punto[0], punto[1]], {
+                    var marcadorReporte = L.marker([punto[0], punto[1]], {
                         icon: icono
                     })
                         .addTo(mapa)
@@ -197,7 +202,19 @@
 
             </div>
             `);
+                    if (reporteSeleccionado === @json((string) $reporte->idReporte)) {
+                        marcadorSeleccionado = marcadorReporte;
+                    }
         @endforeach
+        if (marcadorSeleccionado) {
+            // El GeoJSON se carga de forma asíncrona: priorizar siempre el reporte solicitado.
+            var enfocarReporte = function() {
+                mapa.setView(marcadorSeleccionado.getLatLng(), 18);
+                marcadorSeleccionado.openPopup();
+            };
+            enfocarReporte();
+            mapa.whenReady(enfocarReporte);
+        }
     </script>
 </body>
 
