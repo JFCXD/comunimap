@@ -72,19 +72,18 @@
                     </div>
                     {{-- Gemini integrado en la misma sección Datos de la carta; no crea una segunda tarjeta. --}}
                     <div class="col-12" id="cmSeccionIA">
-                        <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
-                            <label for="cmIndicacionesIA" class="form-label mb-0">
+                        <div class="d-flex align-items-center gap-2 flex-wrap flex-sm-nowrap">
+                            <button type="button" id="cmGenerarIA" class="btn btn-outline-primary btn-sm flex-shrink-0"
+                                    title="Generar una propuesta editable de asunto, antecedentes y solicitud">
                                 <i class="fa-solid fa-wand-magic-sparkles me-1" aria-hidden="true"></i>
-                                Ayuda de Gemini para redactar (opcional)
-                            </label>
+                                Generar borrador con IA
+                            </button>
+                            <label for="cmIndicacionesIA" class="visually-hidden">Indicaciones adicionales para Gemini (opcional)</label>
+                            <input type="text" id="cmIndicacionesIA" class="form-control form-control-sm flex-grow-1"
+                                   style="min-width:180px;" maxlength="500"
+                                   placeholder="Indicaciones adicionales (opcional): ej. redactar breve y cordial"
+                                   aria-label="Indicaciones adicionales para el borrador (opcional)">
                         </div>
-                        <small class="text-muted d-block mb-2">Genera una propuesta de asunto, antecedentes y solicitud. Los textos actuales no cambiarán hasta que aceptes el borrador.</small>
-                        <textarea id="cmIndicacionesIA" class="form-control mb-2" maxlength="500" rows="2"
-                                  placeholder="Indicaciones adicionales: ej. redactar de manera breve y cordial"></textarea>
-                        <button type="button" id="cmGenerarIA" class="btn btn-outline-primary btn-sm">
-                            <i class="fa-solid fa-wand-magic-sparkles me-1" aria-hidden="true"></i>
-                            Generar borrador con IA
-                        </button>
                         <div id="cmEstadoIA" class="small mt-2" role="status" aria-live="polite"></div>
                         <div id="cmVistaIA" class="border rounded p-3 mt-3 d-none" aria-label="Borrador propuesto por Gemini">
                             <h6 class="mb-2">Borrador propuesto — revisa antes de aceptar</h6>
