@@ -99,7 +99,7 @@
                     style: { color: '#2563eb', weight: 4, fillColor: '#3b82f6', fillOpacity: 0.15 },
                     interactive: false
                 }).addTo(mapa);
-                if (!new URLSearchParams(window.location.search).get('reporte')) {
+                if (reporteSeleccionado === null) {
                     mapa.fitBounds(capaOTB.getBounds(), { padding: [24, 24] });
                 }
             })
@@ -130,15 +130,16 @@
             shadowSize: [41, 41]
         });
         // Desde /reportes/ver/{id}: centra el mapa de Inicio y abre el reporte elegido.
-        var reporteSeleccionado = new URLSearchParams(window.location.search).get('reporte');
+        var reporteSeleccionado = @json($reporteSolicitado === null ? null : (string) $reporteSolicitado);
         var marcadorSeleccionado = null;
         @foreach($reportes as $reporte)
+            @if(!in_array($reporte->estado, ['Solucionado', 'Resuelto']) || $reporteSolicitado === (int) $reporte->idReporte)
                     var punto = "{{ $reporte->ubicacion }}".split(",");
                     var icono = iconoRojo;
                     if ("{{ $reporte->estado }}" == "En Proceso") {
                         icono = iconoAmarillo;
                     }
-                    if ("{{ $reporte->estado }}" == "Solucionado") {
+                    if (@json(in_array($reporte->estado, ['Solucionado', 'Resuelto']))) {
                         icono = iconoVerde;
                     }
                     var marcadorReporte = L.marker([punto[0], punto[1]], {
@@ -205,6 +206,7 @@
                     if (reporteSeleccionado === @json((string) $reporte->idReporte)) {
                         marcadorSeleccionado = marcadorReporte;
                     }
+            @endif
         @endforeach
         if (marcadorSeleccionado) {
             // El GeoJSON se carga de forma asíncrona: priorizar siempre el reporte solicitado.
