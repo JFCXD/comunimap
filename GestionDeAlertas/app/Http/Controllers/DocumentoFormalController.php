@@ -200,7 +200,7 @@ class DocumentoFormalController extends Controller
                     $codigo === 429 => 'Se alcanzó un límite de Gemini (HTTP 429). Revisa la cuota de tu proyecto en Google AI Studio.',
                     $codigo >= 500 => 'Gemini está temporalmente no disponible (HTTP '.$codigo.'). Inténtalo más tarde.',
                     default => 'Gemini devolvió un error HTTP '.$codigo.'.',
-                ];
+                };
                 return response()->json(['success' => false, 'message' => $mensaje], 503);
             }
 
