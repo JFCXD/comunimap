@@ -19,6 +19,12 @@ return [
         'image_upload_secret' => env('COMUNIMAP_IMAGE_UPLOAD_SECRET', ''),
     ],
 
+    // Asistencia opcional para cartas formales (solo servidor).
+    'gemini' => [
+        'api_key' => env('GEMINI_API_KEY', ''),
+        'model' => env('GEMINI_MODEL', 'gemini-3.5-flash-lite'),
+    ],
+
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],
