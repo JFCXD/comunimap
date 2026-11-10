@@ -61,16 +61,7 @@
                         <label class="form-label" for="cargo_destinatario">Cargo del destinatario (opcional)</label>
                         <input class="form-control" id="cargo_destinatario" name="cargo_destinatario" maxlength="180" value="{{ old('cargo_destinatario') }}">
                     </div>
-                    <div class="col-12">
-                        <label class="form-label" for="asunto">Asunto</label>
-                        <input class="form-control" id="asunto" name="asunto" maxlength="250" value="{{ old('asunto', count($ids) === 1 ? 'Solicitud de atención a reporte comunitario' : 'Solicitud de atención a reportes comunitarios') }}" required>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label" for="antecedentes">Antecedentes y descripción de los hechos (editable)</label>
-                        <textarea class="form-control" id="antecedentes" name="antecedentes" rows="8" maxlength="15000" required>{{ old('antecedentes', $antecedentes) }}</textarea>
-                        <small class="text-muted">Texto inicial tomado de los reportes. Revisa la redacción y confirma los hechos antes de generar la carta.</small>
-                    </div>
-                    {{-- Gemini integrado en la misma sección Datos de la carta; no crea una segunda tarjeta. --}}
+                    {{-- La IA redacta Asunto, Antecedentes y Solicitud: colocarla antes de esos campos. --}}
                     <div class="col-12" id="cmSeccionIA">
                         <div class="d-flex align-items-center gap-2 flex-wrap flex-sm-nowrap">
                             <button type="button" id="cmGenerarIA" class="btn btn-outline-primary btn-sm flex-shrink-0"
@@ -84,11 +75,20 @@
                                    placeholder="Indicaciones adicionales (opcional): ej. redactar breve y cordial"
                                    aria-label="Indicaciones adicionales para el borrador (opcional)">
                         </div>
-                        <div id="cmEstadoIA" class="small mt-2" role="status" aria-live="polite"></div>
                         <button type="button" id="cmDeshacerIA" class="btn btn-link btn-sm px-0 mt-1 d-none">
                             <i class="fa-solid fa-rotate-left me-1" aria-hidden="true"></i>
                             Deshacer borrador de IA
                         </button>
+                        <div id="cmEstadoIA" class="small mt-1" role="status" aria-live="polite"></div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label" for="asunto">Asunto</label>
+                        <input class="form-control" id="asunto" name="asunto" maxlength="250" value="{{ old('asunto', count($ids) === 1 ? 'Solicitud de atención a reporte comunitario' : 'Solicitud de atención a reportes comunitarios') }}" required>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label" for="antecedentes">Antecedentes y descripción de los hechos (editable)</label>
+                        <textarea class="form-control" id="antecedentes" name="antecedentes" rows="8" maxlength="15000" required>{{ old('antecedentes', $antecedentes) }}</textarea>
+                        <small class="text-muted">Texto inicial tomado de los reportes. Revisa la redacción y confirma los hechos antes de generar la carta.</small>
                     </div>
                     <div class="col-12">
                         <label class="form-label" for="solicitud">Solicitud formal</label>
