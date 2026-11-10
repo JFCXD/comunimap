@@ -41,6 +41,34 @@
             <input type="hidden" name="reportes[]" value="{{ $id }}">
         @endforeach
 
+        <div class="card mb-4" id="cmSeccionIA">
+            <div class="card-body">
+                <h5 class="mb-2"><i class="fa-solid fa-wand-magic-sparkles me-1" aria-hidden="true"></i> Propuesta de carta con Gemini (opcional)</h5>
+                <p class="text-muted small">La IA redacta un borrador a partir de los reportes elegidos. No cambia los reportes ni escribe en los campos hasta que aceptes la propuesta.</p>
+                <div class="mb-2">
+                    <label for="cmIndicacionesIA" class="form-label">Indicaciones adicionales (opcional)</label>
+                    <textarea id="cmIndicacionesIA" class="form-control" maxlength="500" rows="2" placeholder="Ej.: solicitar inspección técnica y una respuesta por escrito"></textarea>
+                </div>
+                <button type="button" id="cmGenerarIA" class="btn btn-outline-primary">
+                    <i class="fa-solid fa-wand-magic-sparkles me-1" aria-hidden="true"></i> Generar borrador con IA
+                </button>
+                <div id="cmEstadoIA" class="small mt-2" role="status" aria-live="polite"></div>
+                <div id="cmVistaIA" class="border rounded p-3 mt-3 d-none">
+                    <h6 class="mb-2">Propuesta generada — revisa antes de aceptar</h6>
+                    <p class="mb-1"><strong>Asunto</strong></p>
+                    <p id="cmPropuestaAsunto" style="white-space:pre-wrap;overflow-wrap:anywhere;"></p>
+                    <p class="mb-1"><strong>Antecedentes</strong></p>
+                    <p id="cmPropuestaAntecedentes" style="white-space:pre-wrap;overflow-wrap:anywhere;"></p>
+                    <p class="mb-1"><strong>Solicitud</strong></p>
+                    <p id="cmPropuestaSolicitud" style="white-space:pre-wrap;overflow-wrap:anywhere;"></p>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button type="button" id="cmAceptarIA" class="btn btn-primary btn-sm">Aceptar borrador</button>
+                        <button type="button" id="cmDescartarIA" class="btn btn-outline-secondary btn-sm">Descartar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="card mb-4">
             <div class="card-body">
                 <h5 class="mb-3">Datos de la carta</h5>
@@ -110,5 +138,92 @@
 </div>
 </div>
 @include('plantillas.scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const generar = document.getElementById('cmGenerarIA');
+    const estado = document.getElementById('cmEstadoIA');
+    const vista = document.getElementById('cmVistaIA');
+    const aceptar = document.getElementById('cmAceptarIA');
+    const descartar = document.getElementById('cmDescartarIA');
+    const campos = ['asunto', 'antecedentes', 'solicitud'];
+    let propuesta = null;
+    let generando = false;
+
+    function estadoMensaje(mensaje, error) {
+        estado.textContent = mensaje;
+        estado.className = 'small mt-2 ' + (error ? 'text-danger' : 'text-muted');
+    }
+    function limpiar() {
+        propuesta = null;
+        vista.classList.add('d-none');
+    }
+    descartar.addEventListener('click', function () {
+        limpiar();
+        estadoMensaje('Propuesta descartada. Tu carta no se ha modificado.', false);
+    });
+    aceptar.addEventListener('click', function () {
+        if (!propuesta) return;
+        // Solo ahora se sustituyen los tres campos editables.
+        campos.forEach(function (nombre) {
+            document.getElementById(nombre).value = propuesta[nombre];
+        });
+        limpiar();
+        estadoMensaje('Borrador incorporado. Revisa y edita el texto antes de generar el PDF.', false);
+        document.getElementById('asunto').focus();
+    });
+    generar.addEventListener('click', async function () {
+        if (generando) return;
+        const institucion = document.getElementById('institucion').value.trim();
+        if (!institucion) {
+            estadoMensaje('Primero escribe la empresa o institución destinataria.', true);
+            document.getElementById('institucion').focus();
+            return;
+        }
+        const formulario = document.getElementById('cmFormularioCarta');
+        const ids = Array.from(formulario.querySelectorAll('input[name="reportes[]"]')).map(e => e.value);
+        if (ids.length < 1 || ids.length > 15) {
+            estadoMensaje('La IA admite entre 1 y 15 reportes por borrador; la carta manual admite hasta 30.', true);
+            return;
+        }
+        const cuerpo = new FormData();
+        ids.forEach(id => cuerpo.append('reportes[]', id));
+        cuerpo.append('institucion', institucion);
+        cuerpo.append('destinatario', document.getElementById('destinatario').value);
+        cuerpo.append('instrucciones', document.getElementById('cmIndicacionesIA').value);
+        cuerpo.append('_token', formulario.querySelector('input[name="_token"]').value);
+
+        generar.disabled = true;
+        generando = true;
+        limpiar();
+        estadoMensaje('Generando propuesta con Gemini…', false);
+        try {
+            const respuesta = await fetch(@json(route('documentos.borrador-ia')), {
+                method: 'POST',
+                body: cuerpo,
+                headers: { 'Accept': 'application/json' },
+                credentials: 'same-origin'
+            });
+            const datos = await respuesta.json();
+            if (!respuesta.ok || !datos.success) {
+                throw new Error(datos.message || 'No se pudo generar el borrador.');
+            }
+            if (!datos.borrador || !campos.every(campo => typeof datos.borrador[campo] === 'string')) {
+                throw new Error('La propuesta recibida no tiene el formato esperado.');
+            }
+            propuesta = datos.borrador;
+            document.getElementById('cmPropuestaAsunto').textContent = propuesta.asunto;
+            document.getElementById('cmPropuestaAntecedentes').textContent = propuesta.antecedentes;
+            document.getElementById('cmPropuestaSolicitud').textContent = propuesta.solicitud;
+            vista.classList.remove('d-none');
+            estadoMensaje('Borrador listo. Acepta o descarta después de revisarlo.', false);
+        } catch (error) {
+            estadoMensaje(error.message || 'No se pudo conectar con Gemini.', true);
+        } finally {
+            generando = false;
+            generar.disabled = false;
+        }
+    });
+});
+</script>
 </body>
 </html>
