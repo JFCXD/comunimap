@@ -287,19 +287,28 @@
                 {{-- =========================================
                 LISTA GENERAL DE REPORTES
                 ========================================== --}}
-                <div class="card">
+                @php
+                    $reportesActivos = collect($reportes)->reject(fn($r) => in_array($r->estado, ['Solucionado', 'Resuelto']))->values();
+                    $reportesSolucionados = collect($reportes)->filter(fn($r) => in_array($r->estado, ['Solucionado', 'Resuelto']))->values();
+                @endphp
+                @foreach ([
+                    ['titulo' => 'Reportes individuales', 'descripcion' => 'Problemas pendientes y en proceso.', 'registros' => $reportesActivos, 'historial' => false],
+                    ['titulo' => 'Reportes solucionados', 'descripcion' => 'Historial de problemas atendidos. No aparecen en el mapa de Inicio salvo cuando consultas su ubicación.', 'registros' => $reportesSolucionados, 'historial' => true],
+                ] as $grupoReportes)
+                <div class="card mb-4">
 
                     <div class="card-body">
 
                         <h4 class="card-title mb-3">
-                            {{ session('rol') == 'Administrador' ? 'Lista general de reportes' : 'Reportes registrados' }}
+                            {{ $grupoReportes['titulo'] }}
                         </h4>
+                        <p class="text-muted mb-3">{{ $grupoReportes['descripcion'] }}</p>
 
-                        @if(session('rol') == 'Administrador')
+                        @if(session('rol') == 'Administrador' && !$grupoReportes['historial'])
                             <form id="cmCartaConjunta" method="GET" action="{{ route('documentos.preparar') }}"></form>
                             <div class="d-flex gap-2 align-items-center flex-wrap mb-3">
                                 <button class="btn btn-outline-primary btn-sm" type="submit" form="cmCartaConjunta">
-                                    <i class="fa fa-file-text-o me-1"></i> Carta con reportes seleccionados
+                                    <i class="fa-solid fa-file-lines me-1" aria-hidden="true"></i> Carta con reportes seleccionados
                                 </button>
                                 <small class="text-muted">Marca de 1 a 30 reportes para preparar una carta conjunta.</small>
                             </div>
@@ -326,7 +335,7 @@
 
                                 <tbody>
 
-                                    @forelse($reportes as $reporte)
+                                    @forelse($grupoReportes['registros'] as $reporte)
 
                                         <tr>
                                             @if(session('rol') == 'Administrador')
@@ -436,7 +445,7 @@
                                         <tr>
 
                                             <td colspan="{{ session('rol') == 'Administrador' ? 7 : 6 }}" class="text-center text-muted py-4">
-                                                No existen reportes registrados.
+                                                {{ $grupoReportes['historial'] ? 'Todavía no hay reportes solucionados.' : 'No hay reportes pendientes ni en proceso.' }}
                                             </td>
 
                                         </tr>
@@ -452,6 +461,8 @@
                     </div>
 
                 </div>
+
+                @endforeach
 
             </div>
 
