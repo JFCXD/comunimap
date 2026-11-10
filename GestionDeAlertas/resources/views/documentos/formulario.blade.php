@@ -85,19 +85,10 @@
                                    aria-label="Indicaciones adicionales para el borrador (opcional)">
                         </div>
                         <div id="cmEstadoIA" class="small mt-2" role="status" aria-live="polite"></div>
-                        <div id="cmVistaIA" class="border rounded p-3 mt-3 d-none" aria-label="Borrador propuesto por Gemini">
-                            <h6 class="mb-2">Borrador propuesto — revisa antes de aceptar</h6>
-                            <p class="mb-1"><strong>Asunto</strong></p>
-                            <p id="cmPropuestaAsunto" style="white-space:pre-wrap;overflow-wrap:anywhere;"></p>
-                            <p class="mb-1"><strong>Antecedentes</strong></p>
-                            <p id="cmPropuestaAntecedentes" style="white-space:pre-wrap;overflow-wrap:anywhere;"></p>
-                            <p class="mb-1"><strong>Solicitud</strong></p>
-                            <p id="cmPropuestaSolicitud" style="white-space:pre-wrap;overflow-wrap:anywhere;"></p>
-                            <div class="d-flex gap-2 flex-wrap">
-                                <button type="button" id="cmAceptarIA" class="btn btn-primary btn-sm">Aceptar borrador</button>
-                                <button type="button" id="cmDescartarIA" class="btn btn-outline-secondary btn-sm">Descartar</button>
-                            </div>
-                        </div>
+                        <button type="button" id="cmDeshacerIA" class="btn btn-link btn-sm px-0 mt-1 d-none">
+                            <i class="fa-solid fa-rotate-left me-1" aria-hidden="true"></i>
+                            Deshacer borrador de IA
+                        </button>
                     </div>
                     <div class="col-12">
                         <label class="form-label" for="solicitud">Solicitud formal</label>
@@ -143,47 +134,59 @@
 document.addEventListener('DOMContentLoaded', function () {
     const generar = document.getElementById('cmGenerarIA');
     const estado = document.getElementById('cmEstadoIA');
-    const vista = document.getElementById('cmVistaIA');
-    const aceptar = document.getElementById('cmAceptarIA');
-    const descartar = document.getElementById('cmDescartarIA');
+    const deshacer = document.getElementById('cmDeshacerIA');
     const campos = ['asunto', 'antecedentes', 'solicitud'];
-    let propuesta = null;
+    let anterior = null;
+    let aplicado = null;
     let generando = false;
 
-    function estadoMensaje(mensaje, error) {
+    function avisar(mensaje, error) {
         estado.textContent = mensaje;
-        estado.className = 'small mt-2 ' + (error ? 'text-danger' : 'text-muted');
+        estado.className = 'small mt-2 ' + (error ? 'text-danger' : 'text-success');
     }
-    function limpiar() {
-        propuesta = null;
-        vista.classList.add('d-none');
-    }
-    descartar.addEventListener('click', function () {
-        limpiar();
-        estadoMensaje('Propuesta descartada. Tu carta no se ha modificado.', false);
-    });
-    aceptar.addEventListener('click', function () {
-        if (!propuesta) return;
-        // Solo ahora se sustituyen los tres campos editables.
+    function valoresActuales() {
+        const valores = {};
         campos.forEach(function (nombre) {
-            document.getElementById(nombre).value = propuesta[nombre];
+            valores[nombre] = document.getElementById(nombre).value;
         });
-        limpiar();
-        estadoMensaje('Borrador incorporado. Revisa y edita el texto antes de generar el PDF.', false);
-        document.getElementById('asunto').focus();
+        return valores;
+    }
+    function escribir(valores) {
+        campos.forEach(function (nombre) {
+            document.getElementById(nombre).value = valores[nombre];
+        });
+    }
+    function coinciden(a, b) {
+        return campos.every(function (nombre) { return a[nombre] === b[nombre]; });
+    }
+    deshacer.addEventListener('click', function () {
+        if (anterior === null) return;
+        // No borrar cambios manuales escritos después de utilizar la IA.
+        if (!coinciden(valoresActuales(), aplicado)) {
+            avisar('Has editado la carta después de generar el borrador. No se deshizo para evitar perder tus cambios.', true);
+            deshacer.classList.add('d-none');
+            anterior = null;
+            aplicado = null;
+            return;
+        }
+        escribir(anterior);
+        anterior = null;
+        aplicado = null;
+        deshacer.classList.add('d-none');
+        avisar('Se recuperaron los textos anteriores. Puedes seguir editando la carta.', false);
     });
     generar.addEventListener('click', async function () {
         if (generando) return;
         const institucion = document.getElementById('institucion').value.trim();
         if (!institucion) {
-            estadoMensaje('Primero escribe la empresa o institución destinataria.', true);
+            avisar('Primero escribe la empresa o institución destinataria.', true);
             document.getElementById('institucion').focus();
             return;
         }
         const formulario = document.getElementById('cmFormularioCarta');
         const ids = Array.from(formulario.querySelectorAll('input[name="reportes[]"]')).map(e => e.value);
         if (ids.length < 1 || ids.length > 15) {
-            estadoMensaje('La IA admite entre 1 y 15 reportes por borrador; la carta manual admite hasta 30.', true);
+            avisar('La IA admite entre 1 y 15 reportes por borrador; la carta manual admite hasta 30.', true);
             return;
         }
         const cuerpo = new FormData();
@@ -192,11 +195,11 @@ document.addEventListener('DOMContentLoaded', function () {
         cuerpo.append('destinatario', document.getElementById('destinatario').value);
         cuerpo.append('instrucciones', document.getElementById('cmIndicacionesIA').value);
         cuerpo.append('_token', formulario.querySelector('input[name="_token"]').value);
+        const textosAntesDeEnviar = valoresActuales();
 
         generar.disabled = true;
         generando = true;
-        limpiar();
-        estadoMensaje('Generando propuesta con Gemini…', false);
+        avisar('Gemini está redactando los campos de la carta…', false);
         try {
             const respuesta = await fetch(@json(url('/documentos/borrador-ia')), {
                 method: 'POST',
@@ -208,17 +211,27 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!respuesta.ok || !datos.success) {
                 throw new Error(datos.message || 'No se pudo generar el borrador.');
             }
-            if (!datos.borrador || !campos.every(campo => typeof datos.borrador[campo] === 'string')) {
+            if (!datos.borrador || !campos.every(function (campo) {
+                return typeof datos.borrador[campo] === 'string' && datos.borrador[campo].trim() !== '';
+            })) {
                 throw new Error('La propuesta recibida no tiene el formato esperado.');
             }
-            propuesta = datos.borrador;
-            document.getElementById('cmPropuestaAsunto').textContent = propuesta.asunto;
-            document.getElementById('cmPropuestaAntecedentes').textContent = propuesta.antecedentes;
-            document.getElementById('cmPropuestaSolicitud').textContent = propuesta.solicitud;
-            vista.classList.remove('d-none');
-            estadoMensaje('Borrador listo. Acepta o descarta después de revisarlo.', false);
+            if (!coinciden(valoresActuales(), textosAntesDeEnviar)) {
+                avisar('El borrador llegó, pero editaste la carta durante la generación. Para proteger tus cambios, no se reemplazó ningún campo. Puedes generar otra vez.', true);
+                return;
+            }
+            // El administrador solicitó escribir directamente en los campos, con opción de deshacer.
+            anterior = textosAntesDeEnviar;
+            aplicado = {
+                asunto: datos.borrador.asunto,
+                antecedentes: datos.borrador.antecedentes,
+                solicitud: datos.borrador.solicitud
+            };
+            escribir(aplicado);
+            deshacer.classList.remove('d-none');
+            avisar('Gemini completó los tres campos. Revisa los hechos y la redacción antes de generar el PDF.', false);
         } catch (error) {
-            estadoMensaje(error.message || 'No se pudo conectar con Gemini.', true);
+            avisar(error.message || 'No se pudo conectar con Gemini. Tu carta permanece sin cambios.', true);
         } finally {
             generando = false;
             generar.disabled = false;
