@@ -41,34 +41,6 @@
             <input type="hidden" name="reportes[]" value="{{ $id }}">
         @endforeach
 
-        <div class="card mb-4" id="cmSeccionIA">
-            <div class="card-body">
-                <h5 class="mb-2"><i class="fa-solid fa-wand-magic-sparkles me-1" aria-hidden="true"></i> Propuesta de carta con Gemini (opcional)</h5>
-                <p class="text-muted small">La IA redacta un borrador a partir de los reportes elegidos. No cambia los reportes ni escribe en los campos hasta que aceptes la propuesta.</p>
-                <div class="mb-2">
-                    <label for="cmIndicacionesIA" class="form-label">Indicaciones adicionales (opcional)</label>
-                    <textarea id="cmIndicacionesIA" class="form-control" maxlength="500" rows="2" placeholder="Ej.: solicitar inspección técnica y una respuesta por escrito"></textarea>
-                </div>
-                <button type="button" id="cmGenerarIA" class="btn btn-outline-primary">
-                    <i class="fa-solid fa-wand-magic-sparkles me-1" aria-hidden="true"></i> Generar borrador con IA
-                </button>
-                <div id="cmEstadoIA" class="small mt-2" role="status" aria-live="polite"></div>
-                <div id="cmVistaIA" class="border rounded p-3 mt-3 d-none">
-                    <h6 class="mb-2">Propuesta generada — revisa antes de aceptar</h6>
-                    <p class="mb-1"><strong>Asunto</strong></p>
-                    <p id="cmPropuestaAsunto" style="white-space:pre-wrap;overflow-wrap:anywhere;"></p>
-                    <p class="mb-1"><strong>Antecedentes</strong></p>
-                    <p id="cmPropuestaAntecedentes" style="white-space:pre-wrap;overflow-wrap:anywhere;"></p>
-                    <p class="mb-1"><strong>Solicitud</strong></p>
-                    <p id="cmPropuestaSolicitud" style="white-space:pre-wrap;overflow-wrap:anywhere;"></p>
-                    <div class="d-flex gap-2 flex-wrap">
-                        <button type="button" id="cmAceptarIA" class="btn btn-primary btn-sm">Aceptar borrador</button>
-                        <button type="button" id="cmDescartarIA" class="btn btn-outline-secondary btn-sm">Descartar</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <div class="card mb-4">
             <div class="card-body">
                 <h5 class="mb-3">Datos de la carta</h5>
@@ -97,6 +69,36 @@
                         <label class="form-label" for="antecedentes">Antecedentes y descripción de los hechos (editable)</label>
                         <textarea class="form-control" id="antecedentes" name="antecedentes" rows="8" maxlength="15000" required>{{ old('antecedentes', $antecedentes) }}</textarea>
                         <small class="text-muted">Texto inicial tomado de los reportes. Revisa la redacción y confirma los hechos antes de generar la carta.</small>
+                    </div>
+                    {{-- Gemini integrado en la misma sección Datos de la carta; no crea una segunda tarjeta. --}}
+                    <div class="col-12" id="cmSeccionIA">
+                        <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+                            <label for="cmIndicacionesIA" class="form-label mb-0">
+                                <i class="fa-solid fa-wand-magic-sparkles me-1" aria-hidden="true"></i>
+                                Ayuda de Gemini para redactar (opcional)
+                            </label>
+                        </div>
+                        <small class="text-muted d-block mb-2">Genera una propuesta de asunto, antecedentes y solicitud. Los textos actuales no cambiarán hasta que aceptes el borrador.</small>
+                        <textarea id="cmIndicacionesIA" class="form-control mb-2" maxlength="500" rows="2"
+                                  placeholder="Indicaciones adicionales: ej. redactar de manera breve y cordial"></textarea>
+                        <button type="button" id="cmGenerarIA" class="btn btn-outline-primary btn-sm">
+                            <i class="fa-solid fa-wand-magic-sparkles me-1" aria-hidden="true"></i>
+                            Generar borrador con IA
+                        </button>
+                        <div id="cmEstadoIA" class="small mt-2" role="status" aria-live="polite"></div>
+                        <div id="cmVistaIA" class="border rounded p-3 mt-3 d-none" aria-label="Borrador propuesto por Gemini">
+                            <h6 class="mb-2">Borrador propuesto — revisa antes de aceptar</h6>
+                            <p class="mb-1"><strong>Asunto</strong></p>
+                            <p id="cmPropuestaAsunto" style="white-space:pre-wrap;overflow-wrap:anywhere;"></p>
+                            <p class="mb-1"><strong>Antecedentes</strong></p>
+                            <p id="cmPropuestaAntecedentes" style="white-space:pre-wrap;overflow-wrap:anywhere;"></p>
+                            <p class="mb-1"><strong>Solicitud</strong></p>
+                            <p id="cmPropuestaSolicitud" style="white-space:pre-wrap;overflow-wrap:anywhere;"></p>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <button type="button" id="cmAceptarIA" class="btn btn-primary btn-sm">Aceptar borrador</button>
+                                <button type="button" id="cmDescartarIA" class="btn btn-outline-secondary btn-sm">Descartar</button>
+                            </div>
+                        </div>
                     </div>
                     <div class="col-12">
                         <label class="form-label" for="solicitud">Solicitud formal</label>
