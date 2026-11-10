@@ -197,7 +197,7 @@ document.addEventListener('DOMContentLoaded', function () {
         limpiar();
         estadoMensaje('Generando propuesta con Gemini…', false);
         try {
-            const respuesta = await fetch(@json(route('documentos.borrador-ia')), {
+            const respuesta = await fetch(@json(url('/documentos/borrador-ia')), {
                 method: 'POST',
                 body: cuerpo,
                 headers: { 'Accept': 'application/json' },
