@@ -171,18 +171,34 @@ class DocumentoFormalController extends Controller
         ];
 
         try {
-            // Dos intentos como máximo para errores temporales; nunca reenviar tras 400/403/404.
+            // Reintentar la saturación temporal, evitando repetir errores de clave, formato o cuota.
             $respuesta = null;
+            $modeloUsado = $modelo;
             for ($intento = 0; $intento < 2; $intento++) {
                 $respuesta = Http::withHeaders(['x-goog-api-key' => $clave])
                     ->acceptJson()
                     ->connectTimeout(8)
-                    ->timeout(40)
+                    ->timeout(35)
                     ->post('https://generativelanguage.googleapis.com/v1beta/models/'.$modelo.':generateContent', $payload);
-                if (!in_array($respuesta->status(), [429, 500, 502, 503, 504], true) || $intento === 1) {
+                if (!in_array($respuesta->status(), [500, 502, 503, 504], true) || $intento === 1) {
                     break;
                 }
-                usleep(600000);
+                usleep(1000000); // Espera breve antes del segundo intento.
+            }
+
+            // Cuando el modelo principal está saturado, usar otro Flash-Lite oficial.
+            // La clave y el contenido no se registran; 429 no dispara más solicitudes.
+            if ($respuesta->status() === 503) {
+                $alternativo = trim((string) config('services.gemini.fallback_model', 'gemini-3.1-flash-lite'));
+                if ($alternativo !== '' && $alternativo !== $modelo
+                    && preg_match('/^[a-zA-Z0-9._-]+$/D', $alternativo)) {
+                    $modeloUsado = $alternativo;
+                    $respuesta = Http::withHeaders(['x-goog-api-key' => $clave])
+                        ->acceptJson()
+                        ->connectTimeout(8)
+                        ->timeout(35)
+                        ->post('https://generativelanguage.googleapis.com/v1beta/models/'.$alternativo.':generateContent', $payload);
+                }
             }
 
             if (!$respuesta->successful()) {
@@ -191,7 +207,7 @@ class DocumentoFormalController extends Controller
                 \Log::warning('ComuniMap: error Gemini al generar carta', [
                     'http' => $codigo,
                     'estado' => is_string($estadoGoogle) ? substr($estadoGoogle, 0, 60) : 'desconocido',
-                    'modelo' => $modelo,
+                    'modelo' => $modeloUsado,
                 ]);
                 $mensaje = match (true) {
                     $codigo === 400 => 'Gemini rechazó el formato de la solicitud (HTTP 400).',
