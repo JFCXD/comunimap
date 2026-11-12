@@ -7,8 +7,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
 
 class RecuperacionClaveController extends Controller
 {
@@ -55,9 +53,9 @@ class RecuperacionClaveController extends Controller
                     'token_hash' => hash('sha256', $token),
                     'metodo' => 'correo',
                     'administrador_id' => null,
-                    'vence_en' => now()->addMinutes(self::MINUTOS),
-                    'created_at' => now(),
-                    'updated_at' => now(),
+                    'vence_en' => DB::raw('DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 15 MINUTE)'),
+                    'created_at' => DB::raw('CURRENT_TIMESTAMP'),
+                    'updated_at' => DB::raw('CURRENT_TIMESTAMP'),
                 ]
             );
             return true;
@@ -111,13 +109,15 @@ class RecuperacionClaveController extends Controller
     public function codigoVerificar(Request $request)
     {
         $datos = $request->validate([
-            'email' => ['required', 'email', 'max:190'],
+            'idUsuario' => ['required', 'integer', 'min:1'],
             'codigo' => ['required', 'string', 'max:40'],
         ]);
         $codigo = strtoupper(preg_replace('/[\s-]+/', '', $datos['codigo']));
-        $usuario = DB::table('usuarios')->where('email', trim($datos['email']))->first(['idUsuario']);
+        $usuario = DB::table('usuarios')->where('idUsuario', $datos['idUsuario'])
+            ->where('rol', 'Usuario')->first(['idUsuario']);
         if (!$usuario || !$this->valido((int) $usuario->idUsuario, $codigo, 'administrador')) {
-            return back()->withErrors(['codigo' => 'El código no es válido o ha caducado.']);
+            return back()->withInput($request->only('idUsuario'))
+                ->withErrors(['codigo' => 'El código no es válido o ha caducado.']);
         }
 
         return response()->view('login.nueva-clave', [
@@ -144,8 +144,9 @@ class RecuperacionClaveController extends Controller
             $registro = DB::table('recuperaciones_clave')
                 ->where('idUsuario', $datos['id'])->lockForUpdate()->first();
             if (!$registro || $registro->metodo !== $datos['via']
-                || now()->greaterThan($registro->vence_en)
-                || !hash_equals($registro->token_hash, hash('sha256', $token))) {
+                || !hash_equals($registro->token_hash, hash('sha256', $token))
+                || !DB::table('recuperaciones_clave')->where('idUsuario', $datos['id'])
+                    ->where('vence_en', '>=', DB::raw('CURRENT_TIMESTAMP'))->exists()) {
                 return false;
             }
 
@@ -188,8 +189,8 @@ class RecuperacionClaveController extends Controller
                 'metodo' => 'administrador',
                 'administrador_id' => Session::get('idUsuario'),
                 'vence_en' => now()->addMinutes(self::MINUTOS),
-                'created_at' => now(),
-                'updated_at' => now(),
+                'created_at' => DB::raw('CURRENT_TIMESTAMP'),
+                'updated_at' => DB::raw('CURRENT_TIMESTAMP'),
             ]
         );
 
@@ -201,9 +202,9 @@ class RecuperacionClaveController extends Controller
 
     private function valido(int $id, string $token, string $via): bool
     {
-        $registro = DB::table('recuperaciones_clave')->where('idUsuario', $id)->first();
-        return $registro && $registro->metodo === $via
-            && now()->lessThanOrEqualTo($registro->vence_en)
-            && hash_equals($registro->token_hash, hash('sha256', $token));
+        $registro = DB::table('recuperaciones_clave')->where('idUsuario', $id)
+            ->where('metodo', $via)
+            ->where('vence_en', '>=', DB::raw('CURRENT_TIMESTAMP'))->first();
+        return $registro && hash_equals($registro->token_hash, hash('sha256', $token));
     }
 }
