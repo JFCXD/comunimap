@@ -3,12 +3,32 @@
 namespace App\Http\Controllers;
 
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 
 class EstadisticasController extends Controller
 {
+
+    public function exportarPdf(Request $request)
+    {
+        // Reutilizar exactamente las consultas y validaciones del panel,
+        // incluidos los filtros y las restricciones de acceso.
+        $resultado = $this->index($request);
+
+        if (!$resultado instanceof \\Illuminate\\View\\View) {
+            return $resultado;
+        }
+
+        $datos = $resultado->getData();
+        $datos['fechaGeneracion'] = Carbon::now()->format('d/m/Y H:i');
+
+        return Pdf::loadView('estadisticas.pdf', $datos)
+            ->setPaper('a4', 'portrait')
+            ->download('Estadisticas_ComuniMap_' . Carbon::now()->format('Y-m-d') . '.pdf');
+    }
+
     public function index(Request $request)
     {
         if (!Session::has('idUsuario')) {
