@@ -115,6 +115,25 @@
         .page-breadcrumb { padding-top:15px!important; }
       }
 
+      /* Escritorio: menú lateral inmóvil mientras se desplaza el contenido.
+         Se conserva el espacio superior del logo y el menú móvil existente. */
+      @media (min-width:768px) {
+        #main-wrapper[data-layout="vertical"] .left-sidebar {
+          position:fixed!important;
+          top:0!important;
+          bottom:0!important;
+          height:100vh!important;
+          height:100dvh!important;
+          overflow-y:auto!important;
+          overscroll-behavior:contain;
+        }
+        #main-wrapper[data-layout="vertical"] .left-sidebar .scroll-sidebar {
+          height:auto!important;
+          max-height:none!important;
+          overflow:visible!important;
+        }
+      }
+
       /* Teléfonos: menú deslizable sin reducir el ancho de Inicio ni del mapa. */
       @media (max-width:767px) {
         #main-wrapper[data-layout="vertical"] { overflow-x:hidden; }
