@@ -14,7 +14,7 @@
     </div>
     <div class="container-fluid">
         <section class="stats-filter-panel" aria-label="Filtros de estadísticas">
-            <div class="stats-section-heading"><div><h3><i class="bi bi-sliders"></i> Filtros</h3><p>Los indicadores y gráficos de reportes se actualizan al aplicar los filtros.</p></div></div>
+            <div class="stats-section-heading"><div><h3><i class="bi bi-sliders"></i> Filtros</h3><p>Los indicadores y gráficos de reportes se actualizan al aplicar los filtros.</p></div><a class="btn stats-btn-pdf" href="{{ route('estadisticas.pdf', request()->only(['desde', 'hasta', 'categoria', 'estado'])) }}"><i class="bi bi-file-earmark-pdf"></i> Exportar PDF</a></div>
             <form method="GET" action="{{ url('/estadisticas') }}" class="stats-filter-grid">
                 <label>Desde<input class="form-control" type="date" name="desde" value="{{ $desde }}"></label>
                 <label>Hasta<input class="form-control" type="date" name="hasta" value="{{ $hasta }}"></label>
@@ -138,6 +138,9 @@
 @media(max-width:420px){.stats-metrics{grid-template-columns:1fr}}
 
 .stats-hero{margin-top:14px;margin-bottom:10px}
+.stats-btn-pdf{background:#dc2626;color:#fff;border-radius:8px;font-size:.75rem;padding:7px 11px;white-space:nowrap}
+.stats-btn-pdf:hover{background:#b91c1c;color:#fff}
+@media(max-width:480px){.stats-filter-panel>.stats-section-heading{flex-wrap:wrap}}
 /* Panel compacto inspirado en la referencia: distribución de una sola pantalla en escritorio. */
 .page-breadcrumb{padding-top:12px!important;padding-bottom:8px!important}
 .cm-page-heading .page-title{font-size:1.3rem!important;margin-bottom:2px!important}
