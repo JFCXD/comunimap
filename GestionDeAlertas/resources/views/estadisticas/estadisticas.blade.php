@@ -13,15 +13,6 @@
         </div>
     </div>
     <div class="container-fluid">
-        <section class="stats-hero" aria-label="Resumen del panel">
-            <div>
-                <span class="stats-hero-label">GESTIÓN DE INCIDENCIAS</span>
-                <h2>Panel de control comunitario</h2>
-                <p>Reportes, tendencias y seguimiento en un solo lugar.</p>
-            </div>
-            <div class="stats-hero-number"><strong>{{ number_format($porcentajeResolucion, 1) }}%</strong><span>Resolución de reportes filtrados</span></div>
-        </section>
-
         <section class="stats-filter-panel" aria-label="Filtros de estadísticas">
             <div class="stats-section-heading"><div><h3><i class="bi bi-sliders"></i> Filtros</h3><p>Los indicadores y gráficos de reportes se actualizan al aplicar los filtros.</p></div></div>
             <form method="GET" action="{{ url('/estadisticas') }}" class="stats-filter-grid">
@@ -84,6 +75,15 @@
         @if($totalReportes === 0)
             <div class="stats-empty-banner"><i class="bi bi-info-circle"></i> No se encontraron reportes con los filtros seleccionados. Prueba otro período, categoría o estado.</div>
         @endif
+        <section class="stats-hero" aria-label="Resumen del panel">
+            <div>
+                <span class="stats-hero-label">GESTIÓN DE INCIDENCIAS</span>
+                <h2>Panel de control comunitario</h2>
+                <p>Reportes, tendencias y seguimiento en un solo lugar.</p>
+            </div>
+            <div class="stats-hero-number"><strong>{{ number_format($porcentajeResolucion, 1) }}%</strong><span>Resolución de reportes filtrados</span></div>
+        </section>
+
         <div class="stats-footer-note"><i class="bi bi-shield-check"></i> Datos obtenidos de MySQL. Los indicadores de reportes respetan los filtros; el total de usuarios corresponde a todo el sistema. @if($ultimoReporte) Último reporte del conjunto: {{ $ultimoReporte }}. @endif</div>
     </div>
     @include('plantillas.pie')
@@ -137,6 +137,7 @@
 @media(max-width:767px){.stats-hero{flex-direction:column;align-items:flex-start;padding:24px}.stats-hero-number{border-left:0;border-top:1px solid #ffffff3d;padding:18px 0 0;text-align:left;width:100%}.stats-filter-grid{grid-template-columns:1fr}.stats-filter-actions{grid-column:auto}.stats-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.stats-charts-grid{grid-template-columns:1fr}.stats-panel-wide{grid-column:auto}.stats-chart-box{height:240px}}
 @media(max-width:420px){.stats-metrics{grid-template-columns:1fr}}
 
+.stats-hero{margin-top:14px;margin-bottom:10px}
 /* Panel compacto inspirado en la referencia: distribución de una sola pantalla en escritorio. */
 .page-breadcrumb{padding-top:12px!important;padding-bottom:8px!important}
 .cm-page-heading .page-title{font-size:1.3rem!important;margin-bottom:2px!important}
