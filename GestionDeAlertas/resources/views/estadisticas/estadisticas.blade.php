@@ -60,7 +60,7 @@
 
         <section class="stats-charts-grid">
             <article class="stats-panel stats-panel-wide">
-                <div class="stats-section-heading"><div><h3>Evolución de reportes</h3><p>Hasta los últimos 12 meses con actividad dentro del período seleccionado.</p></div><span class="stats-heading-icon"><i class="bi bi-graph-up-arrow"></i></span></div>
+                <div class="stats-section-heading"><div><h3>Evolución de reportes</h3><p>Hasta los últimos 12 meses con actividad dentro del período seleccionado. (Este mes solo para hacer la prueba)</p></div><span class="stats-heading-icon"><i class="bi bi-graph-up-arrow"></i></span></div>
                 <div class="stats-chart-box"><canvas id="graficoEvolucion" aria-label="Reportes por mes" role="img"></canvas></div>
             </article>
             <article class="stats-panel">
