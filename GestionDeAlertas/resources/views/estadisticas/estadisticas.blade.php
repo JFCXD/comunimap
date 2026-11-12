@@ -16,8 +16,8 @@
         <section class="stats-hero" aria-label="Resumen del panel">
             <div>
                 <span class="stats-hero-label">GESTIÓN DE INCIDENCIAS</span>
-                <h2>Decisiones respaldadas por datos del barrio.</h2>
-                <p>Explora tendencias, identifica las categorías más reportadas y revisa el avance de atención.</p>
+                <h2>Panel de control comunitario</h2>
+                <p>Reportes, tendencias y seguimiento en un solo lugar.</p>
             </div>
             <div class="stats-hero-number"><strong>{{ number_format($porcentajeResolucion, 1) }}%</strong><span>Resolución de reportes filtrados</span></div>
         </section>
@@ -61,7 +61,7 @@
         <section class="stats-charts-grid">
             <article class="stats-panel stats-panel-wide">
                 <div class="stats-section-heading"><div><h3>Evolución de reportes</h3><p>Hasta los últimos 12 meses con actividad dentro del período seleccionado. (Este mes solo para hacer la prueba)</p></div><span class="stats-heading-icon"><i class="bi bi-graph-up-arrow"></i></span></div>
-                <div class="stats-chart-box"><canvas id="graficoEvolucion" aria-label="Reportes por mes" role="img"></canvas></div>
+                <div class="stats-chart-box"><canvas id="graficoEvolucion" aria-label="Reportes diarios del mes actual" role="img"></canvas></div>
             </article>
             <article class="stats-panel">
                 <div class="stats-section-heading"><div><h3>Distribución por estado</h3><p>Situación de los reportes filtrados.</p></div><span class="stats-heading-icon"><i class="bi bi-pie-chart"></i></span></div>
@@ -136,6 +136,68 @@
 @media(max-width:1200px){.stats-filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.stats-filter-actions{grid-column:1/-1}.stats-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:767px){.stats-hero{flex-direction:column;align-items:flex-start;padding:24px}.stats-hero-number{border-left:0;border-top:1px solid #ffffff3d;padding:18px 0 0;text-align:left;width:100%}.stats-filter-grid{grid-template-columns:1fr}.stats-filter-actions{grid-column:auto}.stats-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.stats-charts-grid{grid-template-columns:1fr}.stats-panel-wide{grid-column:auto}.stats-chart-box{height:240px}}
 @media(max-width:420px){.stats-metrics{grid-template-columns:1fr}}
+
+/* Panel compacto inspirado en la referencia: distribución de una sola pantalla en escritorio. */
+.page-breadcrumb{padding-top:12px!important;padding-bottom:8px!important}
+.cm-page-heading .page-title{font-size:1.3rem!important;margin-bottom:2px!important}
+.cm-page-heading .estadisticas-subtitulo{margin-bottom:0!important;font-size:.78rem}
+.stats-eyebrow{font-size:.61rem;margin-bottom:3px}
+.stats-hero{padding:13px 20px;margin-bottom:12px;border-radius:13px;min-height:68px;gap:15px;background:linear-gradient(115deg,#10233e,#1c4775)}
+.stats-hero h2{font-size:1.12rem;margin:3px 0}
+.stats-hero p{font-size:.75rem}
+.stats-hero-label{font-size:.6rem}
+.stats-hero-number{min-width:140px;padding-left:16px}
+.stats-hero-number strong{font-size:1.65rem}
+.stats-hero-number span{font-size:.67rem}
+.stats-filter-panel{padding:12px 16px;margin-bottom:12px;border-radius:12px}
+.stats-filter-panel>.stats-section-heading{margin-bottom:9px}
+.stats-filter-panel .stats-section-heading h3{font-size:.84rem;margin:0}
+.stats-filter-panel .stats-section-heading p{display:none}
+.stats-filter-grid{grid-template-columns:repeat(4,minmax(0,1fr)) auto;gap:8px}
+.stats-filter-grid label{font-size:.7rem}
+.stats-filter-grid .form-control{height:34px;margin-top:3px;padding:4px 8px;font-size:.75rem;border-radius:7px}
+.stats-filter-actions{gap:5px;grid-column:auto}
+.stats-filter-actions .btn{padding:7px 10px;font-size:.73rem}
+.stats-metrics{grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.stats-metric{padding:12px 14px;gap:3px;border-radius:12px;position:relative;min-height:103px}
+.stats-metric-icon{width:30px;height:30px;font-size:.86rem;position:absolute;right:12px;top:12px}
+.stats-metric-label{font-size:.75rem;padding-right:30px}
+.stats-metric strong{font-size:1.65rem}
+.stats-metric small{font-size:.67rem}
+.stats-charts-grid{display:grid;grid-template-columns:minmax(0,1.9fr) minmax(0,1fr) minmax(0,1fr);gap:12px;margin-bottom:9px;align-items:stretch}
+.stats-panel,.stats-panel-wide{grid-column:auto;padding:15px;border-radius:12px;min-height:280px}
+.stats-section-heading{margin-bottom:10px}
+.stats-section-heading h3{font-size:.86rem;margin-bottom:3px}
+.stats-section-heading p{font-size:.68rem;line-height:1.35}
+.stats-heading-icon{width:29px;height:29px;border-radius:8px;flex-shrink:0}
+.stats-chart-box{height:210px}
+.stats-category-list{max-height:210px;overflow:auto}
+.stats-category-row{margin-bottom:11px}
+.stats-category-title{font-size:.73rem;margin-bottom:5px}
+.stats-category-track{height:7px}
+.stats-footer-note{font-size:.68rem;padding:5px 0 10px}
+@media(max-width:1350px){
+ .stats-charts-grid{grid-template-columns:minmax(0,1.45fr) minmax(0,1fr)}
+ .stats-panel-wide{grid-column:1/-1;min-height:245px}
+ .stats-panel-wide .stats-chart-box{height:180px}
+ .stats-filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .stats-filter-actions{grid-column:1/-1}
+}
+@media(min-width:1351px){.stats-charts-grid .stats-panel:nth-child(2) .stats-chart-box{height:200px}}
+@media(max-width:850px){
+ .stats-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .stats-charts-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:767px){
+ .stats-hero{flex-direction:row;align-items:center;padding:14px}
+ .stats-hero-number{width:auto;border-top:0;border-left:1px solid #ffffff3d;padding:0 0 0 12px;text-align:center}
+ .stats-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .stats-charts-grid{grid-template-columns:1fr}
+ .stats-panel-wide{grid-column:auto}
+ .stats-filter-grid{grid-template-columns:1fr 1fr}
+ .stats-filter-actions{grid-column:1/-1}
+}
+@media(max-width:480px){.stats-hero{flex-direction:column;align-items:flex-start}.stats-hero-number{border-left:0;border-top:1px solid #ffffff3d;padding:8px 0 0;text-align:left;width:100%}.stats-filter-grid{grid-template-columns:1fr}.stats-filter-actions{grid-column:auto}.stats-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
