@@ -134,7 +134,7 @@ class RecuperacionClaveController extends Controller
             'id' => ['required', 'integer', 'min:1'],
             'token' => ['required', 'string', 'min:20', 'max:128'],
             'via' => ['required', 'in:correo,administrador'],
-            'password' => ['required', 'string', 'min:6', 'max:72', 'confirmed'],
+            'password' => ['required', 'string', 'min:6', 'max:10', 'confirmed'],
         ]);
         $token = $datos['via'] === 'administrador'
             ? strtoupper(preg_replace('/[\s-]+/', '', $datos['token']))
