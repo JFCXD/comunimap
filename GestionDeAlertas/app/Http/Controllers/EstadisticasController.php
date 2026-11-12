@@ -74,14 +74,25 @@ class EstadisticasController extends Controller
             ->orderBy('c.nombre')
             ->get();
 
-        $evolucion = (clone $consulta())
-            ->selectRaw("DATE_FORMAT(r.fechaCreacion, '%Y-%m') as periodo, COUNT(*) as total")
+        // Vista temporal de prueba: evolución diaria del mes actual.
+        // Los filtros generales siguen aplicándose a esta consulta.
+        $inicioMes = Carbon::now()->startOfMonth();
+        $finHoy = Carbon::now()->endOfDay();
+        $conteosDiarios = (clone $consulta())
+            ->whereBetween('r.fechaCreacion', [$inicioMes->toDateTimeString(), $finHoy->toDateTimeString()])
+            ->selectRaw("DATE(r.fechaCreacion) as periodo, COUNT(*) as total")
             ->groupBy('periodo')
             ->orderBy('periodo')
-            ->get();
+            ->pluck('total', 'periodo');
 
-        // Limitar el gráfico a los 12 meses más recientes del período filtrado.
-        $evolucion = $evolucion->take(-12)->values();
+        $evolucion = collect();
+        for ($dia = $inicioMes->copy(); $dia->lte($finHoy); $dia->addDay()) {
+            $fecha = $dia->toDateString();
+            $evolucion->push([
+                'periodo' => $dia->format('d/m'),
+                'total' => (int) ($conteosDiarios[$fecha] ?? 0),
+            ]);
+        }
         $ultimoReporte = (clone $consulta())->max('r.fechaCreacion');
 
         return view('estadisticas.estadisticas', [
