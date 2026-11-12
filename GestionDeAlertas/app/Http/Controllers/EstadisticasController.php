@@ -17,7 +17,7 @@ class EstadisticasController extends Controller
         // incluidos los filtros y las restricciones de acceso.
         $resultado = $this->index($request);
 
-        if (!$resultado instanceof \\Illuminate\\View\\View) {
+        if (!$resultado instanceof \Illuminate\View\View) {
             return $resultado;
         }
 
