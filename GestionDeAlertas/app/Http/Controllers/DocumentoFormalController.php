@@ -320,7 +320,7 @@ class DocumentoFormalController extends Controller
                 if (!preg_match('/^[a-zA-Z0-9+\\/=]+$/D', $codificado)) continue;
                 $imagen = base64_decode($codificado, true);
                 if (!is_string($imagen) || strlen($imagen) > 100 * 1024) continue;
-                if ((new \\finfo(FILEINFO_MIME_TYPE))->buffer($imagen) !== 'image/jpeg') continue;
+                if ((new \finfo(FILEINFO_MIME_TYPE))->buffer($imagen) !== 'image/jpeg') continue;
                 $emblemas[$lado] = 'data:image/jpeg;base64,'.$codificado;
                 break;
             }
@@ -333,7 +333,7 @@ class DocumentoFormalController extends Controller
             $codificado = trim((string) file_get_contents($archivoListon));
             $imagen = base64_decode($codificado, true);
             if (is_string($imagen) && strlen($imagen) <= 100 * 1024
-                && (new \\finfo(FILEINFO_MIME_TYPE))->buffer($imagen) === 'image/jpeg') {
+                && (new \finfo(FILEINFO_MIME_TYPE))->buffer($imagen) === 'image/jpeg') {
                 $liston = 'data:image/jpeg;base64,'.$codificado;
             }
         }
