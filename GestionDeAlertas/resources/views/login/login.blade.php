@@ -30,6 +30,7 @@
             <input id="cm-login-pass" type="password" name="password" class="form-control"
                 placeholder="Tu contraseña" autocomplete="current-password" required>
         </div>
+        <div class="text-end mb-3"><a href="{{ route('recuperacion.solicitar') }}">¿Olvidaste tu contraseña?</a></div>
         <div class="mb-3 cm-auth-recaptcha">
             <div class="g-recaptcha" data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}"></div>
         </div>
