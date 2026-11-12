@@ -317,7 +317,7 @@ class DocumentoFormalController extends Controller
                 $archivo = resource_path('otb-documentos/'.$archivoNombre);
                 if (!is_file($archivo) || filesize($archivo) > 100 * 1024) continue;
                 $codificado = trim((string) file_get_contents($archivo));
-                if (!preg_match('/^[a-zA-Z0-9+\\/=]+$/D', $codificado)) continue;
+                if (!preg_match('~^[A-Za-z0-9+/=]+$~D', $codificado)) continue;
                 $imagen = base64_decode($codificado, true);
                 if (!is_string($imagen) || strlen($imagen) > 100 * 1024) continue;
                 if ((new \finfo(FILEINFO_MIME_TYPE))->buffer($imagen) !== 'image/jpeg') continue;
