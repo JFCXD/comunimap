@@ -61,33 +61,37 @@ class UsuariosController extends Controller
 
     public function actualizar(Request $request, $id)
     {
-        if (Session::get('rol') != 'Administrador') {
+        if (!Session::has('idUsuario')) {
+            return redirect('/login');
+        }
+        if (Session::get('rol') !== 'Administrador') {
             return redirect('/inicio');
         }
 
-        DB::update("
-            UPDATE usuarios
-            SET
-                nombre = ?,
-                email = ?,
-                telefono = ?,
-                rol = ?,
-                estado = ?
-            WHERE idUsuario = ?
-        ", [
-            $request->nombre,
-            $request->email,
-            $request->telefono,
-            $request->rol,
-            $request->estado,
-            $id
+        $datos = $request->validate([
+            'nombre' => ['required', 'string', 'max:100'],
+            'apellido' => ['nullable', 'string', 'max:150'],
+            'fechaNacimiento' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:today'],
+            'email' => ['required', 'email', 'max:100'],
+            'telefono' => ['nullable', 'string', 'max:20'],
+            'rol' => ['required', 'in:Administrador,Usuario'],
+            'estado' => ['required', 'in:Activo,Inactivo'],
         ]);
 
+        $actualizacion = [
+            'nombre' => trim($datos['nombre']),
+            'apellido' => isset($datos['apellido']) ? trim($datos['apellido']) : null,
+            'fechaNacimiento' => $datos['fechaNacimiento'] ?? null,
+            'email' => trim($datos['email']),
+            'telefono' => isset($datos['telefono']) ? trim($datos['telefono']) : null,
+            'rol' => $datos['rol'],
+            'estado' => $datos['estado'],
+        ];
+
+        DB::table('usuarios')->where('idUsuario', $id)->update($actualizacion);
+
         return redirect('/usuarios')
-            ->with(
-                'success',
-                'Usuario actualizado correctamente.'
-            );
+            ->with('success', 'Usuario actualizado correctamente.');
     }
 
     // =====================================================
