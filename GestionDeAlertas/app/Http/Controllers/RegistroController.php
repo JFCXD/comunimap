@@ -15,13 +15,18 @@ class RegistroController extends Controller
     public function guardar(Request $request)
     {
         $datos = $request->validate([
-            'nombre' => ['required', 'string', 'max:150'],
+            'nombre' => ['required', 'string', 'max:100'],
+            'apellido' => ['required', 'string', 'max:150'],
+            'fechaNacimiento' => ['required', 'date_format:Y-m-d', 'before_or_equal:today'],
             'email' => ['required', 'email', 'max:190'],
             'telefono' => ['nullable', 'string', 'max:30'],
             'password' => ['required', 'string', 'min:6', 'max:72'],
             'confirmar' => ['required', 'same:password'],
         ], [
-            'nombre.required' => 'Ingresa tu nombre completo.',
+            'nombre.required' => 'Ingresa tu nombre.',
+            'apellido.required' => 'Ingresa tu apellido.',
+            'fechaNacimiento.required' => 'Ingresa tu fecha de nacimiento.',
+            'fechaNacimiento.before_or_equal' => 'La fecha de nacimiento no puede estar en el futuro.',
             'email.required' => 'Ingresa tu correo electrónico.',
             'email.email' => 'Ingresa un correo electrónico válido.',
             'password.required' => 'Ingresa una contraseña.',
@@ -42,6 +47,8 @@ class RegistroController extends Controller
         try {
             DB::table('usuarios')->insert([
                 'nombre' => trim($datos['nombre']),
+                'apellido' => trim($datos['apellido']),
+                'fechaNacimiento' => $datos['fechaNacimiento'],
                 'email' => $correo,
                 'telefono' => isset($datos['telefono']) ? trim($datos['telefono']) : null,
                 'password' => sha1($datos['password']),
