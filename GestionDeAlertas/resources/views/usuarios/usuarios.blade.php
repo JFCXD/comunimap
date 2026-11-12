@@ -292,6 +292,17 @@
 
                                                     @endif
 
+                                                    {{-- Recuperación asistida para vecinos: no cambiar su contraseña desde el administrador. --}}
+                                                    @if(strtolower(trim($usuario->rol)) === 'usuario')
+                                                        <form action="{{ route('usuarios.codigo-recuperacion', ['id' => $usuario->idUsuario]) }}" method="POST" class="d-inline-block" onsubmit="return confirm('¿Verificaste personalmente la identidad de este vecino? El código anterior quedará invalidado.');">
+                                                            @csrf
+                                                            <input type="hidden" name="identidad_verificada" value="1">
+                                                            <button type="submit" class="btn btn-outline-primary btn-sm" title="Generar código temporal de recuperación" aria-label="Generar código de recuperación para {{ $usuario->nombre }}">
+                                                                <i class="fa fa-key" aria-hidden="true"></i>
+                                                            </button>
+                                                        </form>
+                                                    @endif
+
                                                     <a href="/usuarios/editar/{{ $usuario->idUsuario }}"
                                                         class="btn btn-warning btn-sm" title="Editar usuario">
 
