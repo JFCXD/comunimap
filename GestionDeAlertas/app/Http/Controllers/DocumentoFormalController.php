@@ -294,8 +294,8 @@ class DocumentoFormalController extends Controller
                 $contenido = Storage::disk('public')->get($ruta);
                 if (!is_string($contenido) || strlen($contenido) > 6 * 1024 * 1024) continue;
                 $mime = (new \finfo(FILEINFO_MIME_TYPE))->buffer($contenido);
-                if (!in_array($mime, ['image/jpeg', 'image/png'], true)) {
-                    // DomPDF no maneja todos los formatos WEBP de forma portable.
+                if ($mime !== 'image/jpeg' && !($mime === 'image/png' && extension_loaded('gd'))) {
+                    // PNG requiere GD en DomPDF; omitirlo hasta instalar la extensión.
                     continue;
                 }
                 $fotos[] = [
@@ -311,7 +311,7 @@ class DocumentoFormalController extends Controller
         $emblemas = [];
         foreach ([
             'izquierdo' => ['escudo-nuevo.jpg.base64', 'escudo.jpg.base64'],
-            'derecho' => ['logo-otb.png.base64', 'logo-nuevo.jpg.base64', 'logo.jpg.base64'],
+            'derecho' => ['logo-nuevo.jpg.base64', 'logo.jpg.base64'],
         ] as $lado => $archivos) {
             foreach ($archivos as $archivoNombre) {
                 $archivo = resource_path('otb-documentos/'.$archivoNombre);
@@ -321,7 +321,7 @@ class DocumentoFormalController extends Controller
                 $imagen = base64_decode($codificado, true);
                 if (!is_string($imagen) || strlen($imagen) > 100 * 1024) continue;
                  $mime = (new \finfo(FILEINFO_MIME_TYPE))->buffer($imagen);
-                if (!in_array($mime, ['image/jpeg', 'image/png'], true)) continue;
+                if ($mime !== 'image/jpeg') continue;
                 $emblemas[$lado] = 'data:'.$mime.';base64,'.$codificado;
                 break;
             }
