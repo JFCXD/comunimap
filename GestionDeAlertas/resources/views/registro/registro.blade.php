@@ -18,9 +18,20 @@
     <form action="/registro" method="POST">
         @csrf
         <div class="mb-3">
-            <label for="cm-reg-nombre" class="form-label">Nombre completo</label>
+            <label for="cm-reg-nombre" class="form-label">Nombre</label>
             <input id="cm-reg-nombre" type="text" name="nombre" class="form-control"
                 value="{{ old('nombre') }}" autocomplete="name" required>
+        </div>
+        <div class="mb-3">
+            <label for="cm-reg-apellido" class="form-label">Apellido</label>
+            <input id="cm-reg-apellido" type="text" name="apellido" class="form-control"
+                value="{{ old('apellido') }}" autocomplete="family-name" maxlength="150" required>
+        </div>
+        <div class="mb-3">
+            <label for="cm-reg-nacimiento" class="form-label">Fecha de nacimiento</label>
+            <input id="cm-reg-nacimiento" type="date" name="fechaNacimiento" class="form-control"
+                value="{{ old('fechaNacimiento') }}" max="{{ date('Y-m-d') }}" required>
+            <small class="form-text text-muted">La edad se calcula automáticamente a partir de esta fecha.</small>
         </div>
         <div class="mb-3">
             <label for="cm-reg-email" class="form-label">Correo electrónico</label>
