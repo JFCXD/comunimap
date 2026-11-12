@@ -306,30 +306,36 @@ class DocumentoFormalController extends Controller
             }
         }
 
-        // Emblemas basados en la carta original de la OTB.
-        // Si más adelante se cargan PNG originales de mayor calidad, tendrán prioridad.
+        // Recursos gráficos del membrete: originales proporcionados para ComuniMap.
+        // JPEGs Base64 versionados en GitHub para que estén disponibles en Railway.
         $emblemas = [];
-        foreach (['izquierdo' => 'escudo', 'derecho' => 'logo'] as $lado => $nombre) {
-            $rutaOriginal = public_path('otb-documentos/'.$nombre.'.png');
-            if (is_file($rutaOriginal) && filesize($rutaOriginal) <= 1024 * 1024) {
-                $bytesOriginal = file_get_contents($rutaOriginal);
-                if (is_string($bytesOriginal)
-                    && (new \finfo(FILEINFO_MIME_TYPE))->buffer($bytesOriginal) === 'image/png') {
-                    $emblemas[$lado] = 'data:image/png;base64,'.base64_encode($bytesOriginal);
-                    continue;
-                }
+        foreach ([
+            'izquierdo' => ['escudo-nuevo.jpg.base64', 'escudo.jpg.base64'],
+            'derecho' => ['logo-nuevo.jpg.base64', 'logo.jpg.base64'],
+        ] as $lado => $archivos) {
+            foreach ($archivos as $archivoNombre) {
+                $archivo = resource_path('otb-documentos/'.$archivoNombre);
+                if (!is_file($archivo) || filesize($archivo) > 100 * 1024) continue;
+                $codificado = trim((string) file_get_contents($archivo));
+                if (!preg_match('/^[a-zA-Z0-9+\\/=]+$/D', $codificado)) continue;
+                $imagen = base64_decode($codificado, true);
+                if (!is_string($imagen) || strlen($imagen) > 100 * 1024) continue;
+                if ((new \\finfo(FILEINFO_MIME_TYPE))->buffer($imagen) !== 'image/jpeg') continue;
+                $emblemas[$lado] = 'data:image/jpeg;base64,'.$codificado;
+                break;
             }
+        }
 
-            // Recortes provisionales provenientes de la fotografía aportada por la OTB.
-            // Se guardan en texto base64 para permitir el despliegue con GitHub/Railway.
-            $archivo = resource_path('otb-documentos/'.$nombre.'.jpg.base64');
-            if (!is_file($archivo) || filesize($archivo) > 100 * 1024) continue;
-            $codificado = trim((string) file_get_contents($archivo));
-            if (!preg_match('/^[a-zA-Z0-9+\/=]+$/D', $codificado)) continue;
+        // El listón se prepara con colores atenuados dentro de la propia imagen.
+        $liston = null;
+        $archivoListon = resource_path('otb-documentos/liston-tenue.jpg.base64');
+        if (is_file($archivoListon) && filesize($archivoListon) <= 100 * 1024) {
+            $codificado = trim((string) file_get_contents($archivoListon));
             $imagen = base64_decode($codificado, true);
-            if (!is_string($imagen) || strlen($imagen) > 100 * 1024) continue;
-            if ((new \finfo(FILEINFO_MIME_TYPE))->buffer($imagen) !== 'image/jpeg') continue;
-            $emblemas[$lado] = 'data:image/jpeg;base64,'.$codificado;
+            if (is_string($imagen) && strlen($imagen) <= 100 * 1024
+                && (new \\finfo(FILEINFO_MIME_TYPE))->buffer($imagen) === 'image/jpeg') {
+                $liston = 'data:image/jpeg;base64,'.$codificado;
+            }
         }
 
         $pdf = Pdf::loadView('documentos.pdf', [
@@ -337,6 +343,7 @@ class DocumentoFormalController extends Controller
             'reportes' => $reportes,
             'fotos' => $fotos,
             'emblemas' => $emblemas,
+            'liston' => $liston,
         ])->setPaper('a4');
 
         $nombre = 'carta-formal-comunimap-'.date('Ymd').'.pdf';
