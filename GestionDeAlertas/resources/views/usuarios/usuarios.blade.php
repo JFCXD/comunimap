@@ -124,7 +124,10 @@
                                             <tr>
 
                                                 <td>
-                                                    {{ $usuario->nombre }}
+                                                    {{ trim($usuario->nombre . ' ' . ($usuario->apellido ?? '')) }}
+                                                    <small class="d-block text-muted">Edad:
+                                                        {{ $usuario->fechaNacimiento ? \Carbon\Carbon::parse($usuario->fechaNacimiento)->age . ' años' : 'No registrada' }}
+                                                    </small>
                                                 </td>
 
                                                 <td>
@@ -158,7 +161,7 @@
                                                         <form action="{{ route('usuarios.codigo-recuperacion', ['id' => $usuario->idUsuario]) }}" method="POST" class="d-inline-block" onsubmit="return confirm('¿Ya verificaste presencialmente la identidad de este vecino? El código anterior quedará invalidado.');">
                                                             @csrf
                                                             <input type="hidden" name="identidad_verificada" value="1">
-                                                            <button type="submit" class="btn btn-outline-primary btn-sm" title="Generar código de recuperación (solo tras verificar identidad)" aria-label="Código de recuperación para {{ $usuario->nombre }}">
+                                                            <button type="submit" class="btn btn-outline-primary btn-sm" title="Generar código de recuperación (solo tras verificar identidad)" aria-label="Código de recuperación para {{ trim($usuario->nombre . ' ' . ($usuario->apellido ?? '')) }}">
                                                                 <i class="fa-solid fa-key" aria-hidden="true"></i>
                                                             </button>
                                                         </form>
@@ -234,7 +237,7 @@
                                             </td>
 
                                             <td>
-                                                {{ $usuario->nombre }}
+                                                {{ trim($usuario->nombre . ' ' . ($usuario->apellido ?? '')) }}
                                             </td>
 
                                             <td>
@@ -297,7 +300,7 @@
                                                         <form action="{{ route('usuarios.codigo-recuperacion', ['id' => $usuario->idUsuario]) }}" method="POST" class="d-inline-block" onsubmit="return confirm('¿Verificaste personalmente la identidad de este vecino? El código anterior quedará invalidado.');">
                                                             @csrf
                                                             <input type="hidden" name="identidad_verificada" value="1">
-                                                            <button type="submit" class="btn btn-outline-primary btn-sm" title="Generar código temporal de recuperación" aria-label="Generar código de recuperación para {{ $usuario->nombre }}">
+                                                            <button type="submit" class="btn btn-outline-primary btn-sm" title="Generar código temporal de recuperación" aria-label="Generar código de recuperación para {{ trim($usuario->nombre . ' ' . ($usuario->apellido ?? '')) }}">
                                                                 <i class="fa fa-key" aria-hidden="true"></i>
                                                             </button>
                                                         </form>
@@ -314,7 +317,7 @@
 
                                                 <button class="btn btn-light btn-sm" data-bs-toggle="modal"
                                                     data-bs-target="#modalEliminar" onclick="confirmarEliminar(
-                                                            '{{ $usuario->nombre }}',
+                                                            '{{ trim($usuario->nombre . ' ' . ($usuario->apellido ?? '')) }}',
                                                             '/usuarios/eliminar/{{ $usuario->idUsuario }}'
                                                         )" title="Eliminar usuario">
 
