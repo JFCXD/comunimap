@@ -152,16 +152,23 @@ class RecuperacionClaveController extends Controller
 
             // Compatibilidad TEMPORAL con inicio de sesión web y API PHP Android.
             // No cambiar a bcrypt sin actualizar simultáneamente ambas autenticaciones.
-            $afectados = DB::table('usuarios')->where('idUsuario', $datos['id'])
+            // MySQL puede devolver 0 filas afectadas si la clave coincide con la anterior.
+            // Validar existencia de la cuenta en vez de confundir ese caso con un token vencido.
+            if (!DB::table('usuarios')->where('idUsuario', $datos['id'])->exists()) {
+                return false;
+            }
+            DB::table('usuarios')->where('idUsuario', $datos['id'])
                 ->update(['password' => sha1($datos['password'])]);
-            if ($afectados < 1) return false;
             DB::table('recuperaciones_clave')->where('idUsuario', $datos['id'])->delete();
             return true;
         });
 
         if (!$actualizado) {
-            return redirect()->route('recuperacion.solicitar')
-                ->with('error', 'El enlace o código no es válido o ha caducado.');
+            $destino = $datos['via'] === 'administrador'
+                ? 'recuperacion.codigo'
+                : 'recuperacion.solicitar';
+            return redirect()->route($destino)
+                ->with('error', 'El enlace o código no es válido o ha caducado. Solicita uno nuevo.');
         }
 
         // No iniciar sesión de forma automática ni cambiar el estado de aprobación.
@@ -188,7 +195,7 @@ class RecuperacionClaveController extends Controller
                 'token_hash' => hash('sha256', $codigo),
                 'metodo' => 'administrador',
                 'administrador_id' => Session::get('idUsuario'),
-                'vence_en' => now()->addMinutes(self::MINUTOS),
+                'vence_en' => DB::raw('DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 15 MINUTE)'),
                 'created_at' => DB::raw('CURRENT_TIMESTAMP'),
                 'updated_at' => DB::raw('CURRENT_TIMESTAMP'),
             ]
