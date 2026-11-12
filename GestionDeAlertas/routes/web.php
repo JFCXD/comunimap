@@ -9,6 +9,7 @@ use App\Http\Controllers\UsuariosController;
 use App\Http\Controllers\EstadisticasController;
 use App\Http\Controllers\RegistroController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\RecuperacionClaveController;
 use App\Http\Controllers\ComunidadController;
 use App\Http\Controllers\DocumentoFormalController;
 use App\Http\Controllers\ImagenComunidadController;
@@ -51,6 +52,25 @@ Route::get(
     '/logout',
     [LoginController::class, 'salir']
 );
+
+// =====================================================
+// RECUPERACIÓN DE ACCESO WEB (sin inicio de sesión)
+// =====================================================
+Route::get('/recuperar-clave', [RecuperacionClaveController::class, 'solicitarFormulario'])
+    ->name('recuperacion.solicitar');
+Route::post('/recuperar-clave', [RecuperacionClaveController::class, 'solicitar'])
+    ->middleware('throttle:3,1')->name('recuperacion.enviar');
+Route::get('/restablecer-clave/{id}/{token}', [RecuperacionClaveController::class, 'formulario'])
+    ->whereNumber('id')->name('recuperacion.formulario');
+Route::get('/recuperar-con-codigo', [RecuperacionClaveController::class, 'codigoFormulario'])
+    ->name('recuperacion.codigo');
+Route::post('/recuperar-con-codigo', [RecuperacionClaveController::class, 'codigoVerificar'])
+    ->middleware('throttle:5,1')->name('recuperacion.codigo.verificar');
+Route::post('/restablecer-clave', [RecuperacionClaveController::class, 'cambiar'])
+    ->middleware('throttle:5,1')->name('recuperacion.cambiar');
+// Recuperación asistida: solo administradores autenticados (validación también en controlador).
+Route::post('/usuarios/{id}/codigo-recuperacion', [RecuperacionClaveController::class, 'emitirCodigo'])
+    ->whereNumber('id')->middleware('throttle:5,1')->name('usuarios.codigo-recuperacion');
 
 // =====================================================
 // INICIO
