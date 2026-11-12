@@ -20,8 +20,28 @@
         <input type="text"
                name="nombre"
                class="form-control"
-               value="{{ $usuario[0]->nombre }}"
+               value="{{ old('nombre', $usuario[0]->nombre) }}"
                required>
+    </div>
+
+    <div class="mb-3">
+        <label for="cm-user-apellido">Apellido</label>
+        <input id="cm-user-apellido" type="text" name="apellido" class="form-control"
+               value="{{ old('apellido', $usuario[0]->apellido) }}" maxlength="150">
+    </div>
+
+    <div class="mb-3">
+        <label for="cm-user-nacimiento">Fecha de nacimiento</label>
+        <input id="cm-user-nacimiento" type="date" name="fechaNacimiento" class="form-control"
+               value="{{ old('fechaNacimiento', $usuario[0]->fechaNacimiento) }}"
+               max="{{ date('Y-m-d') }}">
+        <small class="text-muted">Edad:
+            @if($usuario[0]->fechaNacimiento)
+                {{ \Carbon\Carbon::parse($usuario[0]->fechaNacimiento)->age }} años
+            @else
+                No registrada
+            @endif
+        </small>
     </div>
 
     <div class="mb-3">
