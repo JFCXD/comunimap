@@ -311,7 +311,7 @@ class DocumentoFormalController extends Controller
         $emblemas = [];
         foreach ([
             'izquierdo' => ['escudo-nuevo.jpg.base64', 'escudo.jpg.base64'],
-            'derecho' => ['logo-nuevo.jpg.base64', 'logo.jpg.base64'],
+            'derecho' => ['logo-otb-real.jpg.base64', 'logo-nuevo.jpg.base64', 'logo.jpg.base64'],
         ] as $lado => $archivos) {
             foreach ($archivos as $archivoNombre) {
                 $archivo = resource_path('otb-documentos/'.$archivoNombre);
@@ -329,7 +329,7 @@ class DocumentoFormalController extends Controller
 
         // El listón se prepara con colores atenuados dentro de la propia imagen.
         $liston = null;
-        $archivoListon = resource_path('otb-documentos/liston-tenue.jpg.base64');
+        $archivoListon = resource_path('otb-documentos/liston-real-difuminado.jpg.base64');
         if (is_file($archivoListon) && filesize($archivoListon) <= 100 * 1024) {
             $codificado = trim((string) file_get_contents($archivoListon));
             $imagen = base64_decode($codificado, true);
