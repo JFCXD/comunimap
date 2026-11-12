@@ -48,6 +48,16 @@
 
                 @endif
 
+                {{-- Código mostrado una sola vez al administrador; nunca se guarda en claro. --}}
+                @if(session('codigo_recuperacion'))
+                    <div class="alert alert-warning" role="status">
+                        <strong>Código temporal para el vecino #{{ session('usuario_recuperacion') }}:</strong>
+                        <code class="d-block my-2" style="overflow-wrap:anywhere">{{ session('codigo_recuperacion') }}</code>
+                        Entrega este código en privado, una vez comprobada su identidad. Caduca en 15 minutos.
+                        No lo compartas en capturas, mensajes públicos ni lo guardes en documentos.
+                    </div>
+                @endif
+
                 {{-- =====================================================
                 USUARIOS PENDIENTES
                 ====================================================== --}}
@@ -143,6 +153,16 @@
                                                         Activar
 
                                                     </a>
+
+                                                    @if($usuario->rol === 'Usuario')
+                                                        <form action="{{ route('usuarios.codigo-recuperacion', ['id' => $usuario->idUsuario]) }}" method="POST" class="d-inline-block" onsubmit="return confirm('¿Ya verificaste presencialmente la identidad de este vecino? El código anterior quedará invalidado.');">
+                                                            @csrf
+                                                            <input type="hidden" name="identidad_verificada" value="1">
+                                                            <button type="submit" class="btn btn-outline-primary btn-sm" title="Generar código de recuperación (solo tras verificar identidad)" aria-label="Código de recuperación para {{ $usuario->nombre }}">
+                                                                <i class="fa-solid fa-key" aria-hidden="true"></i>
+                                                            </button>
+                                                        </form>
+                                                    @endif
 
                                                     <a href="/usuarios/editar/{{ $usuario->idUsuario }}"
                                                         class="btn btn-warning btn-sm">
