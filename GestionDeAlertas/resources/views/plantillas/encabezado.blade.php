@@ -115,9 +115,21 @@
         .page-breadcrumb { padding-top:15px!important; }
       }
 
-      /* Escritorio: menú lateral inmóvil mientras se desplaza el contenido.
-         Se conserva el espacio superior del logo y el menú móvil existente. */
+      /* Escritorio: barra superior (logo y cuenta) y menú anclados.
+         El contenido mantiene sus 60px de separación para no quedar cubierto. */
       @media (min-width:768px) {
+        #main-wrapper[data-layout="vertical"] > .topbar {
+          position:fixed!important;
+          top:0!important;
+          left:0!important;
+          right:0!important;
+          width:100%!important;
+          height:60px!important;
+          z-index:1000!important;
+        }
+        #main-wrapper[data-layout="vertical"] > .page-wrapper {
+          margin-top:60px!important;
+        }
         #main-wrapper[data-layout="vertical"] .left-sidebar {
           position:fixed!important;
           top:0!important;
