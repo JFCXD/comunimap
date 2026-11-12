@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Session;
 
 class RecuperacionClaveController extends Controller
@@ -29,12 +30,20 @@ class RecuperacionClaveController extends Controller
             return back()->with('success', self::MENSAJE);
         }
 
-        $correoHabilitado = !in_array(config('mail.default'), ['log', 'array'], true)
-            && filter_var(config('mail.from.address'), FILTER_VALIDATE_EMAIL)
-            && config('mail.from.address') !== 'hello@example.com';
+        // Railway Hobby bloquea SMTP; Resend utiliza HTTPS sin paquetes adicionales.
+        // El proveedor se elige por variable de entorno; no se exponen credenciales al navegador.
+        $proveedor = config('services.recuperacion_correo.proveedor');
+        if ($proveedor === 'resend') {
+            $correoHabilitado = filled(config('services.resend.key'))
+                && filter_var(config('services.recuperacion_correo.remitente'), FILTER_VALIDATE_EMAIL);
+        } else {
+            $correoHabilitado = !in_array(config('mail.default'), ['log', 'array'], true)
+                && filter_var(config('mail.from.address'), FILTER_VALIDATE_EMAIL)
+                && config('mail.from.address') !== 'hello@example.com';
+        }
 
         if (!$correoHabilitado) {
-            Log::warning('Recuperación ComuniMap: transporte de correo no configurado');
+            Log::warning('ComuniMap: el envío de recuperación no tiene proveedor configurado');
             return back()->with('success', self::MENSAJE);
         }
 
@@ -70,18 +79,39 @@ class RecuperacionClaveController extends Controller
             'token' => $token,
         ]);
         try {
-            Mail::raw(
-                "Se solicitó restablecer la contraseña de ComuniMap.\n\n".
+            $cuerpo = "Se solicitó restablecer la contraseña de ComuniMap.\n\n".
                 "Abre el siguiente enlace en los próximos 15 minutos:\n".$enlace."\n\n".
-                "El enlace solo puede utilizarse una vez. Si no lo solicitaste, ignora este mensaje.",
-                function ($mensaje) use ($usuario) {
-                    $mensaje->to($usuario->email)->subject('ComuniMap - Recuperación de contraseña');
+                "El enlace solo puede utilizarse una vez. Si no lo solicitaste, ignora este mensaje.";
+
+            if ($proveedor === 'resend') {
+                $respuesta = Http::withToken(config('services.resend.key'))
+                    ->acceptJson()->timeout(12)
+                    ->post('https://api.resend.com/emails', [
+                        'from' => 'ComuniMap <'.config('services.recuperacion_correo.remitente').'>',
+                        'to' => [$usuario->email],
+                        'subject' => 'ComuniMap - Recuperación de contraseña',
+                        'text' => $cuerpo,
+                    ]);
+                // La API puede rechazar remitentes sin dominio verificado.
+                if (!$respuesta->successful() || !is_string($respuesta->json('id'))) {
+                    Log::warning('ComuniMap: Resend rechazó el envío de recuperación', [
+                        'http_status' => $respuesta->status(),
+                    ]);
+                    throw new \RuntimeException('Resend no aceptó el correo');
                 }
-            );
+            } else {
+                Mail::raw($cuerpo, function ($mensaje) use ($usuario) {
+                    $mensaje->to($usuario->email)
+                        ->subject('ComuniMap - Recuperación de contraseña');
+                });
+            }
         } catch (\Throwable $e) {
+            // No dejar activo un enlace que no fue aceptado por el proveedor.
             DB::table('recuperaciones_clave')->where('idUsuario', $usuario->idUsuario)
                 ->where('token_hash', hash('sha256', $token))->delete();
-            Log::warning('ComuniMap: el proveedor de correo rechazó una recuperación');
+            Log::warning('ComuniMap: no pudo enviarse un correo de recuperación', [
+                'proveedor' => $proveedor,
+            ]);
         }
 
         return back()->with('success', self::MENSAJE);
