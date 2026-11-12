@@ -5,9 +5,6 @@
 <style>
 @page { margin: 2.05cm 2.1cm 1.95cm; }
 body { font-family: "DejaVu Sans", sans-serif; color:#222; font-size:10.5px; line-height:1.60; }
-.marca-agua { position:fixed; top:6.0cm; left:4.5cm; width:11.0cm; height:auto; z-index:-10; }
-.marca-agua img { width:100%; height:auto; }
-/* El fondo debe ser casi imperceptible y nunca desplazar el texto. */
 .membrete { text-align:center; padding:0 0 8px; margin:0 0 19px; border-bottom:1px solid #262626; color:#163b77; }
 .membrete-tabla { width:100%; border-collapse:collapse; table-layout:fixed; }
 .membrete-logo { width:17%; text-align:center; vertical-align:middle; }
@@ -36,9 +33,6 @@ body { font-family: "DejaVu Sans", sans-serif; color:#222; font-size:10.5px; lin
 </style>
 </head>
 <body>
-@if(!empty($liston))
-<div class="marca-agua" aria-hidden="true"><img src="{{ $liston }}" alt=""></div>
-@endif
 <div class="membrete">
     <table class="membrete-tabla">
         <tr>
