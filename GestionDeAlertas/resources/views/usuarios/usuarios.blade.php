@@ -238,6 +238,9 @@
 
                                             <td>
                                                 {{ trim($usuario->nombre . ' ' . ($usuario->apellido ?? '')) }}
+                                                <small class="d-block text-muted">Edad:
+                                                    {{ $usuario->fechaNacimiento ? \Carbon\Carbon::parse($usuario->fechaNacimiento)->age . ' años' : 'No registrada' }}
+                                                </small>
                                             </td>
 
                                             <td>
