@@ -173,6 +173,9 @@ Route::get(
     [EstadisticasController::class, 'index']
 );
 
+Route::get('/estadisticas/pdf', [EstadisticasController::class, 'exportarPdf'])
+    ->name('estadisticas.pdf');
+
 // COMUNIDAD: lectura para usuarios activos; escritura y publicación solo administrador.
 Route::get('/comunidad', [ComunidadController::class, 'index'])->name('comunidad.index');
 Route::post('/comunidad', [ComunidadController::class, 'guardar'])->name('comunidad.guardar');
