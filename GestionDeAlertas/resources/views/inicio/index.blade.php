@@ -89,7 +89,7 @@
             attribution: '&copy; OpenStreetMap'
         }).addTo(mapa);
         // Límite territorial: el mismo GeoJSON utilizado por la API de ComuniMap.
-        fetch("{{ asset('otb_limite.geojson') }}")
+        fetch("{{ asset('otb_limite.geojson') }}?v={{ substr(sha1_file(public_path('otb_limite.geojson')), 0, 12) }}", { cache: 'no-store' })
             .then(function(respuesta) {
                 if (!respuesta.ok) throw new Error('No se pudo cargar el límite de la OTB');
                 return respuesta.json();
