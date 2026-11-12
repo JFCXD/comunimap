@@ -126,6 +126,10 @@ Route::post(
     [ReportesController::class, 'actualizar']
 );
 
+// CAMBIAR ESTADO DE UN REPORTE INDIVIDUAL (SOLO ADMINISTRADOR)
+Route::post('/reportes/{id}/estado', [ReportesController::class, 'actualizarEstadoIndividual'])
+    ->whereNumber('id')->name('reportes.estado.individual');
+
 // =====================================================
 // CAMBIAR ESTADO DE UN CASO AGRUPADO
 // =====================================================
