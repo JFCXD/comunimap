@@ -14,7 +14,7 @@
     </div>
     <div class="container-fluid">
         <section class="stats-filter-panel" aria-label="Filtros de estadísticas">
-            <div class="stats-section-heading"><div><h3><i class="bi bi-sliders"></i> Filtros</h3><p>Los indicadores y gráficos de reportes se actualizan al aplicar los filtros.</p></div><a class="btn stats-btn-pdf" href="{{ route('estadisticas.pdf', request()->only(['desde', 'hasta', 'categoria', 'estado'])) }}"><i class="bi bi-file-earmark-pdf"></i> Exportar PDF</a></div>
+            <div class="stats-section-heading"><div><h3><i class="bi bi-sliders"></i> Filtros</h3><p>Los indicadores y gráficos de reportes se actualizan al aplicar los filtros.</p></div><a class="btn stats-btn-pdf" href="{{ route('estadisticas.pdf', request()->only(['desde', 'hasta', 'categoria', 'estado'])) }}" target="_blank" rel="noopener noreferrer" title="Abrir vista previa del PDF en otra pestaña"><i class="bi bi-file-earmark-pdf"></i> Vista previa PDF</a></div>
             <form method="GET" action="{{ url('/estadisticas') }}" class="stats-filter-grid">
                 <label>Desde<input class="form-control" type="date" name="desde" value="{{ $desde }}"></label>
                 <label>Hasta<input class="form-control" type="date" name="hasta" value="{{ $hasta }}"></label>
