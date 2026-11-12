@@ -26,7 +26,7 @@ class EstadisticasController extends Controller
 
         return Pdf::loadView('estadisticas.pdf', $datos)
             ->setPaper('a4', 'portrait')
-            ->download('Estadisticas_ComuniMap_' . Carbon::now()->format('Y-m-d') . '.pdf');
+            ->stream('Estadisticas_ComuniMap_' . Carbon::now()->format('Y-m-d') . '.pdf');
     }
 
     public function index(Request $request)
