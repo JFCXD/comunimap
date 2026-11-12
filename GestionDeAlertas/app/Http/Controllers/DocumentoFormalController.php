@@ -311,7 +311,7 @@ class DocumentoFormalController extends Controller
         $emblemas = [];
         foreach ([
             'izquierdo' => ['escudo-nuevo.jpg.base64', 'escudo.jpg.base64'],
-            'derecho' => ['logo-nuevo.jpg.base64', 'logo.jpg.base64'],
+            'derecho' => ['logo-otb.png.base64', 'logo-nuevo.jpg.base64', 'logo.jpg.base64'],
         ] as $lado => $archivos) {
             foreach ($archivos as $archivoNombre) {
                 $archivo = resource_path('otb-documentos/'.$archivoNombre);
@@ -320,8 +320,9 @@ class DocumentoFormalController extends Controller
                 if (!preg_match('~^[A-Za-z0-9+/=]+$~D', $codificado)) continue;
                 $imagen = base64_decode($codificado, true);
                 if (!is_string($imagen) || strlen($imagen) > 100 * 1024) continue;
-                if ((new \finfo(FILEINFO_MIME_TYPE))->buffer($imagen) !== 'image/jpeg') continue;
-                $emblemas[$lado] = 'data:image/jpeg;base64,'.$codificado;
+                 $mime = (new \finfo(FILEINFO_MIME_TYPE))->buffer($imagen);
+                if (!in_array($mime, ['image/jpeg', 'image/png'], true)) continue;
+                $emblemas[$lado] = 'data:'.$mime.';base64,'.$codificado;
                 break;
             }
         }
