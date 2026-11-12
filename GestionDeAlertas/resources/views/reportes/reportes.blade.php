@@ -392,6 +392,27 @@
 
                                                 @endif
 
+                                                @if(session('rol') == 'Administrador')
+                                                    <form method="POST"
+                                                        action="{{ route('reportes.estado.individual', ['id' => $reporte->idReporte]) }}"
+                                                        class="mt-2 d-flex align-items-center gap-1 flex-wrap"
+                                                        aria-label="Cambiar estado del reporte {{ $reporte->idReporte }}">
+                                                        @csrf
+                                                        <select name="estado" class="form-select form-select-sm"
+                                                            style="width: 135px;" required
+                                                            aria-label="Nuevo estado del reporte {{ $reporte->idReporte }}">
+                                                            <option value="Pendiente" {{ $reporte->estado === 'Pendiente' ? 'selected' : '' }}>Pendiente</option>
+                                                            <option value="En Proceso" {{ $reporte->estado === 'En Proceso' ? 'selected' : '' }}>En Proceso</option>
+                                                            <option value="Solucionado" {{ in_array($reporte->estado, ['Solucionado', 'Resuelto']) ? 'selected' : '' }}>Solucionado</option>
+                                                        </select>
+                                                        <button type="submit" class="btn btn-outline-primary btn-sm"
+                                                            title="Guardar nuevo estado del reporte"
+                                                            aria-label="Guardar estado del reporte {{ $reporte->idReporte }}">
+                                                            <i class="fa fa-save" aria-hidden="true"></i>
+                                                        </button>
+                                                    </form>
+                                                @endif
+
                                             </td>
 
                                             {{-- FOTO --}}
