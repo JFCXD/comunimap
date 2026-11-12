@@ -9,7 +9,7 @@
     <label for="id-vecino" class="form-label">Número de usuario (ID)</label>
     <input id="id-vecino" type="number" name="idUsuario" class="form-control mb-3"
            value="{{ old('idUsuario') }}" min="1" step="1" inputmode="numeric"
-           placeholder="Por ejemplo: 19" required>
+           placeholder="Ingresa tu ID aquí" required>
     <p class="text-muted small">El administrador te indicará tu ID cuando te entregue el código.</p>
     <label for="clave-codigo" class="form-label">Código temporal</label>
     <input id="clave-codigo" type="text" name="codigo" class="form-control mb-3"
