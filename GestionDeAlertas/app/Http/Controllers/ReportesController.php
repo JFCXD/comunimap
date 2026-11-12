@@ -582,6 +582,61 @@ class ReportesController extends Controller
 
     /*
     |--------------------------------------------------------------------------
+    | CAMBIAR ESTADO DE UN REPORTE INDIVIDUAL
+    |--------------------------------------------------------------------------
+    | Solo el administrador puede modificar este reporte. No altera
+    | otros reportes coincidentes ni los casos agrupados.
+    */
+    public function actualizarEstadoIndividual(Request $request, $id)
+    {
+        if (!Session::has('idUsuario')) {
+            return redirect('/login');
+        }
+
+        if (Session::get('rol') !== 'Administrador') {
+            abort(403);
+        }
+
+        $datos = $request->validate([
+            'estado' => ['required', 'in:Pendiente,En Proceso,Solucionado'],
+        ]);
+
+        $idReporte = (int) $id;
+        $nuevoEstado = $datos['estado'];
+
+        $idNotificacion = DB::transaction(function () use ($idReporte, $nuevoEstado) {
+            $reporteAnterior = DB::table('reportes')
+                ->where('idReporte', $idReporte)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$reporteAnterior) {
+                throw ValidationException::withMessages([
+                    'reporte' => 'Este reporte ya no existe. Actualiza la página.',
+                ]);
+            }
+
+            if (trim((string) $reporteAnterior->estado) === $nuevoEstado) {
+                return null;
+            }
+
+            DB::table('reportes')
+                ->where('idReporte', $idReporte)
+                ->update(['estado' => $nuevoEstado]);
+
+            return $this->registrarNotificacionEstado($reporteAnterior, $nuevoEstado);
+        }, 3);
+
+        if ($idNotificacion !== null) {
+            $this->enviarPushNotificaciones([$idNotificacion]);
+        }
+
+        return redirect('/reportes')
+            ->with('success', 'Estado del reporte #' . $idReporte . ' actualizado a ' . $nuevoEstado . '.');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
     | NOTIFICACIONES INTERNAS POR CAMBIO DE ESTADO
     |--------------------------------------------------------------------------
     | Reutiliza la tabla de notificaciones de ComuniMap.
