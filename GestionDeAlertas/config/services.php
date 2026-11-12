@@ -34,6 +34,13 @@ return [
         'key' => env('RESEND_API_KEY'),
     ],
 
+    // Solo la recuperación de contraseña elige este proveedor.
+    // No altera los demás correos de Laravel ni el funcionamiento de Android.
+    'recuperacion_correo' => [
+        'proveedor' => env('RECOVERY_MAIL_PROVIDER', 'smtp'),
+        'remitente' => env('RESEND_FROM_ADDRESS', ''),
+    ],
+
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
