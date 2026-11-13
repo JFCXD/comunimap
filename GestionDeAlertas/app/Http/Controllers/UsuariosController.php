@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Validation\Rule;
 
 class UsuariosController extends Controller
 {
@@ -72,10 +73,14 @@ class UsuariosController extends Controller
             'nombre' => ['required', 'string', 'max:100'],
             'apellido' => ['nullable', 'string', 'max:150'],
             'fechaNacimiento' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:today'],
-            'email' => ['required', 'email', 'max:100'],
-            'telefono' => ['nullable', 'string', 'max:20'],
+            'email' => ['required', 'email', 'max:100', Rule::unique('usuarios', 'email')->ignore((int) $id, 'idUsuario')],
+            'telefono' => ['required', 'string', 'regex:/^\\+?[0-9]{7,15}$/', 'max:20'],
             'rol' => ['required', 'in:Administrador,Usuario'],
             'estado' => ['required', 'in:Activo,Inactivo'],
+        ], [
+            'email.unique' => 'Este correo electrónico ya pertenece a otro usuario.',
+            'telefono.required' => 'El teléfono de contacto es obligatorio.',
+            'telefono.regex' => 'El teléfono debe tener entre 7 y 15 dígitos; puede comenzar con +.',
         ]);
 
         $actualizacion = [
@@ -83,7 +88,7 @@ class UsuariosController extends Controller
             'apellido' => isset($datos['apellido']) ? trim($datos['apellido']) : null,
             'fechaNacimiento' => $datos['fechaNacimiento'] ?? null,
             'email' => trim($datos['email']),
-            'telefono' => isset($datos['telefono']) ? trim($datos['telefono']) : null,
+            'telefono' => trim($datos['telefono']),
             'rol' => $datos['rol'],
             'estado' => $datos['estado'],
         ];
