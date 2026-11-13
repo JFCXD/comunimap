@@ -12,6 +12,12 @@
     </p>
 </div>
 
+@if($errors->any())
+    <div class="alert alert-danger" role="alert">
+        <strong>Revisa los datos del usuario:</strong>
+        <ul class="mb-0">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+    </div>
+@endif
 <form action="/usuarios/actualizar/{{ $usuario[0]->idUsuario }}" method="POST">
     @csrf
 
@@ -49,16 +55,18 @@
         <input type="email"
                name="email"
                class="form-control"
-               value="{{ $usuario[0]->email }}"
+               value="{{ old('email', $usuario[0]->email) }}"
                required>
     </div>
 
     <div class="mb-3">
-        <label>Teléfono</label>
-        <input type="text"
+        <label>Teléfono *</label>
+        <input type="tel"
                name="telefono"
                class="form-control"
-               value="{{ $usuario[0]->telefono }}">
+               value="{{ old('telefono', $usuario[0]->telefono) }}"
+               inputmode="tel" pattern="\\+?[0-9]{7,15}" maxlength="20" required>
+        <small class="text-muted">Obligatorio: de 7 a 15 dígitos, con + opcional al principio.</small>
     </div>
 
     <div class="mb-3">
