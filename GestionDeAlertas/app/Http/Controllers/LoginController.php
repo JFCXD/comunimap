@@ -16,6 +16,17 @@ class LoginController extends Controller
 
     public function ingresar(Request $request)
     {
+        // Validar credenciales antes de invocar reCAPTCHA y consultar MySQL.
+        // No se modifica la autenticación ni la gestión de la sesión existente.
+        $datos = $request->validate([
+            'email' => ['required', 'email', 'max:190'],
+            'password' => ['required', 'string', 'max:72'],
+        ], [
+            'email.required' => 'Ingresa tu correo electrónico.',
+            'email.email' => 'Ingresa un correo válido.',
+            'password.required' => 'Ingresa tu contraseña.',
+        ]);
+
         // =====================================================
         // VERIFICAR reCAPTCHA
         // =====================================================
@@ -55,8 +66,8 @@ class LoginController extends Controller
               AND password = ?
             LIMIT 1
         ", [
-            trim($request->email),
-            sha1($request->password)
+            trim($datos['email']),
+            sha1($datos['password'])
         ]);
 
         // =====================================================
