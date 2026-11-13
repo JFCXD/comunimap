@@ -189,7 +189,7 @@ class AlertasController extends Controller
                     'idUsuario' => (int) $idAdmin,
                     'idReporte' => $idReporte,
                     'titulo' => 'Nuevo reporte',
-                    'mensaje' => mb_substr('Se registró un nuevo reporte en ComuniMap: ' . trim($request->titulo), 0, 255),
+                    'mensaje' => mb_substr('Se registró un nuevo reporte en ComuniMap: ' . trim($datos['titulo']), 0, 255),
                     'tipo' => 'NUEVO_REPORTE',
                     'leida' => 0,
                 ], 'idNotificacion');
