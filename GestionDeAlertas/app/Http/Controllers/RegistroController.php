@@ -27,6 +27,7 @@ class RegistroController extends Controller
             'nombre.min' => 'El nombre debe tener al menos 2 caracteres.',
             'apellido.required' => 'Ingresa tu apellido.',
             'fechaNacimiento.required' => 'Ingresa tu fecha de nacimiento.',
+            'fechaNacimiento.date_format' => 'Selecciona una fecha de nacimiento real y válida (día, mes y año).',
             'fechaNacimiento.before_or_equal' => 'La fecha de nacimiento no puede estar en el futuro.',
             'telefono.required' => 'Ingresa un número de teléfono de contacto.',
             'telefono.regex' => 'Ingresa un teléfono válido: de 7 a 15 dígitos, con + opcional al inicio.',
