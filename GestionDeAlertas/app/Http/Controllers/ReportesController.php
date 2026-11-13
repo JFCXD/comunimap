@@ -923,6 +923,7 @@ class ReportesController extends Controller
 
         $imagen = $reporte[0]->imagen;
         $imagenAnterior = null;
+        $nuevaImagen = null;
 
         if ($request->hasFile('imagen')) {
             $nuevaImagen = $request->file('imagen')->store('reportes', 'public');
@@ -961,8 +962,8 @@ class ReportesController extends Controller
             }, 3);
         } catch (\Throwable $e) {
             // No conservar archivos huérfanos si falla la actualización en MySQL.
-            if ($imagenAnterior && $imagen !== $imagenAnterior) {
-                Storage::disk('public')->delete($imagen);
+            if ($nuevaImagen !== null) {
+                Storage::disk('public')->delete($nuevaImagen);
             }
             throw $e;
         }
