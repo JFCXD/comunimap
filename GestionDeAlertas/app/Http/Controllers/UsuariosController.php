@@ -44,6 +44,9 @@ class UsuariosController extends Controller
 
     public function editar($id)
     {
+        if (!Session::has('idUsuario')) {
+            return redirect('/login');
+        }
         if (Session::get('rol') != 'Administrador') {
             return redirect('/inicio');
         }
@@ -53,6 +56,10 @@ class UsuariosController extends Controller
             FROM usuarios
             WHERE idUsuario = ?
         ", [$id]);
+
+        if (count($usuario) === 0) {
+            abort(404);
+        }
 
         return view(
             'usuarios.editaru',
@@ -68,6 +75,9 @@ class UsuariosController extends Controller
         if (Session::get('rol') !== 'Administrador') {
             return redirect('/inicio');
         }
+
+        abort_unless(ctype_digit((string) $id) && (int) $id > 0, 404);
+        abort_unless(DB::table('usuarios')->where('idUsuario', $id)->exists(), 404);
 
         $datos = $request->validate([
             'nombre' => ['required', 'string', 'max:100'],
@@ -113,6 +123,9 @@ class UsuariosController extends Controller
             return redirect('/inicio');
         }
 
+        abort_unless(ctype_digit((string) $id) && (int) $id > 0, 404);
+        abort_unless(DB::table('usuarios')->where('idUsuario', $id)->exists(), 404);
+
         DB::update("
             UPDATE usuarios
             SET estado = 'Activo'
@@ -135,6 +148,9 @@ class UsuariosController extends Controller
         if (Session::get('rol') != 'Administrador') {
             return redirect('/inicio');
         }
+
+        abort_unless(ctype_digit((string) $id) && (int) $id > 0, 404);
+        abort_unless(DB::table('usuarios')->where('idUsuario', $id)->exists(), 404);
 
         DB::delete("
             DELETE FROM usuarios
