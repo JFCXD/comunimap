@@ -162,7 +162,7 @@ class AlertasController extends Controller
         // =====================================================
 
         // Guardar reporte y avisos internos juntos para evitar registros incompletos.
-        $idsAvisos = DB::transaction(function () use ($request, $ubicacion, $latitud, $longitud, $rutaImagen) {
+        $idsAvisos = DB::transaction(function () use ($datos, $ubicacion, $latitud, $longitud, $rutaImagen) {
             $idReporte = DB::table('reportes')->insertGetId([
                 'titulo' => trim($datos['titulo']),
                 'descripcion' => trim($datos['descripcion']),
