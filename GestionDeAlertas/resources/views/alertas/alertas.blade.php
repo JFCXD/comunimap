@@ -20,6 +20,12 @@
                 </div>
             </div>
             <div class="container-fluid">
+                @if($errors->any())
+                    <div class="alert alert-danger" role="alert">
+                        <strong>Revisa los datos del reporte:</strong>
+                        <ul class="mb-0 mt-1">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+                    </div>
+                @endif
                 <div class="row g-3 align-items-start">
                     <!-- MAPA -->
                     <div class="col-12 col-lg-7">
@@ -43,15 +49,15 @@
                                     @csrf
                                     <div class="mb-3">
                                         <label class="form-label fw-semibold">Título</label>
-                                        <input type="text" name="titulo" class="form-control" required>
+                                        <input type="text" name="titulo" class="form-control" value="{{ old('titulo') }}" minlength="3" maxlength="150" required>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label fw-semibold">Descripción</label>
-                                        <textarea name="descripcion" class="form-control" rows="4" required></textarea>
+                                        <textarea name="descripcion" class="form-control" rows="4" minlength="10" maxlength="3000" required>{{ old('descripcion') }}</textarea>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label fw-semibold">Dirección</label>
-                                        <input type="text" name="direccion" class="form-control" required>
+                                        <input type="text" name="direccion" class="form-control" value="{{ old('direccion') }}" minlength="3" maxlength="255" required>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label fw-semibold">Categoría</label>
@@ -66,7 +72,8 @@
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label fw-semibold">Foto del problema</label>
-                                        <input type="file" name="imagen" class="form-control" accept="image/*">
+                                        <input type="file" name="imagen" class="form-control" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
+                                        <small class="form-text text-muted">JPG, PNG o WEBP; máximo 4 MB.</small>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label fw-semibold">Ubicación</label>
