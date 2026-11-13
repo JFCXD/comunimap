@@ -39,9 +39,10 @@
                 value="{{ old('email') }}" autocomplete="email" required>
         </div>
         <div class="mb-3">
-            <label for="cm-reg-telefono" class="form-label">Teléfono (opcional)</label>
+            <label for="cm-reg-telefono" class="form-label">Teléfono *</label>
             <input id="cm-reg-telefono" type="tel" name="telefono" class="form-control"
-                value="{{ old('telefono') }}" autocomplete="tel">
+                value="{{ old('telefono') }}" autocomplete="tel" inputmode="tel" pattern="\+?[0-9]{7,15}" maxlength="20" required>
+            <small class="form-text text-muted">Entre 7 y 15 dígitos; puedes anteponer + y el código de país. Sin espacios ni guiones.</small>
         </div>
         <div class="mb-3">
             <label for="cm-reg-pass" class="form-label">Contraseña</label>
