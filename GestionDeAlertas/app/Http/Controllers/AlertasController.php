@@ -32,11 +32,32 @@ class AlertasController extends Controller
             return redirect('/login');
         }
 
+        // Validar en el servidor: no confiar únicamente en los campos HTML.
+        // Los límites corresponden a los formularios de reportes de ComuniMap.
+        $datos = $request->validate([
+            'titulo' => ['required', 'string', 'min:3', 'max:150'],
+            'descripcion' => ['required', 'string', 'min:10', 'max:3000'],
+            'direccion' => ['required', 'string', 'min:3', 'max:255'],
+            'idCategoria' => ['required', 'integer', 'exists:categorias,idCategoria'],
+            'ubicacion' => ['required', 'string', 'max:100'],
+            'imagen' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+        ], [
+            'titulo.required' => 'Ingresa el título del problema.',
+            'titulo.min' => 'El título debe tener al menos 3 caracteres.',
+            'descripcion.required' => 'Describe el problema.',
+            'descripcion.min' => 'La descripción debe tener al menos 10 caracteres.',
+            'direccion.required' => 'Ingresa una dirección o referencia.',
+            'idCategoria.exists' => 'Selecciona una categoría válida.',
+            'ubicacion.required' => 'Selecciona la ubicación en el mapa.',
+            'imagen.image' => 'La evidencia debe ser una imagen válida.',
+            'imagen.max' => 'La fotografía no debe superar 4 MB.',
+        ]);
+
         // =====================================================
         // DATOS DE UBICACIÓN
         // =====================================================
 
-        $ubicacion = trim($request->ubicacion);
+        $ubicacion = trim($datos['ubicacion']);
 
         $latitud = null;
         $longitud = null;
@@ -143,16 +164,16 @@ class AlertasController extends Controller
         // Guardar reporte y avisos internos juntos para evitar registros incompletos.
         $idsAvisos = DB::transaction(function () use ($request, $ubicacion, $latitud, $longitud, $rutaImagen) {
             $idReporte = DB::table('reportes')->insertGetId([
-                'titulo' => trim($request->titulo),
-                'descripcion' => trim($request->descripcion),
+                'titulo' => trim($datos['titulo']),
+                'descripcion' => trim($datos['descripcion']),
                 'ubicacion' => $ubicacion,
                 'latitud' => $latitud,
                 'longitud' => $longitud,
-                'direccion' => $request->direccion,
+                'direccion' => trim($datos['direccion']),
                 'estado' => 'Pendiente',
                 'prioridad' => null,
                 'idUsuario' => Session::get('idUsuario'),
-                'idCategoria' => $request->idCategoria,
+                'idCategoria' => (int) $datos['idCategoria'],
                 'imagen' => $rutaImagen,
             ], 'idReporte');
 
