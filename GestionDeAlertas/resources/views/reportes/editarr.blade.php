@@ -30,6 +30,12 @@
                     <h4 class="card-title mb-4">
                         Editar Reporte
                     </h4>
+                    @if($errors->any())
+                        <div class="alert alert-danger" role="alert">
+                            <strong>Revisa los datos del reporte:</strong>
+                            <ul class="mb-0 mt-1">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+                        </div>
+                    @endif
                     <form action="/reportes/actualizar/{{ $reporte[0]->idReporte }}"
                             method="POST"
                             enctype="multipart/form-data">
@@ -39,7 +45,7 @@
                             <input type="text"
                                     name="titulo"
                                     class="form-control"
-                                    value="{{ $reporte[0]->titulo }}"
+                                    value="{{ old('titulo', $reporte[0]->titulo) }}" minlength="3" maxlength="150"
                                     required>
                         </div>
                         <div class="mb-3">
@@ -48,7 +54,8 @@
                                 name="descripcion"
                                 class="form-control"
                                 rows="4"
-                                required>{{ $reporte[0]->descripcion }}</textarea>
+                                minlength="10" maxlength="3000"
+                                required>{{ old('descripcion', $reporte[0]->descripcion) }}</textarea>
                         </div>
 
                         <div class="mb-3">
@@ -56,7 +63,7 @@
                             <input type="text"
                                     name="direccion"
                                     class="form-control"
-                                    value="{{ $reporte[0]->direccion }}"
+                                    value="{{ old('direccion', $reporte[0]->direccion) }}" minlength="3" maxlength="255"
                                     required>
                         </div>
                         <div class="mb-3">
@@ -65,7 +72,7 @@
                                 @foreach($categorias as $categoria)
                                     <option
                                         value="{{ $categoria->idCategoria }}"
-                                        {{ $categoria->idCategoria == $reporte[0]->idCategoria ? 'selected' : '' }}>
+                                        {{ $categoria->idCategoria == old('idCategoria', $reporte[0]->idCategoria) ? 'selected' : '' }}>
                                         {{ $categoria->nombre }}
                                     </option>
                                 @endforeach
@@ -75,15 +82,15 @@
                             <label>Estado</label>
                             <select name="estado" class="form-control">
                                 <option value="Pendiente"
-                                    {{ $reporte[0]->estado=='Pendiente' ? 'selected':'' }}>
+                                    {{ old('estado', $reporte[0]->estado)=='Pendiente' ? 'selected':'' }}>
                                     Pendiente
                                 </option>
                                 <option value="En Proceso"
-                                    {{ $reporte[0]->estado=='En Proceso' ? 'selected':'' }}>
+                                    {{ old('estado', $reporte[0]->estado)=='En Proceso' ? 'selected':'' }}>
                                     En Proceso
                                 </option>
                                 <option value="Solucionado"
-                                    {{ in_array($reporte[0]->estado, ['Solucionado', 'Resuelto'], true) ? 'selected':'' }}>
+                                    {{ in_array(old('estado', $reporte[0]->estado), ['Solucionado', 'Resuelto'], true) ? 'selected':'' }}>
                                     Solucionado
                                 </option>
                             </select>
@@ -103,7 +110,8 @@
                             <label>Nueva foto (opcional)</label>
                             <input type="file"
                                    name="imagen"
-                                   class="form-control">
+                                   class="form-control" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
+                            <small class="text-muted">JPG, PNG o WEBP, hasta 5 MB.</small>
                         </div>
                         <button class="btn btn-success">
                             Actualizar Reporte
