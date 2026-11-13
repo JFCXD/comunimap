@@ -15,7 +15,7 @@ class RegistroController extends Controller
     public function guardar(Request $request)
     {
         $datos = $request->validate([
-            'nombre' => ['required', 'string', 'max:100'],
+            'nombre' => ['required', 'string', 'min:2', 'max:100'],
             'apellido' => ['required', 'string', 'max:150'],
             'fechaNacimiento' => ['required', 'date_format:Y-m-d', 'before_or_equal:today'],
             'email' => ['required', 'email', 'max:190'],
@@ -24,6 +24,7 @@ class RegistroController extends Controller
             'confirmar' => ['required', 'same:password'],
         ], [
             'nombre.required' => 'Ingresa tu nombre.',
+            'nombre.min' => 'El nombre debe tener al menos 2 caracteres.',
             'apellido.required' => 'Ingresa tu apellido.',
             'fechaNacimiento.required' => 'Ingresa tu fecha de nacimiento.',
             'fechaNacimiento.before_or_equal' => 'La fecha de nacimiento no puede estar en el futuro.',
