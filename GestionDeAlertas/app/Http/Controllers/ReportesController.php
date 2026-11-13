@@ -907,35 +907,31 @@ class ReportesController extends Controller
             return redirect('/reportes');
         }
 
+        // Validar todos los campos antes de subir una fotografía o alterar datos.
+        $datos = $request->validate([
+            'titulo' => ['required', 'string', 'min:3', 'max:150'],
+            'descripcion' => ['required', 'string', 'min:10', 'max:3000'],
+            'direccion' => ['required', 'string', 'min:3', 'max:255'],
+            'idCategoria' => ['required', 'integer', 'exists:categorias,idCategoria'],
+            'estado' => ['required', 'in:Pendiente,En Proceso,Solucionado'],
+            'imagen' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+        ], [
+            'idCategoria.exists' => 'Selecciona una categoría válida.',
+            'imagen.image' => 'La evidencia debe ser una imagen válida.',
+            'imagen.max' => 'La imagen no debe superar 5 MB.',
+        ]);
+
         $imagen = $reporte[0]->imagen;
         $imagenAnterior = null;
 
         if ($request->hasFile('imagen')) {
-
-            $request->validate([
-                'imagen' => [
-                    'image',
-                    'mimes:jpg,jpeg,png,webp',
-                    'max:5120'
-                ]
-            ]);
-
-            $nuevaImagen = $request
-                ->file('imagen')
-                ->store('reportes', 'public');
-
+            $nuevaImagen = $request->file('imagen')->store('reportes', 'public');
             $imagenAnterior = $imagen;
             $imagen = $nuevaImagen;
         }
 
-        $request->validate([
-            'estado' => [
-                'required',
-                'in:Pendiente,En Proceso,Solucionado'
-            ]
-        ]);
-
-        $idNotificacion = DB::transaction(function () use ($request, $id, $imagen) {
+        try {
+            $idNotificacion = DB::transaction(function () use ($datos, $id, $imagen) {
             $reporteAnterior = DB::table('reportes')
                 ->where('idReporte', $id)
                 ->lockForUpdate()
@@ -950,19 +946,26 @@ class ReportesController extends Controller
             DB::table('reportes')
                 ->where('idReporte', $id)
                 ->update([
-                    'titulo' => $request->titulo,
-                    'descripcion' => $request->descripcion,
-                    'direccion' => $request->direccion,
-                    'estado' => $request->estado,
-                    'idCategoria' => $request->idCategoria,
+                    'titulo' => trim($datos['titulo']),
+                    'descripcion' => trim($datos['descripcion']),
+                    'direccion' => trim($datos['direccion']),
+                    'estado' => $datos['estado'],
+                    'idCategoria' => (int) $datos['idCategoria'],
                     'imagen' => $imagen
                 ]);
 
             return $this->registrarNotificacionEstado(
                 $reporteAnterior,
-                $request->estado
+                $datos['estado']
             );
-        }, 3);
+            }, 3);
+        } catch (\Throwable $e) {
+            // No conservar archivos huérfanos si falla la actualización en MySQL.
+            if ($imagenAnterior && $imagen !== $imagenAnterior) {
+                Storage::disk('public')->delete($imagen);
+            }
+            throw $e;
+        }
 
         if ($idNotificacion !== null) {
             $this->enviarPushNotificaciones([$idNotificacion]);
