@@ -19,6 +19,10 @@ body { font-family: "DejaVu Sans", sans-serif; color:#222; font-size:10.5px; lin
 .ref { margin:12px 0 22px 36px; font-size:10.5px; font-weight:700; text-transform:uppercase; }
 .saludo { margin:0 0 14px; }
 .parrafo { margin:0 0 17px; text-align:justify; white-space:pre-line; overflow-wrap:break-word; }
+.parrafo.formateado { white-space:normal; }
+.parrafo.formateado div { margin-bottom:5px; }
+.parrafo.formateado ul,.parrafo.formateado ol { margin:4px 0 12px; padding-left:22px; }
+.parrafo.formateado li { margin:2px 0; }
 .cierre { margin-top:13px; }
 .firma { text-align:center; margin:55px auto 0; width:350px; page-break-inside:avoid; }
 .raya { border-top:1px dotted #333; width:260px; margin:0 auto 6px; }
@@ -66,8 +70,16 @@ body { font-family: "DejaVu Sans", sans-serif; color:#222; font-size:10.5px; lin
 </div>
 <div class="ref">REF.: {{ $datos['asunto'] }}</div>
 <p class="saludo">De nuestra consideración:</p>
+@if(!empty($formatoCarta['antecedentes']))
+<div class="parrafo formateado">{!! $formatoCarta['antecedentes'] !!}</div>
+@else
 <div class="parrafo">{{ $datos['antecedentes'] }}</div>
+@endif
+@if(!empty($formatoCarta['solicitud']))
+<div class="parrafo formateado">{!! $formatoCarta['solicitud'] !!}</div>
+@else
 <div class="parrafo">{{ $datos['solicitud'] }}</div>
+@endif
 <p class="cierre">Agradeciendo su atención, nos despedimos con las consideraciones más distinguidas.</p>
 <p>Atentamente,</p>
 <div class="firma">
