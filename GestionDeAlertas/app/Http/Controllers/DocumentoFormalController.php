@@ -266,6 +266,7 @@ class DocumentoFormalController extends Controller
             'reportes' => ['required', 'array', 'min:1', 'max:30'],
             'reportes.*' => ['required'],
             'fecha' => ['required', 'date_format:Y-m-d'],
+            'lugar_emision' => ['nullable', 'string', 'max:120'],
             'destinatario' => ['required', 'string', 'max:180'],
             'cargo_destinatario' => ['nullable', 'string', 'max:180'],
             'institucion' => ['required', 'string', 'max:180'],
