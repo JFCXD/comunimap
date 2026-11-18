@@ -72,7 +72,7 @@ body { font-family: "DejaVu Sans", sans-serif; color:#222; font-size:10.5px; lin
     @if(!empty($formatoCarta['presente'])){!! $formatoCarta['presente'] !!}@else{{ $datos['presente'] ?? 'Presente.-' }}@endif
 </div>
 <div class="ref">@if(!empty($formatoCarta['referencia_etiqueta'])){!! $formatoCarta['referencia_etiqueta'] !!}@else{{ $datos['referencia_etiqueta'] ?? 'REF.:' }}@endif {{ $datos['asunto'] }}</div>
-<p class="saludo">@if(!empty($formatoCarta['saludo'])){!! $formatoCarta['saludo'] !!}@else{{ $datos['saludo'] ?? 'De nuestra consideración:' }}@endif</p>
+<div class="saludo">@if(!empty($formatoCarta['saludo'])){!! $formatoCarta['saludo'] !!}@else{{ $datos['saludo'] ?? 'De nuestra consideración:' }}@endif</div>
 @if(!empty($formatoCarta['antecedentes']))
 <div class="parrafo formateado">{!! $formatoCarta['antecedentes'] !!}</div>
 @else
@@ -83,8 +83,8 @@ body { font-family: "DejaVu Sans", sans-serif; color:#222; font-size:10.5px; lin
 @else
 <div class="parrafo">{{ $datos['solicitud'] }}</div>
 @endif
-<p class="cierre">@if(!empty($formatoCarta['despedida'])){!! $formatoCarta['despedida'] !!}@else{{ $datos['despedida'] ?? 'Agradeciendo su atención, nos despedimos con las consideraciones más distinguidas.' }}@endif</p>
-<p>@if(!empty($formatoCarta['atentamente'])){!! $formatoCarta['atentamente'] !!}@else{{ $datos['atentamente'] ?? 'Atentamente,' }}@endif</p>
+<div class="cierre">@if(!empty($formatoCarta['despedida'])){!! $formatoCarta['despedida'] !!}@else{{ $datos['despedida'] ?? 'Agradeciendo su atención, nos despedimos con las consideraciones más distinguidas.' }}@endif</div>
+<div class="saludo">@if(!empty($formatoCarta['atentamente'])){!! $formatoCarta['atentamente'] !!}@else{{ $datos['atentamente'] ?? 'Atentamente,' }}@endif</div>
 <div class="firma">
     <div class="raya"></div>
     <strong>{{ $datos['remitente'] }}</strong><br>
