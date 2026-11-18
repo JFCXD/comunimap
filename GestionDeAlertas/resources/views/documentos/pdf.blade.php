@@ -56,7 +56,7 @@ body { font-family: "DejaVu Sans", sans-serif; color:#222; font-size:10.5px; lin
         </tr>
     </table>
 </div>
-<div class="fecha">Cochabamba, {{ \Carbon\Carbon::parse($datos['fecha'])->locale('es')->translatedFormat('d \d\e F \d\e Y') }}</div>
+<div class="fecha">{{ trim((string) ($datos['lugar_emision'] ?? '')) ?: 'Cochabamba' }}, {{ \Carbon\Carbon::parse($datos['fecha'])->locale('es')->translatedFormat('d \d\e F \d\e Y') }}</div>
 <div class="destinatario">
     Señor(a):<br>
     <strong>{{ $datos['destinatario'] }}</strong><br>
