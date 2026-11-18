@@ -133,7 +133,9 @@
             <a href="{{ url('/reportes') }}" class="btn btn-outline-secondary">Cancelar</a>
         </div>
 
-        {{-- La edición de la hoja actualiza los mismos campos del formulario: sin nuevas rutas ni tablas. --}}
+        {{-- El PDF recibe el formato de los párrafos por separado; el controlador sanea el HTML. --}}
+        <input type="hidden" id="cmFormatoAntecedentes" name="antecedentes_html" value="">
+        <input type="hidden" id="cmFormatoSolicitud" name="solicitud_html" value="">
         <dialog id="cmEditorCarta" class="cm-editor-dialog" aria-labelledby="cmEditorTitulo">
             <div class="cm-editor-topbar">
                 <div>
@@ -142,10 +144,24 @@
                 </div>
                 <button type="button" id="cmCerrarEditorCarta" class="btn btn-sm btn-outline-secondary">Cerrar editor</button>
             </div>
-            <div class="cm-editor-herramientas" role="toolbar" aria-label="Herramientas del editor">
+            <div class="cm-editor-herramientas" role="toolbar" aria-label="Herramientas de formato de Word">
+                <select id="cmEditorTamano" class="form-select form-select-sm cm-editor-select" aria-label="Tamaño de letra">
+                    <option value="3">Normal</option>
+                    <option value="2">Pequeño</option>
+                    <option value="4">Mediano</option>
+                    <option value="5">Grande</option>
+                </select>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-cm-formato="bold" title="Negrita (Ctrl+B)"><b>N</b></button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-cm-formato="italic" title="Cursiva (Ctrl+I)"><i>C</i></button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-cm-formato="underline" title="Subrayado (Ctrl+U)"><u>S</u></button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-cm-formato="justifyLeft" title="Alinear a la izquierda">Izquierda</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-cm-formato="justifyCenter" title="Centrar">Centro</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-cm-formato="justifyRight" title="Alinear a la derecha">Derecha</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-cm-formato="justifyFull" title="Justificar">Justificar</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-cm-formato="insertUnorderedList" title="Lista con viñetas">• Lista</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-cm-formato="insertOrderedList" title="Lista numerada">1. Lista</button>
                 <button type="button" class="btn btn-sm btn-outline-secondary" id="cmDeshacerEditor">Deshacer</button>
                 <button type="button" class="btn btn-sm btn-outline-secondary" id="cmRehacerEditor">Rehacer</button>
-                <span class="small text-muted">Edición de texto sin cambiar el membrete oficial</span>
             </div>
             <div class="cm-editor-desplazamiento">
                 <article class="cm-editor-hoja" aria-label="Carta editable tamaño A4">
@@ -203,6 +219,9 @@
 .cm-editor-topbar,.cm-editor-herramientas,.cm-editor-acciones { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:12px 18px; background:white; }
 .cm-editor-topbar { border-bottom:1px solid #e2e8f0; }
 .cm-editor-herramientas { justify-content:flex-start; border-bottom:1px solid #e2e8f0; flex-wrap:wrap; }
+.cm-editor-select { width:auto; max-width:125px; }
+.cm-editor-parrafo ul,.cm-editor-parrafo ol { padding-left:24px; }
+.cm-editor-parrafo p,.cm-editor-parrafo div { margin:0 0 8px; }
 .cm-editor-acciones { border-top:1px solid #e2e8f0; flex-wrap:wrap; }
 .cm-editor-desplazamiento { padding:24px 12px; overflow:auto; max-height:calc(96vh - 190px); }
 .cm-editor-hoja { background:#fff; width:210mm; min-height:297mm; padding:20mm 21mm; margin:auto; box-shadow:0 4px 17px #0002; font:14px/1.65 Georgia,"Times New Roman",serif; color:#222; box-sizing:border-box; }
@@ -230,6 +249,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const abrirEditor = document.getElementById('cmAbrirEditorCarta');
     const cerrarEditor = document.getElementById('cmCerrarEditorCarta');
     const ediciones = Array.from(editor.querySelectorAll('[data-cm-campo]'));
+    const formatoOculto = { antecedentes: document.getElementById('cmFormatoAntecedentes'), solicitud: document.getElementById('cmFormatoSolicitud') };
+    const editableTexto = function (nodo) { return nodo && nodo.isContentEditable && ['antecedentes','solicitud'].includes(nodo.dataset.cmCampo); };
+    let ultimoTextoActivo = null;
+    let restaurandoFormato = false;
     const historialEditor = [];
     let indiceHistorial = -1;
     let cargandoEditor = false;
@@ -247,8 +270,16 @@ document.addEventListener('DOMContentLoaded', function () {
         cargandoEditor = true;
         ediciones.forEach(function (elemento) {
             const valor = valores[elemento.dataset.cmCampo] || '';
-            if (elemento.isContentEditable) elemento.innerText = valor;
-            else elemento.value = valor;
+            if (elemento.isContentEditable) {
+                const oculto = formatoOculto[elemento.dataset.cmCampo];
+                const textoOriginal = document.getElementById(elemento.dataset.cmCampo);
+                if (oculto && oculto.value && oculto.dataset.texto === textoOriginal.value) {
+                    elemento.innerHTML = oculto.value;
+                } else {
+                    elemento.innerText = valor;
+                    if (oculto) oculto.value = '';
+                }
+            } else elemento.value = valor;
         });
         cargandoEditor = false;
     }
@@ -280,11 +311,18 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     cerrarEditor.addEventListener('click', function () { editor.close(); });
     ediciones.forEach(function (elemento) {
+        elemento.addEventListener('focus', function () {
+            if (editableTexto(elemento)) ultimoTextoActivo = elemento;
+        });
         elemento.addEventListener('input', function () {
             if (cargandoEditor) return;
             const origen = document.getElementById(elemento.dataset.cmCampo);
             if (!origen) return;
             origen.value = elemento.isContentEditable ? elemento.innerText : elemento.value;
+            if (editableTexto(elemento)) {
+                formatoOculto[elemento.dataset.cmCampo].value = elemento.innerHTML;
+                formatoOculto[elemento.dataset.cmCampo].dataset.texto = origen.value;
+            }
             guardarVersion();
         });
         // Los campos de una línea no deben insertar saltos.
@@ -293,6 +331,34 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (evento.key === 'Enter') evento.preventDefault();
             });
         }
+    });
+    // Controles de formato nativos del navegador. Solo actúan sobre los dos
+    // párrafos editables, nunca sobre el membrete ni sobre otros formularios.
+    editor.querySelectorAll('[data-cm-formato]').forEach(function (boton) {
+        boton.addEventListener('mousedown', function (evento) { evento.preventDefault(); });
+        boton.addEventListener('click', function () {
+            if (!editableTexto(ultimoTextoActivo)) return;
+            ultimoTextoActivo.focus();
+            document.execCommand(boton.dataset.cmFormato, false, null);
+            ultimoTextoActivo.dispatchEvent(new Event('input', { bubbles:true }));
+        });
+    });
+    const tamanoEditor = document.getElementById('cmEditorTamano');
+    tamanoEditor.addEventListener('mousedown', function () {
+        // El navegador mantiene la selección mientras se elige un tamaño.
+    });
+    tamanoEditor.addEventListener('change', function () {
+        if (!editableTexto(ultimoTextoActivo)) return;
+        ultimoTextoActivo.focus();
+        document.execCommand('fontSize', false, tamanoEditor.value);
+        ultimoTextoActivo.dispatchEvent(new Event('input', { bubbles:true }));
+    });
+    ['antecedentes', 'solicitud'].forEach(function (campo) {
+        document.getElementById(campo).addEventListener('input', function () {
+            if (editor.open) return;
+            formatoOculto[campo].value = '';
+            formatoOculto[campo].dataset.texto = '';
+        });
     });
     document.getElementById('cmDeshacerEditor').addEventListener('click', function () { restaurarVersion(indiceHistorial - 1); });
     document.getElementById('cmRehacerEditor').addEventListener('click', function () { restaurarVersion(indiceHistorial + 1); });
