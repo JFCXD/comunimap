@@ -151,6 +151,20 @@
         {{-- El PDF recibe el formato de los párrafos por separado; el controlador sanea el HTML. --}}
         <input type="hidden" id="cmFormatoAntecedentes" name="antecedentes_html" value="">
         <input type="hidden" id="cmFormatoSolicitud" name="solicitud_html" value="">
+        <input type="hidden" id="membrete_titulo_html" name="membrete_titulo_html" value="">
+        <input type="hidden" id="membrete_prefectural_html" name="membrete_prefectural_html" value="">
+        <input type="hidden" id="membrete_municipal_html" name="membrete_municipal_html" value="">
+        <input type="hidden" id="membrete_registro_html" name="membrete_registro_html" value="">
+        <input type="hidden" id="membrete_zona_html" name="membrete_zona_html" value="">
+        <input type="hidden" id="tratamiento_html" name="tratamiento_html" value="">
+        <input type="hidden" id="presente_html" name="presente_html" value="">
+        <input type="hidden" id="referencia_etiqueta_html" name="referencia_etiqueta_html" value="">
+        <input type="hidden" id="saludo_html" name="saludo_html" value="">
+        <input type="hidden" id="despedida_html" name="despedida_html" value="">
+        <input type="hidden" id="atentamente_html" name="atentamente_html" value="">
+        <input type="hidden" id="firma_otb_html" name="firma_otb_html" value="">
+        <input type="hidden" id="sello_etiqueta_html" name="sello_etiqueta_html" value="">
+        <input type="hidden" id="pie_carta_html" name="pie_carta_html" value="">
         <dialog id="cmEditorCarta" class="cm-editor-dialog" aria-labelledby="cmEditorTitulo">
             <div class="cm-editor-topbar">
                 <div>
@@ -270,6 +284,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const cerrarEditor = document.getElementById('cmCerrarEditorCarta');
     const ediciones = Array.from(editor.querySelectorAll('[data-cm-campo]'));
     const formatoOculto = { antecedentes: document.getElementById('cmFormatoAntecedentes'), solicitud: document.getElementById('cmFormatoSolicitud') };
+    ["membrete_titulo","membrete_prefectural","membrete_municipal","membrete_registro","membrete_zona","tratamiento","presente","referencia_etiqueta","saludo","despedida","atentamente","firma_otb","sello_etiqueta","pie_carta"].forEach(function (campo) {
+        formatoOculto[campo] = document.getElementById(campo + '_html');
+    });
     const editableTexto = function (nodo) { return nodo && nodo.isContentEditable; };
     let ultimoTextoActivo = null;
     let restaurandoFormato = false;
@@ -307,10 +324,9 @@ document.addEventListener('DOMContentLoaded', function () {
         if (cargandoEditor) return;
         const valor = JSON.stringify({
             campos: valoresCarta(),
-            html: {
-                antecedentes: formatoOculto.antecedentes.value,
-                solicitud: formatoOculto.solicitud.value
-            }
+            html: Object.fromEntries(Object.keys(formatoOculto).map(function (campo) {
+                return [campo, formatoOculto[campo].value];
+            }))
         });
         if (historialEditor[indiceHistorial] === valor) return;
         historialEditor.splice(indiceHistorial + 1);
@@ -327,7 +343,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const origen = document.getElementById(campo);
             if (origen) origen.value = valores[campo];
         });
-        ['antecedentes','solicitud'].forEach(function (campo) {
+        Object.keys(formatoOculto).forEach(function (campo) {
             formatoOculto[campo].value = version.html[campo] || '';
             formatoOculto[campo].dataset.texto = valores[campo] || '';
         });
@@ -338,6 +354,7 @@ document.addEventListener('DOMContentLoaded', function () {
         indiceHistorial = -1;
         cargarHoja(valoresCarta());
         guardarVersion();
+        ultimoTextoActivo = null;
         editor.showModal();
     });
     cerrarEditor.addEventListener('click', function () { editor.close(); });
@@ -350,7 +367,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const origen = document.getElementById(elemento.dataset.cmCampo);
             if (!origen) return;
             origen.value = elemento.isContentEditable ? elemento.innerText : elemento.value;
-            if (editableTexto(elemento)) {
+            if (editableTexto(elemento) && formatoOculto[elemento.dataset.cmCampo]) {
                 formatoOculto[elemento.dataset.cmCampo].value = elemento.innerHTML;
                 formatoOculto[elemento.dataset.cmCampo].dataset.texto = origen.value;
             }
@@ -384,7 +401,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.execCommand('fontSize', false, tamanoEditor.value);
         ultimoTextoActivo.dispatchEvent(new Event('input', { bubbles:true }));
     });
-    ['antecedentes', 'solicitud'].forEach(function (campo) {
+    Object.keys(formatoOculto).forEach(function (campo) {
         document.getElementById(campo).addEventListener('input', function () {
             if (editor.open) return;
             formatoOculto[campo].value = '';
