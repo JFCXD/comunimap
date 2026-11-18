@@ -289,7 +289,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     const editableTexto = function (nodo) { return nodo && nodo.isContentEditable; };
     let ultimoTextoActivo = null;
-    let restaurandoFormato = false;
+    let seleccionGuardada = null;
     const historialEditor = [];
     let indiceHistorial = -1;
     let cargandoEditor = false;
@@ -355,6 +355,7 @@ document.addEventListener('DOMContentLoaded', function () {
         cargarHoja(valoresCarta());
         guardarVersion();
         ultimoTextoActivo = null;
+        seleccionGuardada = null;
         editor.showModal();
     });
     cerrarEditor.addEventListener('click', function () { editor.close(); });
@@ -380,24 +381,42 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
     });
-    // Controles de formato nativos del navegador. Solo actúan sobre los dos
-    // párrafos editables, nunca sobre el membrete ni sobre otros formularios.
+    // Recordar la selección al usar la barra; no afecta los otros campos
+    // ni permite editar gráficos, membretes de imagen o archivos anexos.
+    document.addEventListener('selectionchange', function () {
+        if (!editor.open) return;
+        const seleccion = window.getSelection();
+        if (!seleccion || seleccion.rangeCount === 0) return;
+        const nodo = seleccion.anchorNode;
+        const elemento = nodo && (nodo.nodeType === 1 ? nodo : nodo.parentElement);
+        const editable = elemento && elemento.closest ? elemento.closest('.cm-editor-editable') : null;
+        if (editable && editor.contains(editable)) {
+            ultimoTextoActivo = editable;
+            seleccionGuardada = seleccion.getRangeAt(0).cloneRange();
+        }
+    });
+    function activarSeleccion() {
+        if (!editableTexto(ultimoTextoActivo)) return false;
+        ultimoTextoActivo.focus();
+        if (seleccionGuardada) {
+            const seleccion = window.getSelection();
+            seleccion.removeAllRanges();
+            seleccion.addRange(seleccionGuardada);
+        }
+        return true;
+    }
+    // Formato permitido en todos los textos editables de la hoja.
     editor.querySelectorAll('[data-cm-formato]').forEach(function (boton) {
         boton.addEventListener('mousedown', function (evento) { evento.preventDefault(); });
         boton.addEventListener('click', function () {
-            if (!editableTexto(ultimoTextoActivo)) return;
-            ultimoTextoActivo.focus();
+            if (!activarSeleccion()) return;
             document.execCommand(boton.dataset.cmFormato, false, null);
             ultimoTextoActivo.dispatchEvent(new Event('input', { bubbles:true }));
         });
     });
     const tamanoEditor = document.getElementById('cmEditorTamano');
-    tamanoEditor.addEventListener('mousedown', function () {
-        // El navegador mantiene la selección mientras se elige un tamaño.
-    });
     tamanoEditor.addEventListener('change', function () {
-        if (!editableTexto(ultimoTextoActivo)) return;
-        ultimoTextoActivo.focus();
+        if (!activarSeleccion()) return;
         document.execCommand('fontSize', false, tamanoEditor.value);
         ultimoTextoActivo.dispatchEvent(new Event('input', { bubbles:true }));
     });
