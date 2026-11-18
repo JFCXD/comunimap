@@ -23,6 +23,9 @@ body { font-family: "DejaVu Sans", sans-serif; color:#222; font-size:10.5px; lin
 .parrafo.formateado div { margin-bottom:5px; }
 .parrafo.formateado ul,.parrafo.formateado ol { margin:4px 0 12px; padding-left:22px; }
 .parrafo.formateado li { margin:2px 0; }
+.membrete-texto div div { margin:0; }
+.pie div,.firma div div { margin:0; }
+.membrete-texto ul,.destinatario ul,.firma ul { padding-left:18px; }
 .cierre { margin-top:13px; }
 .firma { text-align:center; margin:55px auto 0; width:350px; page-break-inside:avoid; }
 .raya { border-top:1px dotted #333; width:260px; margin:0 auto 6px; }
@@ -46,11 +49,11 @@ body { font-family: "DejaVu Sans", sans-serif; color:#222; font-size:10.5px; lin
                 @endif
             </td>
             <td class="membrete-texto">
-                <div class="otb">{{ $datos['membrete_titulo'] ?? 'O.T.B. UNIVERSITARIO ALTO' }}</div>
-                <div class="ciudad">{{ $datos['membrete_prefectural'] ?? 'RESOLUCIÓN PREFECTURAL N.º 201/96 DE FECHA 15/11/1996' }}</div>
-                <div class="linea">{{ $datos['membrete_municipal'] ?? 'RESOLUCIÓN MUNICIPAL N.º 196/96 DE FECHA 01/11/1996' }}</div>
-                <div class="linea">{{ $datos['membrete_registro'] ?? 'REGISTRO D.S. 21060 — MUNICIPIO DE COCHABAMBA' }}</div>
-                <div class="sublinea">{{ $datos['membrete_zona'] ?? 'DISTRITO N.º 7 · ZONA UNIVERSITARIO ALTO · COCHABAMBA — BOLIVIA' }}</div>
+                <div class="otb">@if(!empty($formatoCarta['membrete_titulo'])){!! $formatoCarta['membrete_titulo'] !!}@else{{ $datos['membrete_titulo'] ?? 'O.T.B. UNIVERSITARIO ALTO' }}@endif</div>
+                <div class="ciudad">@if(!empty($formatoCarta['membrete_prefectural'])){!! $formatoCarta['membrete_prefectural'] !!}@else{{ $datos['membrete_prefectural'] ?? 'RESOLUCIÓN PREFECTURAL N.º 201/96 DE FECHA 15/11/1996' }}@endif</div>
+                <div class="linea">@if(!empty($formatoCarta['membrete_municipal'])){!! $formatoCarta['membrete_municipal'] !!}@else{{ $datos['membrete_municipal'] ?? 'RESOLUCIÓN MUNICIPAL N.º 196/96 DE FECHA 01/11/1996' }}@endif</div>
+                <div class="linea">@if(!empty($formatoCarta['membrete_registro'])){!! $formatoCarta['membrete_registro'] !!}@else{{ $datos['membrete_registro'] ?? 'REGISTRO D.S. 21060 — MUNICIPIO DE COCHABAMBA' }}@endif</div>
+                <div class="sublinea">@if(!empty($formatoCarta['membrete_zona'])){!! $formatoCarta['membrete_zona'] !!}@else{{ $datos['membrete_zona'] ?? 'DISTRITO N.º 7 · ZONA UNIVERSITARIO ALTO · COCHABAMBA — BOLIVIA' }}@endif</div>
             </td>
             <td class="membrete-logo">
                 @if(!empty($emblemas['derecho']))
@@ -62,14 +65,14 @@ body { font-family: "DejaVu Sans", sans-serif; color:#222; font-size:10.5px; lin
 </div>
 <div class="fecha">{{ trim((string) ($datos['lugar_emision'] ?? '')) ?: 'Cochabamba' }}, {{ \Carbon\Carbon::parse($datos['fecha'])->locale('es')->translatedFormat('d \d\e F \d\e Y') }}</div>
 <div class="destinatario">
-    {{ $datos['tratamiento'] ?? 'Señor(a):' }}<br>
+    @if(!empty($formatoCarta['tratamiento'])){!! $formatoCarta['tratamiento'] !!}@else{{ $datos['tratamiento'] ?? 'Señor(a):' }}@endif<br>
     <strong>{{ $datos['destinatario'] }}</strong><br>
     @if(!empty($datos['cargo_destinatario'])){{ $datos['cargo_destinatario'] }}<br>@endif
     <strong>{{ $datos['institucion'] }}</strong><br>
-    {{ $datos['presente'] ?? 'Presente.-' }}
+    @if(!empty($formatoCarta['presente'])){!! $formatoCarta['presente'] !!}@else{{ $datos['presente'] ?? 'Presente.-' }}@endif
 </div>
-<div class="ref">{{ $datos['referencia_etiqueta'] ?? 'REF.:' }} {{ $datos['asunto'] }}</div>
-<p class="saludo">{{ $datos['saludo'] ?? 'De nuestra consideración:' }}</p>
+<div class="ref">@if(!empty($formatoCarta['referencia_etiqueta'])){!! $formatoCarta['referencia_etiqueta'] !!}@else{{ $datos['referencia_etiqueta'] ?? 'REF.:' }}@endif {{ $datos['asunto'] }}</div>
+<p class="saludo">@if(!empty($formatoCarta['saludo'])){!! $formatoCarta['saludo'] !!}@else{{ $datos['saludo'] ?? 'De nuestra consideración:' }}@endif</p>
 @if(!empty($formatoCarta['antecedentes']))
 <div class="parrafo formateado">{!! $formatoCarta['antecedentes'] !!}</div>
 @else
@@ -80,16 +83,16 @@ body { font-family: "DejaVu Sans", sans-serif; color:#222; font-size:10.5px; lin
 @else
 <div class="parrafo">{{ $datos['solicitud'] }}</div>
 @endif
-<p class="cierre">{{ $datos['despedida'] ?? 'Agradeciendo su atención, nos despedimos con las consideraciones más distinguidas.' }}</p>
-<p>{{ $datos['atentamente'] ?? 'Atentamente,' }}</p>
+<p class="cierre">@if(!empty($formatoCarta['despedida'])){!! $formatoCarta['despedida'] !!}@else{{ $datos['despedida'] ?? 'Agradeciendo su atención, nos despedimos con las consideraciones más distinguidas.' }}@endif</p>
+<p>@if(!empty($formatoCarta['atentamente'])){!! $formatoCarta['atentamente'] !!}@else{{ $datos['atentamente'] ?? 'Atentamente,' }}@endif</p>
 <div class="firma">
     <div class="raya"></div>
     <strong>{{ $datos['remitente'] }}</strong><br>
     @if(!empty($datos['cargo_remitente']))<span class="cargo">{{ $datos['cargo_remitente'] }}</span><br>@endif
-    <span class="cargo">{{ $datos['firma_otb'] ?? 'OTB Barrio Universitario Alto' }}</span>
-    <div class="sello">{{ $datos['sello_etiqueta'] ?? 'Sello de la OTB' }}</div>
+    <span class="cargo">@if(!empty($formatoCarta['firma_otb'])){!! $formatoCarta['firma_otb'] !!}@else{{ $datos['firma_otb'] ?? 'OTB Barrio Universitario Alto' }}@endif</span>
+    <div class="sello">@if(!empty($formatoCarta['sello_etiqueta'])){!! $formatoCarta['sello_etiqueta'] !!}@else{{ $datos['sello_etiqueta'] ?? 'Sello de la OTB' }}@endif</div>
 </div>
-<div class="pie">{{ $datos['pie_carta'] ?? 'OTB BARRIO UNIVERSITARIO ALTO — COCHABAMBA, BOLIVIA' }}</div>
+<div class="pie">@if(!empty($formatoCarta['pie_carta'])){!! $formatoCarta['pie_carta'] !!}@else{{ $datos['pie_carta'] ?? 'OTB BARRIO UNIVERSITARIO ALTO — COCHABAMBA, BOLIVIA' }}@endif</div>
 @if(count($fotos) > 0)
 <div class="anexo">
     <h2>ANEXOS FOTOGRÁFICOS</h2>
