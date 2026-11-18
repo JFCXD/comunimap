@@ -351,6 +351,20 @@ class DocumentoFormalController extends Controller
             'solicitud' => ['required', 'string', 'max:10000'],
             'antecedentes_html' => ['nullable', 'string', 'max:30000'],
             'solicitud_html' => ['nullable', 'string', 'max:30000'],
+            'membrete_titulo_html' => ['nullable', 'string', 'max:4000'],
+            'membrete_prefectural_html' => ['nullable', 'string', 'max:4000'],
+            'membrete_municipal_html' => ['nullable', 'string', 'max:4000'],
+            'membrete_registro_html' => ['nullable', 'string', 'max:4000'],
+            'membrete_zona_html' => ['nullable', 'string', 'max:4000'],
+            'tratamiento_html' => ['nullable', 'string', 'max:4000'],
+            'presente_html' => ['nullable', 'string', 'max:4000'],
+            'referencia_etiqueta_html' => ['nullable', 'string', 'max:4000'],
+            'saludo_html' => ['nullable', 'string', 'max:4000'],
+            'despedida_html' => ['nullable', 'string', 'max:4000'],
+            'atentamente_html' => ['nullable', 'string', 'max:4000'],
+            'firma_otb_html' => ['nullable', 'string', 'max:4000'],
+            'sello_etiqueta_html' => ['nullable', 'string', 'max:4000'],
+            'pie_carta_html' => ['nullable', 'string', 'max:4000'],
             'incluir_anexos' => ['nullable', 'in:1'],
             'modo' => ['nullable', 'in:vista_previa,descargar'],
         ]);
@@ -361,6 +375,9 @@ class DocumentoFormalController extends Controller
             'antecedentes' => $this->formatoSeguroCarta($datos['antecedentes_html'] ?? null),
             'solicitud' => $this->formatoSeguroCarta($datos['solicitud_html'] ?? null),
         ];
+        foreach (['membrete_titulo','membrete_prefectural','membrete_municipal','membrete_registro','membrete_zona','tratamiento','presente','referencia_etiqueta','saludo','despedida','atentamente','firma_otb','sello_etiqueta','pie_carta'] as $campo) {
+            $formatoCarta[$campo] = $this->formatoSeguroCarta($datos[$campo.'_html'] ?? null);
+        }
 
         $fotos = [];
         if ($request->boolean('incluir_anexos')) {
