@@ -265,8 +265,8 @@ class DocumentoFormalController extends Controller
     private function formatoSeguroCarta(?string $html): ?string
     {
         if ($html === null || trim($html) === '' || strlen($html) > 30000) return null;
-        if (!class_exists(\\DOMDocument::class)) return null;
-        $documento = new \\DOMDocument('1.0', 'UTF-8');
+        if (!class_exists(\DOMDocument::class)) return null;
+        $documento = new \DOMDocument('1.0', 'UTF-8');
         $previo = libxml_use_internal_errors(true);
         try {
             if (!$documento->loadHTML('<?xml encoding="UTF-8"><div id="cm-carta-raiz">'.$html.'</div>',
