@@ -285,7 +285,13 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     function guardarVersion() {
         if (cargandoEditor) return;
-        const valor = JSON.stringify(valoresCarta());
+        const valor = JSON.stringify({
+            campos: valoresCarta(),
+            html: {
+                antecedentes: formatoOculto.antecedentes.value,
+                solicitud: formatoOculto.solicitud.value
+            }
+        });
         if (historialEditor[indiceHistorial] === valor) return;
         historialEditor.splice(indiceHistorial + 1);
         historialEditor.push(valor);
@@ -295,10 +301,15 @@ document.addEventListener('DOMContentLoaded', function () {
     function restaurarVersion(indice) {
         if (indice < 0 || indice >= historialEditor.length) return;
         indiceHistorial = indice;
-        const valores = JSON.parse(historialEditor[indiceHistorial]);
+        const version = JSON.parse(historialEditor[indiceHistorial]);
+        const valores = version.campos;
         Object.keys(valores).forEach(function (campo) {
             const origen = document.getElementById(campo);
             if (origen) origen.value = valores[campo];
+        });
+        ['antecedentes','solicitud'].forEach(function (campo) {
+            formatoOculto[campo].value = version.html[campo] || '';
+            formatoOculto[campo].dataset.texto = valores[campo] || '';
         });
         cargarHoja(valores);
     }
@@ -384,6 +395,10 @@ document.addEventListener('DOMContentLoaded', function () {
     function escribir(valores) {
         campos.forEach(function (nombre) {
             document.getElementById(nombre).value = valores[nombre];
+            if (formatoOculto[nombre]) {
+                formatoOculto[nombre].value = '';
+                formatoOculto[nombre].dataset.texto = '';
+            }
         });
     }
     function coinciden(a, b) {
