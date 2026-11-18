@@ -125,10 +125,69 @@
         </div>
 
         <div class="d-flex gap-2 flex-wrap">
-            <button type="submit" name="modo" value="vista_previa" formtarget="_blank" class="btn btn-outline-primary"><i class="fa fa-eye me-1"></i> Vista previa PDF</button>
+            <button type="button" id="cmAbrirEditorCarta" class="btn btn-outline-primary">
+                <i class="fa fa-file-word-o me-1" aria-hidden="true"></i> Vista previa editable (estilo Word)
+            </button>
+            <button type="submit" name="modo" value="vista_previa" formtarget="_blank" class="btn btn-outline-secondary"><i class="fa fa-eye me-1"></i> Vista previa PDF</button>
             <button type="submit" name="modo" value="descargar" class="btn btn-primary"><i class="fa fa-file-pdf-o me-1"></i> Descargar PDF formal</button>
             <a href="{{ url('/reportes') }}" class="btn btn-outline-secondary">Cancelar</a>
         </div>
+
+        {{-- La edición de la hoja actualiza los mismos campos del formulario: sin nuevas rutas ni tablas. --}}
+        <dialog id="cmEditorCarta" class="cm-editor-dialog" aria-labelledby="cmEditorTitulo">
+            <div class="cm-editor-topbar">
+                <div>
+                    <strong id="cmEditorTitulo">Editor visual de carta</strong>
+                    <div class="small">Haz clic en el texto para corregirlo. Los cambios se usarán en el PDF.</div>
+                </div>
+                <button type="button" id="cmCerrarEditorCarta" class="btn btn-sm btn-outline-secondary">Cerrar editor</button>
+            </div>
+            <div class="cm-editor-herramientas" role="toolbar" aria-label="Herramientas del editor">
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="cmDeshacerEditor">Deshacer</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="cmRehacerEditor">Rehacer</button>
+                <span class="small text-muted">Edición de texto sin cambiar el membrete oficial</span>
+            </div>
+            <div class="cm-editor-desplazamiento">
+                <article class="cm-editor-hoja" aria-label="Carta editable tamaño A4">
+                    <header class="cm-editor-membrete">
+                        <strong>O.T.B. UNIVERSITARIO ALTO</strong>
+                        <span>RESOLUCIÓN PREFECTURAL N.º 201/96 · RESOLUCIÓN MUNICIPAL N.º 196/96</span>
+                        <span>DISTRITO N.º 7 · ZONA UNIVERSITARIO ALTO · COCHABAMBA — BOLIVIA</span>
+                    </header>
+                    <div class="cm-editor-fecha">
+                        <span class="cm-editor-editable" contenteditable="true" data-cm-campo="lugar_emision" role="textbox" aria-label="Lugar de emisión"></span>,
+                        <input class="cm-editor-input-fecha" type="date" data-cm-campo="fecha" aria-label="Fecha de emisión">
+                    </div>
+                    <div class="cm-editor-destinatario">
+                        Señor(a):<div class="cm-editor-editable" contenteditable="true" data-cm-campo="destinatario" role="textbox" aria-label="Destinatario"></div>
+                        <div class="cm-editor-editable" contenteditable="true" data-cm-campo="cargo_destinatario" role="textbox" aria-label="Cargo del destinatario"></div>
+                        <div class="cm-editor-editable" contenteditable="true" data-cm-campo="institucion" role="textbox" aria-label="Institución"></div>
+                        Presente.-
+                    </div>
+                    <div class="cm-editor-ref"><strong>REF.:</strong> <span class="cm-editor-editable" contenteditable="true" data-cm-campo="asunto" role="textbox" aria-label="Asunto"></span></div>
+                    <p>De nuestra consideración:</p>
+                    <div class="cm-editor-parrafo cm-editor-editable" contenteditable="true" data-cm-campo="antecedentes" role="textbox" aria-label="Antecedentes" aria-multiline="true"></div>
+                    <div class="cm-editor-parrafo cm-editor-editable" contenteditable="true" data-cm-campo="solicitud" role="textbox" aria-label="Solicitud" aria-multiline="true"></div>
+                    <p>Agradeciendo su atención, nos despedimos con las consideraciones más distinguidas.</p>
+                    <p>Atentamente,</p>
+                    <div class="cm-editor-firma">
+                        <div class="cm-editor-firma-linea"></div>
+                        <div class="cm-editor-editable" contenteditable="true" data-cm-campo="remitente" role="textbox" aria-label="Nombre de quien firma"></div>
+                        <div class="cm-editor-editable" contenteditable="true" data-cm-campo="cargo_remitente" role="textbox" aria-label="Cargo de quien firma"></div>
+                        <small>OTB Barrio Universitario Alto</small>
+                        <small>Sello de la OTB</small>
+                    </div>
+                    <footer>OTB BARRIO UNIVERSITARIO ALTO — COCHABAMBA, BOLIVIA</footer>
+                </article>
+            </div>
+            <div class="cm-editor-acciones">
+                <span class="small text-muted">La vista previa editable aproxima el formato. El PDF conserva los logos oficiales y los anexos seleccionados.</span>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button type="submit" name="modo" value="vista_previa" formtarget="_blank" class="btn btn-outline-primary">Ver PDF final</button>
+                    <button type="submit" name="modo" value="descargar" class="btn btn-primary">Descargar PDF</button>
+                </div>
+            </div>
+        </dialog>
     </form>
 </div>
 
@@ -137,8 +196,106 @@
 </div>
 </div>
 @include('plantillas.scripts')
+<style>
+/* Editor de carta aislado de los estilos generales de ComuniMap. */
+.cm-editor-dialog { width:min(1150px, 96vw); max-width:none; max-height:96vh; padding:0; border:1px solid #cbd5e1; border-radius:12px; background:#f1f5f9; color:#1f2937; box-shadow:0 20px 70px rgba(0,0,0,.3); }
+.cm-editor-dialog::backdrop { background:rgba(15,23,42,.72); }
+.cm-editor-topbar,.cm-editor-herramientas,.cm-editor-acciones { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:12px 18px; background:white; }
+.cm-editor-topbar { border-bottom:1px solid #e2e8f0; }
+.cm-editor-herramientas { justify-content:flex-start; border-bottom:1px solid #e2e8f0; flex-wrap:wrap; }
+.cm-editor-acciones { border-top:1px solid #e2e8f0; flex-wrap:wrap; }
+.cm-editor-desplazamiento { padding:24px 12px; overflow:auto; max-height:calc(96vh - 190px); }
+.cm-editor-hoja { background:#fff; width:210mm; min-height:297mm; padding:20mm 21mm; margin:auto; box-shadow:0 4px 17px #0002; font:14px/1.65 Georgia,"Times New Roman",serif; color:#222; box-sizing:border-box; }
+.cm-editor-membrete { text-align:center; border-bottom:1px solid #334155; margin-bottom:22px; padding-bottom:13px; color:#163b77; display:flex; flex-direction:column; font:10px/1.4 Arial,sans-serif; }
+.cm-editor-membrete strong { font-size:17px; font-family:Georgia,serif; }
+.cm-editor-fecha { display:flex; justify-content:flex-end; align-items:center; gap:5px; margin-bottom:26px; }
+.cm-editor-input-fecha { width:150px; border:1px dashed #cbd5e1; background:transparent; color:inherit; font:inherit; }
+.cm-editor-destinatario { margin-bottom:16px; }
+.cm-editor-ref { margin:20px 0; }
+.cm-editor-parrafo { text-align:justify; margin:0 0 18px; min-height:32px; }
+.cm-editor-editable { white-space:pre-wrap; overflow-wrap:anywhere; min-width:65px; min-height:1.5em; border-radius:3px; outline:1px dashed #bfdbfe; padding:1px 3px; }
+.cm-editor-editable:focus { outline:2px solid #2563eb; background:#eff6ff; }
+.cm-editor-destinatario .cm-editor-editable, .cm-editor-firma .cm-editor-editable { display:block; }
+.cm-editor-firma { margin:62px auto 0; width:75%; text-align:center; }
+.cm-editor-firma-linea { width:70%; margin:auto auto 8px; border-top:1px dotted #333; }
+.cm-editor-firma small { display:block; }
+.cm-editor-hoja footer { border-top:1px solid #999; margin-top:90px; padding-top:8px; text-align:center; font:10px Arial,sans-serif; }
+@media(max-width:850px){ .cm-editor-hoja { width:100%; min-height:680px; padding:25px 22px; } .cm-editor-desplazamiento { padding:10px; } }
+</style>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    // Vista previa editable: mantiene los campos originales como única fuente
+    // para PDF. No se envía HTML arbitrario al servidor.
+    const editor = document.getElementById('cmEditorCarta');
+    const abrirEditor = document.getElementById('cmAbrirEditorCarta');
+    const cerrarEditor = document.getElementById('cmCerrarEditorCarta');
+    const ediciones = Array.from(editor.querySelectorAll('[data-cm-campo]'));
+    const historialEditor = [];
+    let indiceHistorial = -1;
+    let cargandoEditor = false;
+
+    function valoresCarta() {
+        const resultado = {};
+        ediciones.forEach(function (elemento) {
+            const campo = elemento.dataset.cmCampo;
+            const origen = document.getElementById(campo);
+            resultado[campo] = origen ? origen.value : '';
+        });
+        return resultado;
+    }
+    function cargarHoja(valores) {
+        cargandoEditor = true;
+        ediciones.forEach(function (elemento) {
+            const valor = valores[elemento.dataset.cmCampo] || '';
+            if (elemento.isContentEditable) elemento.innerText = valor;
+            else elemento.value = valor;
+        });
+        cargandoEditor = false;
+    }
+    function guardarVersion() {
+        if (cargandoEditor) return;
+        const valor = JSON.stringify(valoresCarta());
+        if (historialEditor[indiceHistorial] === valor) return;
+        historialEditor.splice(indiceHistorial + 1);
+        historialEditor.push(valor);
+        if (historialEditor.length > 40) historialEditor.shift();
+        indiceHistorial = historialEditor.length - 1;
+    }
+    function restaurarVersion(indice) {
+        if (indice < 0 || indice >= historialEditor.length) return;
+        indiceHistorial = indice;
+        const valores = JSON.parse(historialEditor[indiceHistorial]);
+        Object.keys(valores).forEach(function (campo) {
+            const origen = document.getElementById(campo);
+            if (origen) origen.value = valores[campo];
+        });
+        cargarHoja(valores);
+    }
+    abrirEditor.addEventListener('click', function () {
+        historialEditor.length = 0;
+        indiceHistorial = -1;
+        cargarHoja(valoresCarta());
+        guardarVersion();
+        editor.showModal();
+    });
+    cerrarEditor.addEventListener('click', function () { editor.close(); });
+    ediciones.forEach(function (elemento) {
+        elemento.addEventListener('input', function () {
+            if (cargandoEditor) return;
+            const origen = document.getElementById(elemento.dataset.cmCampo);
+            if (!origen) return;
+            origen.value = elemento.isContentEditable ? elemento.innerText : elemento.value;
+            guardarVersion();
+        });
+        // Los campos de una línea no deben insertar saltos.
+        if (elemento.isContentEditable && !['antecedentes', 'solicitud'].includes(elemento.dataset.cmCampo)) {
+            elemento.addEventListener('keydown', function (evento) {
+                if (evento.key === 'Enter') evento.preventDefault();
+            });
+        }
+    });
+    document.getElementById('cmDeshacerEditor').addEventListener('click', function () { restaurarVersion(indiceHistorial - 1); });
+    document.getElementById('cmRehacerEditor').addEventListener('click', function () { restaurarVersion(indiceHistorial + 1); });
     const generar = document.getElementById('cmGenerarIA');
     const estado = document.getElementById('cmEstadoIA');
     const deshacer = document.getElementById('cmDeshacerIA');
