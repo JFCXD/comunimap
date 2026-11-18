@@ -46,11 +46,11 @@ body { font-family: "DejaVu Sans", sans-serif; color:#222; font-size:10.5px; lin
                 @endif
             </td>
             <td class="membrete-texto">
-                <div class="otb">O.T.B. UNIVERSITARIO ALTO</div>
-                <div class="ciudad">RESOLUCIÓN PREFECTURAL N.º 201/96 DE FECHA 15/11/1996</div>
-                <div class="linea">RESOLUCIÓN MUNICIPAL N.º 196/96 DE FECHA 01/11/1996</div>
-                <div class="linea">REGISTRO D.S. 21060 — MUNICIPIO DE COCHABAMBA</div>
-                <div class="sublinea">DISTRITO N.º 7 · ZONA UNIVERSITARIO ALTO · COCHABAMBA — BOLIVIA</div>
+                <div class="otb">{{ $datos['membrete_titulo'] ?? 'O.T.B. UNIVERSITARIO ALTO' }}</div>
+                <div class="ciudad">{{ $datos['membrete_prefectural'] ?? 'RESOLUCIÓN PREFECTURAL N.º 201/96 DE FECHA 15/11/1996' }}</div>
+                <div class="linea">{{ $datos['membrete_municipal'] ?? 'RESOLUCIÓN MUNICIPAL N.º 196/96 DE FECHA 01/11/1996' }}</div>
+                <div class="linea">{{ $datos['membrete_registro'] ?? 'REGISTRO D.S. 21060 — MUNICIPIO DE COCHABAMBA' }}</div>
+                <div class="sublinea">{{ $datos['membrete_zona'] ?? 'DISTRITO N.º 7 · ZONA UNIVERSITARIO ALTO · COCHABAMBA — BOLIVIA' }}</div>
             </td>
             <td class="membrete-logo">
                 @if(!empty($emblemas['derecho']))
@@ -62,14 +62,14 @@ body { font-family: "DejaVu Sans", sans-serif; color:#222; font-size:10.5px; lin
 </div>
 <div class="fecha">{{ trim((string) ($datos['lugar_emision'] ?? '')) ?: 'Cochabamba' }}, {{ \Carbon\Carbon::parse($datos['fecha'])->locale('es')->translatedFormat('d \d\e F \d\e Y') }}</div>
 <div class="destinatario">
-    Señor(a):<br>
+    {{ $datos['tratamiento'] ?? 'Señor(a):' }}<br>
     <strong>{{ $datos['destinatario'] }}</strong><br>
     @if(!empty($datos['cargo_destinatario'])){{ $datos['cargo_destinatario'] }}<br>@endif
     <strong>{{ $datos['institucion'] }}</strong><br>
-    Presente.-
+    {{ $datos['presente'] ?? 'Presente.-' }}
 </div>
-<div class="ref">REF.: {{ $datos['asunto'] }}</div>
-<p class="saludo">De nuestra consideración:</p>
+<div class="ref">{{ $datos['referencia_etiqueta'] ?? 'REF.:' }} {{ $datos['asunto'] }}</div>
+<p class="saludo">{{ $datos['saludo'] ?? 'De nuestra consideración:' }}</p>
 @if(!empty($formatoCarta['antecedentes']))
 <div class="parrafo formateado">{!! $formatoCarta['antecedentes'] !!}</div>
 @else
@@ -80,16 +80,16 @@ body { font-family: "DejaVu Sans", sans-serif; color:#222; font-size:10.5px; lin
 @else
 <div class="parrafo">{{ $datos['solicitud'] }}</div>
 @endif
-<p class="cierre">Agradeciendo su atención, nos despedimos con las consideraciones más distinguidas.</p>
-<p>Atentamente,</p>
+<p class="cierre">{{ $datos['despedida'] ?? 'Agradeciendo su atención, nos despedimos con las consideraciones más distinguidas.' }}</p>
+<p>{{ $datos['atentamente'] ?? 'Atentamente,' }}</p>
 <div class="firma">
     <div class="raya"></div>
     <strong>{{ $datos['remitente'] }}</strong><br>
     @if(!empty($datos['cargo_remitente']))<span class="cargo">{{ $datos['cargo_remitente'] }}</span><br>@endif
-    <span class="cargo">OTB Barrio Universitario Alto</span>
-    <div class="sello">Sello de la OTB</div>
+    <span class="cargo">{{ $datos['firma_otb'] ?? 'OTB Barrio Universitario Alto' }}</span>
+    <div class="sello">{{ $datos['sello_etiqueta'] ?? 'Sello de la OTB' }}</div>
 </div>
-<div class="pie">OTB BARRIO UNIVERSITARIO ALTO — COCHABAMBA, BOLIVIA</div>
+<div class="pie">{{ $datos['pie_carta'] ?? 'OTB BARRIO UNIVERSITARIO ALTO — COCHABAMBA, BOLIVIA' }}</div>
 @if(count($fotos) > 0)
 <div class="anexo">
     <h2>ANEXOS FOTOGRÁFICOS</h2>
