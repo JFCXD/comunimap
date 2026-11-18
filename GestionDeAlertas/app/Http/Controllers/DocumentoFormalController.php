@@ -258,6 +258,66 @@ class DocumentoFormalController extends Controller
         }
     }
 
+    /**
+     * Formato limitado para el cuerpo de las cartas.
+     * Nunca aceptar HTML arbitrario de un navegador, aunque sea administrador.
+     */
+    private function formatoSeguroCarta(?string $html): ?string
+    {
+        if ($html === null || trim($html) === '' || strlen($html) > 30000) return null;
+        if (!class_exists(\\DOMDocument::class)) return null;
+        $documento = new \\DOMDocument('1.0', 'UTF-8');
+        $previo = libxml_use_internal_errors(true);
+        try {
+            if (!$documento->loadHTML('<?xml encoding="UTF-8"><div id="cm-carta-raiz">'.$html.'</div>',
+                LIBXML_NONET | LIBXML_NOERROR | LIBXML_NOWARNING)) return null;
+            $raiz = $documento->getElementById('cm-carta-raiz');
+            if (!$raiz) return null;
+
+            $convertir = function ($nodo) use (&$convertir): string {
+                if ($nodo->nodeType === XML_TEXT_NODE) {
+                    return htmlspecialchars($nodo->nodeValue, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                }
+                if ($nodo->nodeType !== XML_ELEMENT_NODE) return '';
+                $etiqueta = strtolower($nodo->nodeName);
+                if (in_array($etiqueta, ['script','style','iframe','svg','object','img','form'], true)) return '';
+
+                $contenido = '';
+                foreach ($nodo->childNodes as $hijo) $contenido .= $convertir($hijo);
+                $simples = ['strong','b','em','i','u','ul','ol','li','br'];
+                if (in_array($etiqueta, $simples, true)) {
+                    return $etiqueta === 'br' ? '<br>' : '<'.$etiqueta.'>'.$contenido.'</'.$etiqueta.'>';
+                }
+                if (in_array($etiqueta, ['p','div'], true)) {
+                    $estilo = (string) $nodo->getAttribute('style');
+                    $alineacion = '';
+                    if (preg_match('/text-align\\s*:\\s*(left|center|right|justify)\\b/i', $estilo, $m)) {
+                        $alineacion = ' style="text-align:'.strtolower($m[1]).'"';
+                    }
+                    return '<div'.$alineacion.'>'.$contenido.'</div>';
+                }
+                if ($etiqueta === 'font') {
+                    $tamanos = ['1'=>'10','2'=>'12','3'=>'14','4'=>'16','5'=>'20','6'=>'24','7'=>'28'];
+                    $tamano = $tamanos[(string)$nodo->getAttribute('size')] ?? null;
+                    return $tamano ? '<span style="font-size:'.$tamano.'px">'.$contenido.'</span>' : $contenido;
+                }
+                if ($etiqueta === 'span') {
+                    $estilo = (string)$nodo->getAttribute('style');
+                    if (preg_match('/font-size\\s*:\\s*(10|12|14|16|18|20|24|28)px\\b/i', $estilo, $m)) {
+                        return '<span style="font-size:'.$m[1].'px">'.$contenido.'</span>';
+                    }
+                }
+                return $contenido;
+            };
+            $resultado = '';
+            foreach ($raiz->childNodes as $nodo) $resultado .= $convertir($nodo);
+            return trim($resultado) !== '' ? $resultado : null;
+        } finally {
+            libxml_clear_errors();
+            libxml_use_internal_errors($previo);
+        }
+    }
+
     public function descargar(Request $request)
     {
         $this->administrador();
@@ -275,12 +335,18 @@ class DocumentoFormalController extends Controller
             'cargo_remitente' => ['nullable', 'string', 'max:180'],
             'antecedentes' => ['required', 'string', 'max:15000'],
             'solicitud' => ['required', 'string', 'max:10000'],
+            'antecedentes_html' => ['nullable', 'string', 'max:30000'],
+            'solicitud_html' => ['nullable', 'string', 'max:30000'],
             'incluir_anexos' => ['nullable', 'in:1'],
             'modo' => ['nullable', 'in:vista_previa,descargar'],
         ]);
 
         $ids = $this->ids($datos['reportes']);
         $reportes = $this->reportes($ids);
+        $formatoCarta = [
+            'antecedentes' => $this->formatoSeguroCarta($datos['antecedentes_html'] ?? null),
+            'solicitud' => $this->formatoSeguroCarta($datos['solicitud_html'] ?? null),
+        ];
 
         $fotos = [];
         if ($request->boolean('incluir_anexos')) {
@@ -342,6 +408,7 @@ class DocumentoFormalController extends Controller
 
         $pdf = Pdf::loadView('documentos.pdf', [
             'datos' => $datos,
+            'formatoCarta' => $formatoCarta,
             'reportes' => $reportes,
             'fotos' => $fotos,
             'emblemas' => $emblemas,
