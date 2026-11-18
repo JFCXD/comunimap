@@ -133,6 +133,21 @@
             <a href="{{ url('/reportes') }}" class="btn btn-outline-secondary">Cancelar</a>
         </div>
 
+        {{-- Textos institucionales editables únicamente en la hoja, con valores iniciales oficiales. --}}
+        <input type="hidden" id="membrete_titulo" name="membrete_titulo" value="{{ old('membrete_titulo', 'O.T.B. UNIVERSITARIO ALTO') }}">
+        <input type="hidden" id="membrete_prefectural" name="membrete_prefectural" value="{{ old('membrete_prefectural', 'RESOLUCIÓN PREFECTURAL N.º 201/96 DE FECHA 15/11/1996') }}">
+        <input type="hidden" id="membrete_municipal" name="membrete_municipal" value="{{ old('membrete_municipal', 'RESOLUCIÓN MUNICIPAL N.º 196/96 DE FECHA 01/11/1996') }}">
+        <input type="hidden" id="membrete_registro" name="membrete_registro" value="{{ old('membrete_registro', 'REGISTRO D.S. 21060 — MUNICIPIO DE COCHABAMBA') }}">
+        <input type="hidden" id="membrete_zona" name="membrete_zona" value="{{ old('membrete_zona', 'DISTRITO N.º 7 · ZONA UNIVERSITARIO ALTO · COCHABAMBA — BOLIVIA') }}">
+        <input type="hidden" id="tratamiento" name="tratamiento" value="{{ old('tratamiento', 'Señor(a):') }}">
+        <input type="hidden" id="presente" name="presente" value="{{ old('presente', 'Presente.-') }}">
+        <input type="hidden" id="referencia_etiqueta" name="referencia_etiqueta" value="{{ old('referencia_etiqueta', 'REF.:') }}">
+        <input type="hidden" id="saludo" name="saludo" value="{{ old('saludo', 'De nuestra consideración:') }}">
+        <input type="hidden" id="despedida" name="despedida" value="{{ old('despedida', 'Agradeciendo su atención, nos despedimos con las consideraciones más distinguidas.') }}">
+        <input type="hidden" id="atentamente" name="atentamente" value="{{ old('atentamente', 'Atentamente,') }}">
+        <input type="hidden" id="firma_otb" name="firma_otb" value="{{ old('firma_otb', 'OTB Barrio Universitario Alto') }}">
+        <input type="hidden" id="sello_etiqueta" name="sello_etiqueta" value="{{ old('sello_etiqueta', 'Sello de la OTB') }}">
+        <input type="hidden" id="pie_carta" name="pie_carta" value="{{ old('pie_carta', 'OTB BARRIO UNIVERSITARIO ALTO — COCHABAMBA, BOLIVIA') }}">
         {{-- El PDF recibe el formato de los párrafos por separado; el controlador sanea el HTML. --}}
         <input type="hidden" id="cmFormatoAntecedentes" name="antecedentes_html" value="">
         <input type="hidden" id="cmFormatoSolicitud" name="solicitud_html" value="">
@@ -166,38 +181,40 @@
             <div class="cm-editor-desplazamiento">
                 <article class="cm-editor-hoja" aria-label="Carta editable tamaño A4">
                     <header class="cm-editor-membrete">
-                        <strong>O.T.B. UNIVERSITARIO ALTO</strong>
-                        <span>RESOLUCIÓN PREFECTURAL N.º 201/96 · RESOLUCIÓN MUNICIPAL N.º 196/96</span>
-                        <span>DISTRITO N.º 7 · ZONA UNIVERSITARIO ALTO · COCHABAMBA — BOLIVIA</span>
+                        <strong class="cm-editor-editable" contenteditable="true" data-cm-campo="membrete_titulo" role="textbox" aria-label="membrete titulo"></strong>
+                        <span class="cm-editor-editable" contenteditable="true" data-cm-campo="membrete_prefectural" role="textbox" aria-label="membrete prefectural"></span>
+                        <span class="cm-editor-editable" contenteditable="true" data-cm-campo="membrete_municipal" role="textbox" aria-label="membrete municipal"></span>
+                        <span class="cm-editor-editable" contenteditable="true" data-cm-campo="membrete_registro" role="textbox" aria-label="membrete registro"></span>
+                        <span class="cm-editor-editable" contenteditable="true" data-cm-campo="membrete_zona" role="textbox" aria-label="membrete zona"></span>
                     </header>
                     <div class="cm-editor-fecha">
                         <span class="cm-editor-editable" contenteditable="true" data-cm-campo="lugar_emision" role="textbox" aria-label="Lugar de emisión"></span>,
                         <input class="cm-editor-input-fecha" type="date" data-cm-campo="fecha" aria-label="Fecha de emisión">
                     </div>
                     <div class="cm-editor-destinatario">
-                        Señor(a):<div class="cm-editor-editable" contenteditable="true" data-cm-campo="destinatario" role="textbox" aria-label="Destinatario"></div>
+                        <div class="cm-editor-editable" contenteditable="true" data-cm-campo="tratamiento" role="textbox" aria-label="tratamiento"></div><div class="cm-editor-editable" contenteditable="true" data-cm-campo="destinatario" role="textbox" aria-label="Destinatario"></div>
                         <div class="cm-editor-editable" contenteditable="true" data-cm-campo="cargo_destinatario" role="textbox" aria-label="Cargo del destinatario"></div>
                         <div class="cm-editor-editable" contenteditable="true" data-cm-campo="institucion" role="textbox" aria-label="Institución"></div>
-                        Presente.-
+                        <div class="cm-editor-editable" contenteditable="true" data-cm-campo="presente" role="textbox" aria-label="presente"></div>
                     </div>
-                    <div class="cm-editor-ref"><strong>REF.:</strong> <span class="cm-editor-editable" contenteditable="true" data-cm-campo="asunto" role="textbox" aria-label="Asunto"></span></div>
-                    <p>De nuestra consideración:</p>
+                    <div class="cm-editor-ref"><strong class="cm-editor-editable" contenteditable="true" data-cm-campo="referencia_etiqueta" role="textbox" aria-label="referencia etiqueta"></strong> <span class="cm-editor-editable" contenteditable="true" data-cm-campo="asunto" role="textbox" aria-label="Asunto"></span></div>
+                    <p class="cm-editor-editable" contenteditable="true" data-cm-campo="saludo" role="textbox" aria-label="saludo"></p>
                     <div class="cm-editor-parrafo cm-editor-editable" contenteditable="true" data-cm-campo="antecedentes" role="textbox" aria-label="Antecedentes" aria-multiline="true"></div>
                     <div class="cm-editor-parrafo cm-editor-editable" contenteditable="true" data-cm-campo="solicitud" role="textbox" aria-label="Solicitud" aria-multiline="true"></div>
-                    <p>Agradeciendo su atención, nos despedimos con las consideraciones más distinguidas.</p>
-                    <p>Atentamente,</p>
+                    <p class="cm-editor-editable" contenteditable="true" data-cm-campo="despedida" role="textbox" aria-label="despedida"></p>
+                    <p class="cm-editor-editable" contenteditable="true" data-cm-campo="atentamente" role="textbox" aria-label="atentamente"></p>
                     <div class="cm-editor-firma">
                         <div class="cm-editor-firma-linea"></div>
                         <div class="cm-editor-editable" contenteditable="true" data-cm-campo="remitente" role="textbox" aria-label="Nombre de quien firma"></div>
                         <div class="cm-editor-editable" contenteditable="true" data-cm-campo="cargo_remitente" role="textbox" aria-label="Cargo de quien firma"></div>
-                        <small>OTB Barrio Universitario Alto</small>
-                        <small>Sello de la OTB</small>
+                        <small class="cm-editor-editable" contenteditable="true" data-cm-campo="firma_otb" role="textbox" aria-label="firma otb"></small>
+                        <small class="cm-editor-editable" contenteditable="true" data-cm-campo="sello_etiqueta" role="textbox" aria-label="sello etiqueta"></small>
                     </div>
-                    <footer>OTB BARRIO UNIVERSITARIO ALTO — COCHABAMBA, BOLIVIA</footer>
+                    <footer><span class="cm-editor-editable" contenteditable="true" data-cm-campo="pie_carta" role="textbox" aria-label="pie carta"></span></footer>
                 </article>
             </div>
             <div class="cm-editor-acciones">
-                <span class="small text-muted">La vista previa editable aproxima el formato. El PDF conserva los logos oficiales y los anexos seleccionados.</span>
+                <span class="small text-muted">Todos los textos son editables. Los logos y las fotos permanecen protegidos; el PDF conserva los elementos institucionales.</span>
                 <div class="d-flex gap-2 flex-wrap">
                     <button type="submit" name="modo" value="vista_previa" formtarget="_blank" class="btn btn-outline-primary">Ver PDF final</button>
                     <button type="submit" name="modo" value="descargar" class="btn btn-primary">Descargar PDF</button>
@@ -227,6 +244,9 @@
 .cm-editor-hoja { background:#fff; width:210mm; min-height:297mm; padding:20mm 21mm; margin:auto; box-shadow:0 4px 17px #0002; font:14px/1.65 Georgia,"Times New Roman",serif; color:#222; box-sizing:border-box; }
 .cm-editor-membrete { text-align:center; border-bottom:1px solid #334155; margin-bottom:22px; padding-bottom:13px; color:#163b77; display:flex; flex-direction:column; font:10px/1.4 Arial,sans-serif; }
 .cm-editor-membrete strong { font-size:17px; font-family:Georgia,serif; }
+.cm-editor-membrete .cm-editor-editable { display:block; }
+.cm-editor-firma small.cm-editor-editable { display:block; }
+.cm-editor-hoja footer .cm-editor-editable { display:block; }
 .cm-editor-fecha { display:flex; justify-content:flex-end; align-items:center; gap:5px; margin-bottom:26px; }
 .cm-editor-input-fecha { width:150px; border:1px dashed #cbd5e1; background:transparent; color:inherit; font:inherit; }
 .cm-editor-destinatario { margin-bottom:16px; }
@@ -250,7 +270,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const cerrarEditor = document.getElementById('cmCerrarEditorCarta');
     const ediciones = Array.from(editor.querySelectorAll('[data-cm-campo]'));
     const formatoOculto = { antecedentes: document.getElementById('cmFormatoAntecedentes'), solicitud: document.getElementById('cmFormatoSolicitud') };
-    const editableTexto = function (nodo) { return nodo && nodo.isContentEditable && ['antecedentes','solicitud'].includes(nodo.dataset.cmCampo); };
+    const editableTexto = function (nodo) { return nodo && nodo.isContentEditable; };
     let ultimoTextoActivo = null;
     let restaurandoFormato = false;
     const historialEditor = [];
@@ -323,7 +343,7 @@ document.addEventListener('DOMContentLoaded', function () {
     cerrarEditor.addEventListener('click', function () { editor.close(); });
     ediciones.forEach(function (elemento) {
         elemento.addEventListener('focus', function () {
-            if (editableTexto(elemento)) ultimoTextoActivo = elemento;
+            if (elemento.isContentEditable) ultimoTextoActivo = elemento;
         });
         elemento.addEventListener('input', function () {
             if (cargandoEditor) return;
