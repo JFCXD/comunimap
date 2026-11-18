@@ -49,7 +49,14 @@
                         <label class="form-label" for="fecha">Fecha</label>
                         <input type="date" class="form-control" id="fecha" name="fecha" value="{{ old('fecha', now()->format('Y-m-d')) }}" required>
                     </div>
-                    <div class="col-md-8">
+                    <div class="col-md-4">
+                        <label class="form-label" for="lugar_emision">Lugar de emisión</label>
+                        <input type="text" class="form-control" id="lugar_emision" name="lugar_emision"
+                               maxlength="120" value="{{ old('lugar_emision', 'Cochabamba') }}"
+                               placeholder="Ej.: Cochabamba" aria-describedby="cm-lugar-ayuda">
+                        <small id="cm-lugar-ayuda" class="text-muted">Si queda vacío, se utilizará Cochabamba.</small>
+                    </div>
+                    <div class="col-md-4">
                         <label class="form-label" for="institucion">Empresa o institución</label>
                         <input class="form-control" id="institucion" name="institucion" maxlength="180" value="{{ old('institucion') }}" placeholder="Ej.: empresa de servicios o entidad municipal" required>
                     </div>
