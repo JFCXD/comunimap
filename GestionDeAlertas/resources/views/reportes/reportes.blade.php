@@ -325,11 +325,12 @@
                         @if(!$grupoReportes['historial'])
                             {{-- Filtrar únicamente la tabla individual; no se altera el conjunto de casos agrupados. --}}
                             <form method="GET" action="{{ url('/reportes') }}#reportes-individuales"
-                                  class="border rounded p-3 mb-3 bg-light" aria-label="Filtros de reportes individuales">
+                                  autocomplete="off" class="border rounded p-3 mb-3 bg-light" aria-label="Filtros de reportes individuales">
                                 <div class="row g-2 align-items-end">
                                     <div class="col-lg-3 col-md-6">
                                         <label for="cmBuscarIndividual" class="form-label mb-1">Buscar reporte o vecino</label>
                                         <input id="cmBuscarIndividual" name="buscar" type="search" maxlength="100"
+                                               autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
                                                class="form-control form-control-sm" placeholder="Título, nombre o número"
                                                value="{{ $filtrosIndividuales['buscar'] ?? '' }}">
                                     </div>
