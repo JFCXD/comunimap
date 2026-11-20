@@ -115,7 +115,7 @@
                 <span class="small text-muted">Todos los textos son editables. Los logos y las fotos permanecen protegidos; el PDF conserva los elementos institucionales.</span>
                 <div class="d-flex gap-2 flex-wrap">
                     
-                    <button type="submit" name="modo" value="descargar" class="btn btn-primary"><i class="fa fa-download me-1"></i> Descargar PDF final</button>
+                    <button type="submit" name="modo" value="vista_previa" formtarget="_blank" class="btn btn-primary"><i class="fa fa-file-pdf-o me-1"></i> Descargar PDF</button>
                 </div>
             </div>
         </section>
