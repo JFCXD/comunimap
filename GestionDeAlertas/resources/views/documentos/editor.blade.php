@@ -159,7 +159,7 @@
 <style>
 .cm-editor-pagina { max-width:none; padding-left:12px; padding-right:12px; }
 .cm-editor-pagina .cm-editor-hoja { width:210mm; max-width:none; }
-.cm-editor-pagina .cm-editor-dialog { border-radius:6px; display:flex; flex-direction:column; height:calc(100vh - 115px); height:calc(100dvh - 115px); overflow:hidden; }
+.cm-editor-pagina .cm-editor-dialog { border-radius:6px; display:flex; flex-direction:column; height:calc(100vh - 70px); height:calc(100dvh - 70px); overflow:hidden; }
 .cm-editor-pagina .cm-editor-topbar,.cm-editor-pagina .cm-editor-herramientas,.cm-editor-pagina .cm-editor-acciones { flex-shrink:0; }
 .cm-editor-pagina .cm-editor-acciones { position:relative; z-index:2; }
 @media (max-width:940px) { .cm-editor-pagina .cm-editor-desplazamiento { overflow-x:auto; } }
