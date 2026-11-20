@@ -125,8 +125,12 @@
         </div>
 
         <div class="d-flex gap-2 flex-wrap">
-            <button type="submit" formaction="{{ route('documentos.editor') }}" class="btn btn-primary">
-                <i class="fa fa-file-word-o me-1" aria-hidden="true"></i> Vista previa y editar carta
+            <button type="submit" formaction="{{ route('documentos.editor') }}" class="btn btn-outline-primary">
+                <i class="fa fa-file-word-o me-1" aria-hidden="true"></i> Vista previa
+            </button>
+            <button type="submit" formaction="{{ route('documentos.descargar') }}"
+                    name="modo" value="vista_previa" formtarget="_blank" class="btn btn-primary">
+                <i class="fa fa-file-pdf-o me-1" aria-hidden="true"></i> Descargar PDF
             </button>
             <a href="{{ url('/reportes') }}" class="btn btn-outline-secondary">Cancelar</a>
         </div>
