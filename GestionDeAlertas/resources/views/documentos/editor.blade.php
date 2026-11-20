@@ -135,7 +135,7 @@
 .cm-editor-parrafo ul,.cm-editor-parrafo ol { padding-left:24px; }
 .cm-editor-parrafo p,.cm-editor-parrafo div { margin:0 0 8px; }
 .cm-editor-acciones { border-top:1px solid #e2e8f0; flex-wrap:wrap; }
-.cm-editor-desplazamiento { padding:24px 12px; overflow:auto; max-height:calc(100vh - 225px); }
+.cm-editor-desplazamiento { padding:24px 12px; overflow:auto; flex:1 1 auto; min-height:0; max-height:none; }
 .cm-editor-hoja { background:#fff; width:210mm; min-height:297mm; padding:20mm 21mm; margin:auto; box-shadow:0 4px 17px #0002; font:14px/1.65 Georgia,"Times New Roman",serif; color:#222; box-sizing:border-box; }
 .cm-editor-membrete { text-align:center; border-bottom:1px solid #334155; margin-bottom:22px; padding-bottom:13px; color:#163b77; display:flex; flex-direction:column; font:10px/1.4 Arial,sans-serif; }
 .cm-editor-membrete strong { font-size:17px; font-family:Georgia,serif; }
@@ -159,7 +159,9 @@
 <style>
 .cm-editor-pagina { max-width:none; padding-left:12px; padding-right:12px; }
 .cm-editor-pagina .cm-editor-hoja { width:210mm; max-width:none; }
-.cm-editor-pagina .cm-editor-dialog { border-radius:6px; }
+.cm-editor-pagina .cm-editor-dialog { border-radius:6px; display:flex; flex-direction:column; height:calc(100vh - 115px); height:calc(100dvh - 115px); overflow:hidden; }
+.cm-editor-pagina .cm-editor-topbar,.cm-editor-pagina .cm-editor-herramientas,.cm-editor-pagina .cm-editor-acciones { flex-shrink:0; }
+.cm-editor-pagina .cm-editor-acciones { position:relative; z-index:2; }
 @media (max-width:940px) { .cm-editor-pagina .cm-editor-desplazamiento { overflow-x:auto; } }
 </style>
 <script>
