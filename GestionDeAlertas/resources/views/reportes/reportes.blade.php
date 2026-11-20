@@ -289,13 +289,31 @@
                 ========================================== --}}
                 @php
                     $reportesActivos = collect($reportes)->reject(fn($r) => in_array($r->estado, ['Solucionado', 'Resuelto']))->values();
+                    $categoriasIndividuales = $reportesActivos->map(fn($r) => ['id' => $r->idCategoria, 'nombre' => $r->nombre])
+                        ->unique('id')->sortBy('nombre')->values();
+                    $filtroBuscar = mb_strtolower(trim($filtrosIndividuales['buscar'] ?? ''));
+                    $filtroCategoria = $filtrosIndividuales['categoria'] ?? null;
+                    $filtroEstado = $filtrosIndividuales['estado_individual'] ?? null;
+                    $filtroDesde = $filtrosIndividuales['fecha_desde'] ?? null;
+                    $filtroHasta = $filtrosIndividuales['fecha_hasta'] ?? null;
+                    $filtrosActivos = $filtroBuscar !== '' || $filtroCategoria !== null || $filtroEstado !== null
+                        || $filtroDesde !== null || $filtroHasta !== null;
+                    $reportesActivosFiltrados = $reportesActivos->filter(function ($r) use ($filtroBuscar, $filtroCategoria, $filtroEstado, $filtroDesde, $filtroHasta) {
+                        if ($filtroBuscar !== '' && !str_contains(mb_strtolower($r->titulo.' '.$r->usuario.' #'.$r->idReporte), $filtroBuscar)) return false;
+                        if ($filtroCategoria !== null && (int) $r->idCategoria !== (int) $filtroCategoria) return false;
+                        if ($filtroEstado !== null && $r->estado !== $filtroEstado) return false;
+                        $fecha = substr((string) $r->fechaCreacion, 0, 10);
+                        if ($filtroDesde !== null && $fecha < $filtroDesde) return false;
+                        if ($filtroHasta !== null && $fecha > $filtroHasta) return false;
+                        return true;
+                    })->values();
                     $reportesSolucionados = collect($reportes)->filter(fn($r) => in_array($r->estado, ['Solucionado', 'Resuelto']))->values();
                 @endphp
                 @foreach ([
-                    ['titulo' => 'Reportes individuales', 'descripcion' => 'Problemas pendientes y en proceso.', 'registros' => $reportesActivos, 'historial' => false],
+                    ['titulo' => 'Reportes individuales', 'descripcion' => 'Problemas pendientes y en proceso.', 'registros' => $reportesActivosFiltrados, 'historial' => false],
                     ['titulo' => 'Reportes solucionados', 'descripcion' => 'Historial de problemas atendidos. No aparecen en el mapa de Inicio salvo cuando consultas su ubicación.', 'registros' => $reportesSolucionados, 'historial' => true],
                 ] as $grupoReportes)
-                <div class="card mb-4">
+                <div class="card mb-4" @if(!$grupoReportes['historial']) id="reportes-individuales" @endif>
 
                     <div class="card-body">
 
@@ -303,6 +321,59 @@
                             {{ $grupoReportes['titulo'] }}
                         </h4>
                         <p class="text-muted mb-3">{{ $grupoReportes['descripcion'] }}</p>
+
+                        @if(!$grupoReportes['historial'])
+                            {{-- Filtrar únicamente la tabla individual; no se altera el conjunto de casos agrupados. --}}
+                            <form method="GET" action="{{ url('/reportes') }}#reportes-individuales"
+                                  class="border rounded p-3 mb-3 bg-light" aria-label="Filtros de reportes individuales">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-lg-3 col-md-6">
+                                        <label for="cmBuscarIndividual" class="form-label mb-1">Buscar reporte o vecino</label>
+                                        <input id="cmBuscarIndividual" name="buscar" type="search" maxlength="100"
+                                               class="form-control form-control-sm" placeholder="Título, nombre o número"
+                                               value="{{ $filtrosIndividuales['buscar'] ?? '' }}">
+                                    </div>
+                                    <div class="col-lg-2 col-md-6">
+                                        <label for="cmCategoriaIndividual" class="form-label mb-1">Categoría</label>
+                                        <select id="cmCategoriaIndividual" name="categoria" class="form-select form-select-sm">
+                                            <option value="">Todas</option>
+                                            @foreach($categoriasIndividuales as $categoriaIndividual)
+                                                <option value="{{ $categoriaIndividual['id'] }}"
+                                                    {{ (string) ($filtroCategoria ?? '') === (string) $categoriaIndividual['id'] ? 'selected' : '' }}>
+                                                    {{ $categoriaIndividual['nombre'] }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-lg-2 col-md-6">
+                                        <label for="cmEstadoIndividual" class="form-label mb-1">Estado</label>
+                                        <select id="cmEstadoIndividual" name="estado_individual" class="form-select form-select-sm">
+                                            <option value="">Todos</option>
+                                            <option value="Pendiente" {{ $filtroEstado === 'Pendiente' ? 'selected' : '' }}>Pendiente</option>
+                                            <option value="En Proceso" {{ $filtroEstado === 'En Proceso' ? 'selected' : '' }}>En Proceso</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-lg-2 col-md-6">
+                                        <label for="cmFechaDesdeIndividual" class="form-label mb-1">Desde</label>
+                                        <input id="cmFechaDesdeIndividual" name="fecha_desde" type="date"
+                                               class="form-control form-control-sm" value="{{ $filtroDesde ?? '' }}">
+                                    </div>
+                                    <div class="col-lg-2 col-md-6">
+                                        <label for="cmFechaHastaIndividual" class="form-label mb-1">Hasta</label>
+                                        <input id="cmFechaHastaIndividual" name="fecha_hasta" type="date"
+                                               class="form-control form-control-sm" value="{{ $filtroHasta ?? '' }}">
+                                    </div>
+                                    <div class="col-lg-1 col-md-6 d-flex gap-1 flex-wrap">
+                                        <button type="submit" class="btn btn-primary btn-sm" title="Aplicar filtros">Filtrar</button>
+                                        <a class="btn btn-outline-secondary btn-sm" href="{{ url('/reportes') }}#reportes-individuales" title="Quitar todos los filtros">Limpiar</a>
+                                    </div>
+                                </div>
+                            </form>
+                            <p class="small text-muted mb-3" role="status">
+                                Mostrando {{ $reportesActivosFiltrados->count() }} de {{ $reportesActivos->count() }} reportes individuales.
+                                @if($filtrosActivos) <span class="fw-semibold">Filtros aplicados.</span> @endif
+                            </p>
+                        @endif
 
                         @if(session('rol') == 'Administrador' && !$grupoReportes['historial'])
                             <form id="cmCartaConjunta" method="GET" action="{{ route('documentos.preparar') }}"></form>
@@ -466,7 +537,7 @@
                                         <tr>
 
                                             <td colspan="{{ session('rol') == 'Administrador' ? 7 : 6 }}" class="text-center text-muted py-4">
-                                                {{ $grupoReportes['historial'] ? 'Todavía no hay reportes solucionados.' : 'No hay reportes pendientes ni en proceso.' }}
+                                                {{ $grupoReportes['historial'] ? 'Todavía no hay reportes solucionados.' : ($filtrosActivos ? 'No se encontraron reportes con estos filtros.' : 'No hay reportes pendientes ni en proceso.') }}
                                             </td>
 
                                         </tr>
