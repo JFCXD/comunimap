@@ -16,11 +16,21 @@ class ReportesController extends Controller
     | LISTADO DE REPORTES
     |--------------------------------------------------------------------------
     */
-    public function index()
+    public function index(Request $request)
     {
         if (!Session::has('idUsuario')) {
             return redirect('/login');
         }
+
+        // Filtros de consulta: se aplican solo a la tabla de reportes individuales.
+        // No alteran los casos agrupados, estados, notificaciones ni exportaciones.
+        $filtrosIndividuales = $request->validate([
+            'buscar' => ['nullable', 'string', 'max:100'],
+            'categoria' => ['nullable', 'integer', 'exists:categorias,idCategoria'],
+            'estado_individual' => ['nullable', 'in:Pendiente,En Proceso'],
+            'fecha_desde' => ['nullable', 'date_format:Y-m-d'],
+            'fecha_hasta' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:fecha_desde'],
+        ]);
 
         $esAdministrador =
             Session::get('rol') === 'Administrador';
@@ -123,7 +133,8 @@ class ReportesController extends Controller
                 'reportes',
                 'casosAlta',
                 'casosMedia',
-                'casosBaja'
+                'casosBaja',
+                'filtrosIndividuales'
             )
         );
     }
