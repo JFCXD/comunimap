@@ -318,6 +318,66 @@ class DocumentoFormalController extends Controller
         }
     }
 
+    /**
+     * Página de edición de carta; no genera ni transmite un PDF hasta descargar.
+     * Conserva los campos del formulario y valida los reportes seleccionados.
+     */
+    public function editor(Request $request)
+    {
+        $this->administrador();
+        $datos = $request->validate([
+            'reportes' => ['required', 'array', 'min:1', 'max:30'],
+            'reportes.*' => ['required'],
+            'fecha' => ['required', 'date_format:Y-m-d'],
+            'lugar_emision' => ['nullable', 'string', 'max:120'],
+            'membrete_titulo' => ['nullable', 'string', 'max:250'],
+            'membrete_prefectural' => ['nullable', 'string', 'max:250'],
+            'membrete_municipal' => ['nullable', 'string', 'max:250'],
+            'membrete_registro' => ['nullable', 'string', 'max:250'],
+            'membrete_zona' => ['nullable', 'string', 'max:250'],
+            'tratamiento' => ['nullable', 'string', 'max:250'],
+            'presente' => ['nullable', 'string', 'max:250'],
+            'referencia_etiqueta' => ['nullable', 'string', 'max:250'],
+            'saludo' => ['nullable', 'string', 'max:250'],
+            'despedida' => ['nullable', 'string', 'max:250'],
+            'atentamente' => ['nullable', 'string', 'max:250'],
+            'firma_otb' => ['nullable', 'string', 'max:250'],
+            'sello_etiqueta' => ['nullable', 'string', 'max:250'],
+            'pie_carta' => ['nullable', 'string', 'max:250'],
+            'destinatario' => ['required', 'string', 'max:180'],
+            'cargo_destinatario' => ['nullable', 'string', 'max:180'],
+            'institucion' => ['required', 'string', 'max:180'],
+            'asunto' => ['required', 'string', 'max:250'],
+            'remitente' => ['required', 'string', 'max:180'],
+            'cargo_remitente' => ['nullable', 'string', 'max:180'],
+            'antecedentes' => ['required', 'string', 'max:15000'],
+            'solicitud' => ['required', 'string', 'max:10000'],
+            'antecedentes_html' => ['nullable', 'string', 'max:30000'],
+            'solicitud_html' => ['nullable', 'string', 'max:30000'],
+            'membrete_titulo_html' => ['nullable', 'string', 'max:4000'],
+            'membrete_prefectural_html' => ['nullable', 'string', 'max:4000'],
+            'membrete_municipal_html' => ['nullable', 'string', 'max:4000'],
+            'membrete_registro_html' => ['nullable', 'string', 'max:4000'],
+            'membrete_zona_html' => ['nullable', 'string', 'max:4000'],
+            'tratamiento_html' => ['nullable', 'string', 'max:4000'],
+            'presente_html' => ['nullable', 'string', 'max:4000'],
+            'referencia_etiqueta_html' => ['nullable', 'string', 'max:4000'],
+            'saludo_html' => ['nullable', 'string', 'max:4000'],
+            'despedida_html' => ['nullable', 'string', 'max:4000'],
+            'atentamente_html' => ['nullable', 'string', 'max:4000'],
+            'firma_otb_html' => ['nullable', 'string', 'max:4000'],
+            'sello_etiqueta_html' => ['nullable', 'string', 'max:4000'],
+            'pie_carta_html' => ['nullable', 'string', 'max:4000'],
+            'incluir_anexos' => ['nullable', 'in:1'],
+            'modo' => ['nullable', 'in:vista_previa,descargar'],
+        ]);
+        $ids = $this->ids($datos['reportes']);
+        $this->reportes($ids);
+        $datos['reportes'] = $ids;
+
+        return view('documentos.editor', compact('datos'));
+    }
+
     public function descargar(Request $request)
     {
         $this->administrador();
