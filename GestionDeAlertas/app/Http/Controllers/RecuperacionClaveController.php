@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Session;
+use App\Services\CorreoRecuperacionGmail;
 
 class RecuperacionClaveController extends Controller
 {
@@ -36,6 +37,11 @@ class RecuperacionClaveController extends Controller
         if ($proveedor === 'resend') {
             $correoHabilitado = filled(config('services.resend.key'))
                 && filter_var(config('services.recuperacion_correo.remitente'), FILTER_VALIDATE_EMAIL);
+        } elseif ($proveedor === 'gmail_api') {
+            $correoHabilitado = filled(config('services.gmail_api.client_id'))
+                && filled(config('services.gmail_api.client_secret'))
+                && filled(config('services.gmail_api.refresh_token'))
+                && filter_var(config('services.gmail_api.remitente'), FILTER_VALIDATE_EMAIL);
         } else {
             $correoHabilitado = !in_array(config('mail.default'), ['log', 'array'], true)
                 && filter_var(config('mail.from.address'), FILTER_VALIDATE_EMAIL)
@@ -99,6 +105,12 @@ class RecuperacionClaveController extends Controller
                     ]);
                     throw new \RuntimeException('Resend no aceptó el correo');
                 }
+            } elseif ($proveedor === 'gmail_api') {
+                app(CorreoRecuperacionGmail::class)->enviar(
+                    $usuario->email,
+                    'ComuniMap - Recuperación de contraseña',
+                    $cuerpo
+                );
             } else {
                 Mail::raw($cuerpo, function ($mensaje) use ($usuario) {
                     $mensaje->to($usuario->email)
