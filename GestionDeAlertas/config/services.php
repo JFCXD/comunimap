@@ -34,6 +34,15 @@ return [
         'key' => env('RESEND_API_KEY'),
     ],
 
+    // Gmail API vía HTTPS para recuperación de contraseñas (alternativa opcional).
+    // Nunca guardar OAuth client secret ni refresh token en el repositorio.
+    'gmail_api' => [
+        'client_id' => env('GMAIL_API_CLIENT_ID', ''),
+        'client_secret' => env('GMAIL_API_CLIENT_SECRET', ''),
+        'refresh_token' => env('GMAIL_API_REFRESH_TOKEN', ''),
+        'remitente' => env('GMAIL_API_FROM_ADDRESS', ''),
+    ],
+
     // Solo la recuperación de contraseña elige este proveedor.
     // No altera los demás correos de Laravel ni el funcionamiento de Android.
     'recuperacion_correo' => [
