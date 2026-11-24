@@ -18,6 +18,11 @@ Route::get('/', function () {
     return redirect('/login');
 });
 
+// Páginas institucionales públicas para información y privacidad de ComuniMap.
+// Sin autenticación: accesibles desde Google y desde cualquier navegador.
+Route::view('/informacion', 'publico.informacion')->name('publico.informacion');
+Route::view('/politica-privacidad', 'publico.politica-privacidad')->name('publico.privacidad');
+
 // =====================================================
 // REGISTRO
 // =====================================================
