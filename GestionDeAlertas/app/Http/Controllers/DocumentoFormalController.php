@@ -511,7 +511,7 @@ class DocumentoFormalController extends Controller
         ])->setPaper('a4');
 
         // Solo la acción explícita Emitir registra un documento inmutable.
-        // Previsualizar y descargar siguen funcionando como antes y no guardan nada.
+        // Solo una emisión explícita guarda el PDF definitivo; la vista previa no archiva.
         if (($datos['accion_documento'] ?? null) === 'emitir') {
             $binario = $pdf->output();
             if (strlen($binario) > 16 * 1024 * 1024) {
@@ -527,7 +527,7 @@ class DocumentoFormalController extends Controller
             $idsJson = json_encode($ids);
             $datosJson = json_encode($snapshot, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
             $idExistente = $datos['documento_id'] ?? null;
-            DB::transaction(function () use ($idExistente, $datos, $binario, $idsJson, $datosJson) {
+            $idEmitido = DB::transaction(function () use ($idExistente, $datos, $binario, $idsJson, $datosJson) {
                 $registro = [
                     'estado' => 'Emitida',
                     'asunto' => $datos['asunto'],
@@ -552,8 +552,18 @@ class DocumentoFormalController extends Controller
                 DB::table('cartas_documentos')->where('id', $id)->update([
                     'codigo' => 'CM-CAR-'.now()->format('Y').'-'.str_pad((string)$id, 5, '0', STR_PAD_LEFT),
                 ]);
+                return $id;
             });
-            return redirect()->route('cartas.index')->with('success', 'Carta emitida y PDF archivado. Puedes consultarlo e imprimirlo desde Cartas.');
+            // Un solo botón: archiva primero la versión definitiva y entrega el
+            // mismo PDF para descargar. El navegador decide si guarda el archivo.
+            $codigo = 'CM-CAR-'.now()->format('Y').'-'.str_pad((string)$idEmitido, 5, '0', STR_PAD_LEFT);
+            return response($binario, 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="'.$codigo.'.pdf"',
+                'Content-Length' => (string) strlen($binario),
+                'Cache-Control' => 'private, no-store, max-age=0',
+                'X-Content-Type-Options' => 'nosniff',
+            ]);
         }
 
         $nombre = 'carta-formal-comunimap-'.date('Ymd').'.pdf';
