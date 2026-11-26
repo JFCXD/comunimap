@@ -146,6 +146,12 @@ Route::post(
     [ReportesController::class, 'actualizarEstadoGrupo']
 );
 
+// FASE 3: cierre documentado solo para administración web.
+Route::get('/reportes/cerrar/{id}', [ReportesController::class, 'prepararSolucion'])
+    ->whereNumber('id')->name('soluciones.preparar');
+Route::post('/reportes/cerrar/{id}', [ReportesController::class, 'guardarSolucion'])
+    ->whereNumber('id')->name('soluciones.guardar');
+
 // =====================================================
 // USUARIOS
 // =====================================================
