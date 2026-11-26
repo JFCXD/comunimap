@@ -122,9 +122,10 @@
                         <i class="fa-solid fa-floppy-disk me-1"></i> Guardar borrador
                     </button>
                     <button type="submit" formaction="{{ route('documentos.descargar') }}" name="accion_documento" value="emitir"
-                        onclick="return confirm('¿Emitir y archivar definitivamente esta carta? Después de emitirla no podrá editarse.')"
-                        class="btn btn-success"><i class="fa-solid fa-file-circle-check me-1"></i> Emitir carta</button>
-                    <button type="submit" name="modo" value="vista_previa" formtarget="_blank" class="btn btn-primary"><i class="fa fa-file-pdf-o me-1"></i> Descargar PDF</button>
+                        onclick="return confirm('¿Emitir definitivamente la carta y descargar su PDF? Se archivará en Emitidas y no podrá editarse.')"
+                        class="btn btn-success"><i class="fa-solid fa-file-pdf me-1"></i> Emitir y descargar PDF</button>
+                    <button type="submit" name="modo" value="vista_previa" formtarget="_blank"
+                        class="btn btn-outline-secondary"><i class="fa-solid fa-eye me-1"></i> Vista previa PDF</button>
                 </div>
             </div>
         </section>
