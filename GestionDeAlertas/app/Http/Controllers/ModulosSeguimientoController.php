@@ -69,7 +69,11 @@ class ModulosSeguimientoController extends Controller
     {
         if ($respuesta = $this->soloAdministrador()) return $respuesta;
 
-        return view('seguimiento.cartas', $this->listado($request, false));
+        $data = $this->listado($request, false);
+        $data['documentos'] = DB::table('cartas_documentos')
+            ->select('id','codigo','estado','asunto','reportes_json','creado_por','created_at','updated_at','emitida_en')
+            ->orderByDesc('updated_at')->limit(200)->get();
+        return view('seguimiento.cartas', $data);
     }
 
     public function solucionados(Request $request)
