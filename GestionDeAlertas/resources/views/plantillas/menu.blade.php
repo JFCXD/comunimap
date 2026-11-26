@@ -31,6 +31,18 @@
                 </li>
                 @if(session('rol') == 'Administrador')
                     <li class="sidebar-item">
+                        <a class="sidebar-link waves-effect waves-dark sidebar-link {{ request()->is('cartas') || request()->is('cartas/*') || request()->is('documentos/*') ? 'cm-selected' : '' }}" href="{{ route('cartas.index') }}" aria-expanded="false">
+                            <i class="fas fa-file-lines" aria-hidden="true"></i>
+                            <span class="hide-menu">Cartas</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link waves-effect waves-dark sidebar-link {{ request()->is('solucionados') || request()->is('solucionados/*') ? 'cm-selected' : '' }}" href="{{ route('solucionados.index') }}" aria-expanded="false">
+                            <i class="fas fa-circle-check" aria-hidden="true"></i>
+                            <span class="hide-menu">Solucionados</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
                         <a class="sidebar-link waves-effect waves-dark sidebar-link {{ request()->is('usuarios') || request()->is('usuarios/*') ? 'cm-selected' : '' }}" href="/usuarios" aria-expanded="false">
                             <i class="fa fa-user" aria-hidden="true"></i>
                             <span class="hide-menu">Usuarios</span>
