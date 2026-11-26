@@ -9,19 +9,48 @@
   <div class="page-breadcrumb"><div class="container-fluid">
     <div class="cm-page-heading">
       <h4 class="page-title"><i class="fa-solid fa-file-lines me-2" aria-hidden="true"></i>Cartas</h4>
-      <p class="cm-subtitle mb-0">Selecciona los reportes para preparar una carta. Próximamente: borradores y cartas emitidas.</p>
+      <p class="cm-subtitle mb-0">Gestiona borradores, consulta cartas emitidas y prepara nuevos documentos.</p>
     </div>
   </div></div>
   <div class="container-fluid">
     @if($errors->any()) <div class="alert alert-danger">{{ $errors->first() }}</div> @endif
+    @if(session('success'))<div class="alert alert-success" role="status">{{ session('success') }}</div>@endif
     <div class="row g-3 mb-3">
-      <div class="col-md-6"><div class="card h-100"><div class="card-body d-flex align-items-center gap-3">
-        <i class="fa-regular fa-pen-to-square fa-2x text-primary" aria-hidden="true"></i>
-        <div><h5 class="mb-1">Borradores</h5><p class="text-muted small mb-0">El guardado permanente estará disponible en la siguiente fase.</p></div>
+      <div class="col-md-6"><div class="card h-100"><div class="card-body">
+        <div class="d-flex align-items-center gap-2 mb-3"><i class="fa-solid fa-file-pen text-primary fa-lg"></i><h5 class="mb-0">Borradores</h5>
+          <span class="badge bg-secondary ms-auto">{{ $documentos->where('estado','Borrador')->count() }}</span></div>
+        <div style="max-height:310px;overflow-y:auto">
+        @forelse($documentos->where('estado','Borrador') as $doc)
+          <div class="border rounded p-3 mb-2">
+            <div class="fw-semibold">{{ $doc->asunto ?: 'Carta sin asunto' }}</div>
+            <div class="small text-muted mb-2">{{ count(json_decode($doc->reportes_json, true) ?: []) }} reporte(s) · Actualizado: {{ $doc->updated_at }}</div>
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+              <a class="btn btn-primary btn-sm" href="{{ route('cartas.editar',['id'=>$doc->id]) }}"><i class="fa-solid fa-pen me-1"></i>Continuar edición</a>
+              <form method="POST" action="{{ route('cartas.eliminar',['id'=>$doc->id]) }}" onsubmit="return confirm('¿Eliminar este borrador?');">
+                @csrf <button class="btn btn-outline-danger btn-sm" type="submit">Eliminar</button>
+              </form>
+            </div>
+          </div>
+        @empty
+          <p class="small text-muted">Todavía no hay borradores guardados.</p>
+        @endforelse
+        </div>
       </div></div></div>
-      <div class="col-md-6"><div class="card h-100"><div class="card-body d-flex align-items-center gap-3">
-        <i class="fa-regular fa-file-pdf fa-2x text-primary" aria-hidden="true"></i>
-        <div><h5 class="mb-1">Cartas emitidas</h5><p class="text-muted small mb-0">El archivo de documentos emitidos se activará en la siguiente fase.</p></div>
+      <div class="col-md-6"><div class="card h-100"><div class="card-body">
+        <div class="d-flex align-items-center gap-2 mb-3"><i class="fa-solid fa-file-circle-check text-success fa-lg"></i><h5 class="mb-0">Emitidas</h5>
+          <span class="badge bg-success ms-auto">{{ $documentos->where('estado','Emitida')->count() }}</span></div>
+        <div style="max-height:310px;overflow-y:auto">
+        @forelse($documentos->where('estado','Emitida') as $doc)
+          <div class="border rounded p-3 mb-2">
+            <div class="fw-semibold">{{ $doc->asunto ?: 'Carta emitida' }}</div>
+            <div class="small text-muted">{{ $doc->codigo }} · {{ count(json_decode($doc->reportes_json, true) ?: []) }} reporte(s)</div>
+            <div class="small text-muted mb-2">Emisión: {{ $doc->emitida_en }}</div>
+            <a class="btn btn-outline-primary btn-sm" href="{{ route('cartas.pdf',['id'=>$doc->id]) }}" target="_blank" rel="noopener"><i class="fa-solid fa-file-pdf me-1"></i>Ver / imprimir PDF</a>
+          </div>
+        @empty
+          <p class="small text-muted">Todavía no hay cartas emitidas y archivadas.</p>
+        @endforelse
+        </div>
       </div></div></div>
     </div>
     <div class="card"><div class="card-body">
