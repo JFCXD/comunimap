@@ -261,7 +261,10 @@
                                                                 </div>
 
                                                             </form>
-
+                                                            <a href="{{ route('soluciones.preparar', ['id' => $caso['idReporte'], 'tipo' => 'grupo']) }}"
+                                                               class="btn btn-outline-success btn-sm mt-2">
+                                                                <i class="fa-solid fa-camera me-1"></i> Cerrar con evidencia
+                                                            </a>
                                                         </td>
 
                                                     </tr>
@@ -483,6 +486,12 @@
                                                             <i class="fa fa-save" aria-hidden="true"></i>
                                                         </button>
                                                     </form>
+                                                    @if(!$grupoReportes['historial'])
+                                                        <a href="{{ route('soluciones.preparar', ['id' => $reporte->idReporte, 'tipo' => 'individual']) }}"
+                                                           class="btn btn-outline-success btn-sm mt-1">
+                                                            <i class="fa-solid fa-camera me-1"></i> Registrar solución
+                                                        </a>
+                                                    @endif
                                                 @endif
 
                                             </td>
