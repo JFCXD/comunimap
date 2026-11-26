@@ -93,8 +93,18 @@ class CartasArchivoController extends Controller
             $documento = DB::table('cartas_documentos')->where('id', (int)$idDocumento)
                 ->where('estado', 'Borrador')->first();
             if (!$documento) abort(404);
-            DB::table('cartas_documentos')->where('id', $documento->id)
+            // No sobrescribir una carta que haya sido emitida desde otra pestaña.
+            $actualizados = DB::table('cartas_documentos')->where('id', $documento->id)
                 ->where('estado', 'Borrador')->update($payload);
+            if (!$actualizados) {
+                $todaviaBorrador = DB::table('cartas_documentos')
+                    ->where('id', $documento->id)->where('estado', 'Borrador')->exists();
+                if (!$todaviaBorrador) {
+                    throw ValidationException::withMessages([
+                        'documento' => 'La carta ya fue emitida. No se puede sobrescribir.',
+                    ]);
+                }
+            }
             $id = $documento->id;
         } else {
             $id = DB::table('cartas_documentos')->insertGetId($payload + [
