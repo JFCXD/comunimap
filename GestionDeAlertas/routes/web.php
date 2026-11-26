@@ -12,6 +12,7 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\RecuperacionClaveController;
 use App\Http\Controllers\ComunidadController;
 use App\Http\Controllers\DocumentoFormalController;
+use App\Http\Controllers\ModulosSeguimientoController;
 use App\Http\Controllers\ImagenComunidadController;
 
 Route::get('/', function () {
@@ -197,6 +198,10 @@ Route::get('/comunidad/imagen/{nombre}', [ImagenComunidadController::class, 'mos
     ->name('comunidad.imagen');
 Route::post('/comunidad/imagen/subir', [ImagenComunidadController::class, 'subirDesdeApi'])
     ->name('comunidad.imagen.subir');
+
+// FASE 1: pestañas web independientes, únicamente lectura para administración.
+Route::get('/cartas', [ModulosSeguimientoController::class, 'cartas'])->name('cartas.index');
+Route::get('/solucionados', [ModulosSeguimientoController::class, 'solucionados'])->name('solucionados.index');
 
 // CARTAS FORMALES: únicamente administración web; no alteran reportes.
 Route::get('/documentos/preparar', [DocumentoFormalController::class, 'preparar'])->name('documentos.preparar');
