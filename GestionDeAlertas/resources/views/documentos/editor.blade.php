@@ -11,6 +11,7 @@
     <form id="cmFormularioCarta" action="{{ route('documentos.descargar') }}" method="POST">
         @csrf
         @foreach($datos['reportes'] as $id)<input type="hidden" name="reportes[]" value="{{ $id }}">@endforeach
+        @if(!empty($documentoId))<input type="hidden" name="documento_id" value="{{ $documentoId }}">@endif
         @php($camposInstitucionales = ['membrete_titulo','membrete_prefectural','membrete_municipal','membrete_registro','membrete_zona','tratamiento','presente','referencia_etiqueta','saludo','despedida','atentamente','firma_otb','sello_etiqueta','pie_carta'])
         @foreach($datos as $campo => $valor)
             @if($campo !== 'reportes' && !in_array($campo, $camposInstitucionales, true) && !str_ends_with($campo, '_html') && is_scalar($valor))
@@ -32,22 +33,22 @@
         <input type="hidden" id="sello_etiqueta" name="sello_etiqueta" value="{{ ($datos['sello_etiqueta'] ?? 'Sello de la OTB') }}">
         <input type="hidden" id="pie_carta" name="pie_carta" value="{{ ($datos['pie_carta'] ?? 'OTB BARRIO UNIVERSITARIO ALTO — COCHABAMBA, BOLIVIA') }}">
         {{-- El PDF recibe el formato de los párrafos por separado; el controlador sanea el HTML. --}}
-        <input type="hidden" id="cmFormatoAntecedentes" name="antecedentes_html" value="">
-        <input type="hidden" id="cmFormatoSolicitud" name="solicitud_html" value="">
-        <input type="hidden" id="membrete_titulo_html" name="membrete_titulo_html" value="">
-        <input type="hidden" id="membrete_prefectural_html" name="membrete_prefectural_html" value="">
-        <input type="hidden" id="membrete_municipal_html" name="membrete_municipal_html" value="">
-        <input type="hidden" id="membrete_registro_html" name="membrete_registro_html" value="">
-        <input type="hidden" id="membrete_zona_html" name="membrete_zona_html" value="">
-        <input type="hidden" id="tratamiento_html" name="tratamiento_html" value="">
-        <input type="hidden" id="presente_html" name="presente_html" value="">
-        <input type="hidden" id="referencia_etiqueta_html" name="referencia_etiqueta_html" value="">
-        <input type="hidden" id="saludo_html" name="saludo_html" value="">
-        <input type="hidden" id="despedida_html" name="despedida_html" value="">
-        <input type="hidden" id="atentamente_html" name="atentamente_html" value="">
-        <input type="hidden" id="firma_otb_html" name="firma_otb_html" value="">
-        <input type="hidden" id="sello_etiqueta_html" name="sello_etiqueta_html" value="">
-        <input type="hidden" id="pie_carta_html" name="pie_carta_html" value="">
+        <input type="hidden" id="cmFormatoAntecedentes" name="antecedentes_html" value="{{ $datos['antecedentes_html'] ?? '' }}">
+        <input type="hidden" id="cmFormatoSolicitud" name="solicitud_html" value="{{ $datos['solicitud_html'] ?? '' }}">
+        <input type="hidden" id="membrete_titulo_html" name="membrete_titulo_html" value="{{ $datos['membrete_titulo_html'] ?? '' }}">
+        <input type="hidden" id="membrete_prefectural_html" name="membrete_prefectural_html" value="{{ $datos['membrete_prefectural_html'] ?? '' }}">
+        <input type="hidden" id="membrete_municipal_html" name="membrete_municipal_html" value="{{ $datos['membrete_municipal_html'] ?? '' }}">
+        <input type="hidden" id="membrete_registro_html" name="membrete_registro_html" value="{{ $datos['membrete_registro_html'] ?? '' }}">
+        <input type="hidden" id="membrete_zona_html" name="membrete_zona_html" value="{{ $datos['membrete_zona_html'] ?? '' }}">
+        <input type="hidden" id="tratamiento_html" name="tratamiento_html" value="{{ $datos['tratamiento_html'] ?? '' }}">
+        <input type="hidden" id="presente_html" name="presente_html" value="{{ $datos['presente_html'] ?? '' }}">
+        <input type="hidden" id="referencia_etiqueta_html" name="referencia_etiqueta_html" value="{{ $datos['referencia_etiqueta_html'] ?? '' }}">
+        <input type="hidden" id="saludo_html" name="saludo_html" value="{{ $datos['saludo_html'] ?? '' }}">
+        <input type="hidden" id="despedida_html" name="despedida_html" value="{{ $datos['despedida_html'] ?? '' }}">
+        <input type="hidden" id="atentamente_html" name="atentamente_html" value="{{ $datos['atentamente_html'] ?? '' }}">
+        <input type="hidden" id="firma_otb_html" name="firma_otb_html" value="{{ $datos['firma_otb_html'] ?? '' }}">
+        <input type="hidden" id="sello_etiqueta_html" name="sello_etiqueta_html" value="{{ $datos['sello_etiqueta_html'] ?? '' }}">
+        <input type="hidden" id="pie_carta_html" name="pie_carta_html" value="{{ $datos['pie_carta_html'] ?? '' }}">
         
 <section id="cmEditorCarta" class="cm-editor-dialog" aria-labelledby="cmEditorTitulo">
             <div class="cm-editor-topbar">
@@ -114,7 +115,12 @@
             <div class="cm-editor-acciones">
                 <span class="small text-muted">Todos los textos son editables. Los logos y las fotos permanecen protegidos; el PDF conserva los elementos institucionales.</span>
                 <div class="d-flex gap-2 flex-wrap">
-                    
+                    <button type="submit" formaction="{{ route('cartas.guardar') }}" formmethod="POST" formnovalidate class="btn btn-outline-primary">
+                        <i class="fa-solid fa-floppy-disk me-1"></i> Guardar borrador
+                    </button>
+                    <button type="submit" formaction="{{ route('documentos.descargar') }}" name="accion_documento" value="emitir"
+                        onclick="return confirm('¿Emitir y archivar definitivamente esta carta? Después de emitirla no podrá editarse.')"
+                        class="btn btn-success"><i class="fa-solid fa-file-circle-check me-1"></i> Emitir carta</button>
                     <button type="submit" name="modo" value="vista_previa" formtarget="_blank" class="btn btn-primary"><i class="fa fa-file-pdf-o me-1"></i> Descargar PDF</button>
                 </div>
             </div>
@@ -198,7 +204,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (elemento.isContentEditable) {
                 const oculto = formatoOculto[elemento.dataset.cmCampo];
                 const textoOriginal = document.getElementById(elemento.dataset.cmCampo);
-                if (oculto && oculto.value && oculto.dataset.texto === textoOriginal.value) {
+                if (oculto && oculto.value && (!oculto.dataset.texto || oculto.dataset.texto === textoOriginal.value)) {
                     elemento.innerHTML = oculto.value;
                 } else {
                     elemento.innerText = valor;
