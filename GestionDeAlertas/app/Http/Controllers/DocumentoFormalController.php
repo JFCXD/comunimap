@@ -262,7 +262,7 @@ class DocumentoFormalController extends Controller
      * Formato limitado para el cuerpo de las cartas.
      * Nunca aceptar HTML arbitrario de un navegador, aunque sea administrador.
      */
-    private function formatoSeguroCarta(?string $html): ?string
+    public function formatoSeguroCarta(?string $html): ?string
     {
         if ($html === null || trim($html) === '' || strlen($html) > 30000) return null;
         if (!class_exists(\DOMDocument::class)) return null;
@@ -370,6 +370,8 @@ class DocumentoFormalController extends Controller
             'pie_carta_html' => ['nullable', 'string', 'max:4000'],
             'incluir_anexos' => ['nullable', 'in:1'],
             'modo' => ['nullable', 'in:vista_previa,descargar'],
+            'documento_id' => ['nullable', 'integer', 'min:1'],
+            'accion_documento' => ['nullable', 'in:emitir'],
         ]);
         $ids = $this->ids($datos['reportes']);
         $this->reportes($ids);
@@ -427,6 +429,8 @@ class DocumentoFormalController extends Controller
             'pie_carta_html' => ['nullable', 'string', 'max:4000'],
             'incluir_anexos' => ['nullable', 'in:1'],
             'modo' => ['nullable', 'in:vista_previa,descargar'],
+            'documento_id' => ['nullable', 'integer', 'min:1'],
+            'accion_documento' => ['nullable', 'in:emitir'],
         ]);
 
         $ids = $this->ids($datos['reportes']);
@@ -505,6 +509,52 @@ class DocumentoFormalController extends Controller
             'emblemas' => $emblemas,
             'liston' => $liston,
         ])->setPaper('a4');
+
+        // Solo la acción explícita Emitir registra un documento inmutable.
+        // Previsualizar y descargar siguen funcionando como antes y no guardan nada.
+        if (($datos['accion_documento'] ?? null) === 'emitir') {
+            $binario = $pdf->output();
+            if (strlen($binario) > 16 * 1024 * 1024) {
+                throw ValidationException::withMessages([
+                    'documento' => 'El PDF supera los 16 MB. Reduce los anexos.',
+                ]);
+            }
+            $snapshot = $datos;
+            unset($snapshot['modo'], $snapshot['accion_documento']);
+            foreach ($formatoCarta as $campo => $htmlLimpio) {
+                $snapshot[$campo.'_html'] = $htmlLimpio;
+            }
+            $idsJson = json_encode($ids);
+            $datosJson = json_encode($snapshot, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+            $idExistente = $datos['documento_id'] ?? null;
+            DB::transaction(function () use ($idExistente, $datos, $binario, $idsJson, $datosJson) {
+                $registro = [
+                    'estado' => 'Emitida',
+                    'asunto' => $datos['asunto'],
+                    'datos_json' => $datosJson,
+                    'reportes_json' => $idsJson,
+                    'pdf_binario' => $binario,
+                    'emitida_en' => now(),
+                    'updated_at' => now(),
+                ];
+                if ($idExistente) {
+                    $borrador = DB::table('cartas_documentos')
+                        ->where('id', $idExistente)->lockForUpdate()->first();
+                    if (!$borrador || $borrador->estado !== 'Borrador') abort(404);
+                    DB::table('cartas_documentos')->where('id', $borrador->id)->update($registro);
+                    $id = (int)$borrador->id;
+                } else {
+                    $id = (int) DB::table('cartas_documentos')->insertGetId($registro + [
+                        'creado_por' => (int) Session::get('idUsuario'),
+                        'created_at' => now(),
+                    ]);
+                }
+                DB::table('cartas_documentos')->where('id', $id)->update([
+                    'codigo' => 'CM-CAR-'.now()->format('Y').'-'.str_pad((string)$id, 5, '0', STR_PAD_LEFT),
+                ]);
+            });
+            return redirect()->route('cartas.index')->with('success', 'Carta emitida y PDF archivado. Puedes consultarlo e imprimirlo desde Cartas.');
+        }
 
         $nombre = 'carta-formal-comunimap-'.date('Ymd').'.pdf';
         return ($datos['modo'] ?? 'descargar') === 'vista_previa'
