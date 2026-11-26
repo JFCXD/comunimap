@@ -497,6 +497,13 @@ class ReportesController extends Controller
 
         $nuevoEstado = $datos['estado'];
 
+        // El cierre de la web exige explicación y foto posterior.
+        if ($nuevoEstado === 'Solucionado') {
+            return redirect()->route('soluciones.preparar', [
+                'id' => (int)$id, 'tipo' => 'grupo'
+            ]);
+        }
+
         // El identificador de la URL es solo el
         // reporte representativo. No aceptamos IDs
         // de otros reportes enviados por el navegador.
@@ -614,6 +621,11 @@ class ReportesController extends Controller
 
         $idReporte = (int) $id;
         $nuevoEstado = $datos['estado'];
+        if ($nuevoEstado === 'Solucionado') {
+            return redirect()->route('soluciones.preparar', [
+                'id' => (int)$id, 'tipo' => 'individual'
+            ]);
+        }
 
         $idNotificacion = DB::transaction(function () use ($idReporte, $nuevoEstado) {
             $reporteAnterior = DB::table('reportes')
@@ -644,6 +656,127 @@ class ReportesController extends Controller
 
         return redirect('/reportes')
             ->with('success', 'Estado del reporte #' . $idReporte . ' actualizado a ' . $nuevoEstado . '.');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | FASE 3: CIERRE DOCUMENTADO WEB (INDIVIDUAL Y COLECTIVO)
+    |--------------------------------------------------------------------------
+    | Comparte agrupación y notificaciones existentes.
+    | La API Android conserva su comportamiento actual.
+    */
+    public function prepararSolucion(Request $request, $id)
+    {
+        if (!Session::has('idUsuario')) return redirect('/login');
+        if (Session::get('rol') !== 'Administrador') abort(403);
+        $tipo = $request->validate(['tipo' => ['required', 'in:individual,grupo']])['tipo'];
+        $reporte = DB::table('reportes')->where('idReporte', (int)$id)->first();
+        if (!$reporte || $this->estaSolucionado($reporte->estado)) abort(404);
+
+        $ids = [(int)$id];
+        if ($tipo === 'grupo') {
+            $grupo = collect($this->agruparCasos($this->consultarReportes()))
+                ->first(fn ($g) => (int)$g['idReporte'] === (int)$id);
+            if (!$grupo) {
+                return redirect('/reportes')->withErrors([
+                    'grupo' => 'Este grupo cambió. Actualiza la página y vuelve a intentarlo.'
+                ]);
+            }
+            $ids = $grupo['idsReportes'];
+        }
+        $reportes = DB::table('reportes as r')->join('usuarios as u', 'u.idUsuario', '=', 'r.idUsuario')
+            ->whereIn('r.idReporte', $ids)
+            ->select('r.idReporte','r.titulo','r.estado','r.imagen','u.nombre as usuario')
+            ->orderBy('r.idReporte')->get();
+        return view('seguimiento.cerrar', compact('tipo', 'reporte', 'reportes', 'ids'));
+    }
+
+    public function guardarSolucion(Request $request, $id)
+    {
+        if (!Session::has('idUsuario')) return redirect('/login');
+        if (Session::get('rol') !== 'Administrador') abort(403);
+
+        $datos = $request->validate([
+            'tipo' => ['required', 'in:individual,grupo'],
+            'explicacion' => ['required', 'string', 'min:15', 'max:10000'],
+            'responsable' => ['nullable', 'string', 'max:180'],
+            'foto_despues' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:6144'],
+            'anexos' => ['nullable', 'array', 'max:5'],
+            'anexos.*' => ['file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:6144'],
+        ]);
+        $tipo = $datos['tipo'];
+        $archivosGuardados = [];
+        try {
+            // Almacenar evidencias antes de la transacción y limpiarlas si falla.
+            $rutaFoto = $request->file('foto_despues')->store('soluciones', 'public');
+            if (!$rutaFoto) throw new \RuntimeException('No pudo guardarse la fotografía posterior.');
+            $archivosGuardados[] = $rutaFoto;
+            $anexos = [];
+            foreach ($request->file('anexos', []) as $archivo) {
+                $ruta = $archivo->store('soluciones/anexos', 'public');
+                if (!$ruta) throw new \RuntimeException('No pudo guardarse un anexo.');
+                $archivosGuardados[] = $ruta;
+                $anexos[] = ['nombre' => mb_substr($archivo->getClientOriginalName(), 0, 180), 'ruta' => $ruta];
+            }
+
+            $notificaciones = DB::transaction(function () use ($id, $tipo, $datos, $rutaFoto, $anexos) {
+                $todos = $this->consultarReportes(true);
+                $ids = [(int)$id];
+                if ($tipo === 'grupo') {
+                    $grupo = collect($this->agruparCasos($todos))
+                        ->first(fn ($g) => (int)$g['idReporte'] === (int)$id);
+                    if (!$grupo || count($grupo['idsReportes']) < 2) {
+                        throw ValidationException::withMessages([
+                            'grupo' => 'El grupo cambió; vuelve a abrirlo antes de registrar el cierre.'
+                        ]);
+                    }
+                    $ids = $grupo['idsReportes'];
+                }
+                $mapa = collect($todos)->keyBy('idReporte');
+                foreach ($ids as $rid) {
+                    $anterior = $mapa->get($rid);
+                    if (!$anterior || $this->estaSolucionado($anterior->estado)) {
+                        throw ValidationException::withMessages([
+                            'reporte' => 'Uno de los reportes ya está solucionado o no existe.'
+                        ]);
+                    }
+                }
+                if (DB::table('solucion_reporte')->whereIn('reporte_id', $ids)->exists()) {
+                    throw ValidationException::withMessages([
+                        'reporte' => 'Ya se registró una solución para este caso.'
+                    ]);
+                }
+                $solucionId = DB::table('soluciones_documentadas')->insertGetId([
+                    'reporte_representativo' => (int)$id,
+                    'reportes_ids' => json_encode(array_values($ids)),
+                    'explicacion' => trim($datos['explicacion']),
+                    'responsable' => trim((string)($datos['responsable'] ?? '')) ?: null,
+                    'foto_despues' => $rutaFoto,
+                    'anexos' => json_encode($anexos, JSON_UNESCAPED_UNICODE),
+                    'registrado_por' => (int)Session::get('idUsuario'),
+                    'created_at' => now(),
+                ]);
+                foreach ($ids as $rid) {
+                    DB::table('solucion_reporte')->insert([
+                        'solucion_id' => $solucionId, 'reporte_id' => (int)$rid
+                    ]);
+                }
+                DB::table('reportes')->whereIn('idReporte', $ids)->update(['estado'=>'Solucionado']);
+                $avisos = [];
+                foreach ($ids as $rid) {
+                    $notificacion = $this->registrarNotificacionEstado($mapa->get($rid), 'Solucionado');
+                    if ($notificacion !== null) $avisos[] = $notificacion;
+                }
+                return $avisos;
+            }, 3);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($archivosGuardados);
+            throw $e;
+        }
+
+        $this->enviarPushNotificaciones($notificaciones);
+        return redirect()->route('solucionados.index')->with('success',
+            $tipo === 'grupo' ? 'Caso colectivo solucionado y documentado.' : 'Reporte solucionado y documentado.');
     }
 
     /*
