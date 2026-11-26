@@ -80,6 +80,23 @@ class ModulosSeguimientoController extends Controller
     {
         if ($respuesta = $this->soloAdministrador()) return $respuesta;
 
-        return view('seguimiento.solucionados', $this->listado($request, true));
+        $data = $this->listado($request, true);
+        $ids = $data['registros']->pluck('idReporte')->map(fn ($id) => (int)$id)->all();
+        // Una solución colectiva puede aparecer junto a varios reportes originales.
+        // Cada fila conserva su referencia a un mismo expediente.
+        $data['solucionesPorReporte'] = [];
+        if ($ids) {
+            $vinculos = DB::table('solucion_reporte as sr')
+                ->join('soluciones_documentadas as s', 's.id', '=', 'sr.solucion_id')
+                ->whereIn('sr.reporte_id', $ids)
+                ->select('sr.reporte_id', 's.id', 's.reportes_ids',
+                    's.explicacion', 's.responsable', 's.foto_despues',
+                    's.anexos', 's.registrado_por', 's.created_at')
+                ->get();
+            foreach ($vinculos as $vinculo) {
+                $data['solucionesPorReporte'][(int)$vinculo->reporte_id] = $vinculo;
+            }
+        }
+        return view('seguimiento.solucionados', $data);
     }
 }
