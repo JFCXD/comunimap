@@ -21,7 +21,7 @@ return new class extends Migration
             $table->index(['creado_por', 'created_at']);
         });
         // Railway utiliza MySQL: guardar la versión PDF fija dentro de la BD.
-        \\Illuminate\\Support\\Facades\\DB::statement('ALTER TABLE cartas_documentos ADD COLUMN pdf_binario LONGBLOB NULL');
+        \Illuminate\Support\Facades\DB::statement('ALTER TABLE cartas_documentos ADD COLUMN pdf_binario LONGBLOB NULL');
     }
 
     public function down(): void
