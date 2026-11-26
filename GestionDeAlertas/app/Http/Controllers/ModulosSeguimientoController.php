@@ -97,6 +97,16 @@ class ModulosSeguimientoController extends Controller
                 $data['solucionesPorReporte'][(int)$vinculo->reporte_id] = $vinculo;
             }
         }
+        // Un caso colectivo tiene un único expediente de solución, aunque
+        // varios reportes originales conserven sus propias filas en MySQL.
+        $vistos = [];
+        $data['registros'] = $data['registros']->filter(function ($reporte) use (&$vistos, $data) {
+            $solucion = $data['solucionesPorReporte'][(int)$reporte->idReporte] ?? null;
+            if (!$solucion) return true; // Casos históricos sin expediente.
+            if (isset($vistos[$solucion->id])) return false;
+            $vistos[$solucion->id] = true;
+            return true;
+        })->values();
         return view('seguimiento.solucionados', $data);
     }
 }
