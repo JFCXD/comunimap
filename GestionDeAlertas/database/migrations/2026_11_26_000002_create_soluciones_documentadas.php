@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('soluciones_documentadas', function (Blueprint $table) {
             $table->id();
-            $table->unsignedInteger('reporte_representativo');
+            $table->integer('reporte_representativo');
             $table->json('reportes_ids');
             $table->text('explicacion');
             $table->string('responsable', 180)->nullable();
@@ -22,7 +22,7 @@ return new class extends Migration
         });
         Schema::create('solucion_reporte', function (Blueprint $table) {
             $table->unsignedBigInteger('solucion_id');
-            $table->unsignedInteger('reporte_id');
+            $table->integer('reporte_id');
             $table->primary(['solucion_id', 'reporte_id']);
             $table->unique('reporte_id');
             $table->foreign('solucion_id')->references('id')->on('soluciones_documentadas')->cascadeOnDelete();
