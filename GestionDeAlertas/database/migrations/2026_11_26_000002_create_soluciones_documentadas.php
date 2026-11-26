@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (!Schema::hasTable('soluciones_documentadas')) {
         Schema::create('soluciones_documentadas', function (Blueprint $table) {
             $table->id();
             $table->integer('reporte_representativo');
@@ -20,6 +21,8 @@ return new class extends Migration
             $table->timestamp('created_at')->useCurrent();
             $table->index('reporte_representativo');
         });
+        }
+        if (!Schema::hasTable('solucion_reporte')) {
         Schema::create('solucion_reporte', function (Blueprint $table) {
             $table->unsignedBigInteger('solucion_id');
             $table->integer('reporte_id');
@@ -28,6 +31,7 @@ return new class extends Migration
             $table->foreign('solucion_id')->references('id')->on('soluciones_documentadas')->cascadeOnDelete();
             $table->foreign('reporte_id')->references('idReporte')->on('reportes')->restrictOnDelete();
         });
+        }
     }
 
     public function down(): void
