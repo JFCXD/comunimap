@@ -5,6 +5,9 @@
 @include('plantillas.menu')
 <div class="page-wrapper">
 <main class="container-fluid py-3 cm-editor-pagina">
+    @if(session('success'))
+    <div class="alert alert-success" role="status">{{ session('success') }}</div>
+    @endif
     @if($errors->any())
     <div class="alert alert-danger">@foreach($errors->all() as $error)<div>{{ $error }}</div>@endforeach</div>
     @endif
@@ -53,10 +56,10 @@
 <section id="cmEditorCarta" class="cm-editor-dialog" aria-labelledby="cmEditorTitulo">
             <div class="cm-editor-topbar">
                 <div>
-                    <strong id="cmEditorTitulo">Editor visual de carta</strong>
-                    <div class="small">Edita directamente la carta. Selecciona texto para cambiar su formato y descarga el PDF al terminar.</div>
+                    <strong id="cmEditorTitulo">{{ !empty($documentoId) ? 'Continuar edición del borrador #'.$documentoId : 'Editor visual de carta' }}</strong>
+                    <div class="small">Edita directamente la carta. Selecciona texto para cambiar su formato. Guarda un borrador o emite la carta al finalizar.</div>
                 </div>
-                <button type="button" id="cmCerrarEditorCarta" class="btn btn-sm btn-outline-secondary">Volver al formulario</button>
+                <button type="button" id="cmCerrarEditorCarta" class="btn btn-sm btn-outline-secondary">{{ !empty($documentoId) ? 'Volver a Cartas' : 'Volver al formulario' }}</button>
             </div>
             <div class="cm-editor-herramientas" role="toolbar" aria-label="Herramientas de formato de Word">
                 <select id="cmEditorTamano" class="form-select form-select-sm cm-editor-select" aria-label="Tamaño de letra">
@@ -246,7 +249,13 @@ document.addEventListener('DOMContentLoaded', function () {
     cargarHoja(valoresCarta());
     guardarVersion();
     ultimoTextoActivo = null;
-    cerrarEditor.addEventListener('click', function () { window.history.back(); });
+    cerrarEditor.addEventListener('click', function () {
+        @if(!empty($documentoId))
+        window.location.href = @json(route('cartas.index'));
+        @else
+        window.history.back();
+        @endif
+    });
     ediciones.forEach(function (elemento) {
         elemento.addEventListener('focus', function () {
             if (elemento.isContentEditable) ultimoTextoActivo = elemento;
